@@ -2512,6 +2512,21 @@
             ctx.rect(0, zenithY, w, horizonY - zenithY);
             ctx.clip();
 
+            // 雨のときは空全体を雲で覆う
+            if (currentWeather.isRaining) {
+                const cloudGrad = ctx.createLinearGradient(0, zenithY, 0, horizonY);
+
+                cloudGrad.addColorStop(0, 'rgba(105, 115, 130, 0.78)');
+                cloudGrad.addColorStop(0.5, 'rgba(125, 135, 150, 0.68)');
+                cloudGrad.addColorStop(1, 'rgba(150, 155, 165, 0.55)');
+
+                ctx.globalAlpha = weatherOpacity;
+                ctx.fillStyle = cloudGrad;
+                ctx.fillRect(0, zenithY, w, horizonY - zenithY);
+                ctx.globalAlpha = 1;
+            }
+            
+
             // 昼夜に応じた雲の色調
             const cloudColor = sunAlt > 0
                 ? 'rgba(255, 255, 255,'
