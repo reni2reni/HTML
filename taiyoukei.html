@@ -594,12 +594,12 @@
 
             <div class="button-group primary-actions">
                 <button id="btnViewSpace" type="button">🪐 宇宙 3D</button>-
-                <button id="btnPrevDay">◀ 1日</button>
-                <button id="btnPrevHour">◀ 1時</button>[
+                <button id="btnPrevDay">◁ 1日</button>
+                <button id="btnPrevHour">◁ 1時</button>[
                 <button id="btnNow" style="background: #3c69a8;">現在</button>]
-                <button id="btnPlayPause">再生</button>
-                <button id="btnNextHour">1時 ▶</button>
-                <button id="btnNextDay">1日 ▶</button>
+                <button id="btnPlayPause" style="font-size: 24px; ">▶️</button>
+                <button id="btnNextHour">1時 ▷</button>
+                <button id="btnNextDay">1日 ▷</button>
                 <div class="speed-control">
                     <span id="speedLabel">速度:</span>
                     <input type="range" id="speedSlider" min="1" max="24" step="1" value="1">
@@ -1514,8 +1514,8 @@
 
         const I18N = {
             ja: {
-                pageTitle: '太陽系 3D ＆ プラネタリウム・シミュレーター', prevDay: '◀ 1日', prevHour: '◀ 1時', now: '現在', play: '再生', stop: '停止',
-                nextHour: '1時 ▶', nextDay: '1日 ▶', east: '東の空', south: '南の空', west: '西の空', north: '北の空', zenith: '真上', zenithTop: '天頂（真上）', backFromZenith: '{dir}表示', space: '🪐 宇宙 3D', spaceMode: '宇宙 3D', backToSky: '星空（{dir}）',
+                pageTitle: '太陽系 3D ＆ プラネタリウム・シミュレーター', prevDay: '◁ 1日', prevHour: '◁ 1時', now: '現在', play: '▶️', stop: '⏸️',
+                nextHour: '1時 ▷', nextDay: '1日 ▷', east: '東の空', south: '南の空', west: '西の空', north: '北の空', zenith: '真上', zenithTop: '天頂（真上）', backFromZenith: '{dir}表示', space: '🪐 宇宙 3D', spaceMode: '宇宙 3D', backToSky: '星空（{dir}）',
                 location: '観測場所', japanGroup: '日本・47都道府県（県庁所在地）', worldGroup: '海外の主な首都（国名｜都市名）',
                 constellationOn: '✨ 星座: ON', constellationOff: '✨ 星座: OFF',
                 labelsOn: '🏷️ 名称: ON', labelsOff: '🏷️ 名称: OFF',
@@ -1533,7 +1533,7 @@
                 customRegionValidation: '地域名を入力し、緯度（-90〜90）と経度（-180〜180）を正しく入力してください。'
             },
             en: {
-                pageTitle: 'Solar System 3D & Planetarium Simulator', prevDay: '◀ 1 d', prevHour: '◀ 1 h', now: 'Now', play: 'Play', stop: 'Pause',
+                pageTitle: 'Solar System 3D & Planetarium Simulator', prevDay: '◀ 1 d', prevHour: '◀ 1 h', now: 'Now', play: '▶️', stop: '⏸️',
                 nextHour: '1 h ▶', nextDay: '1 d ▶', east: 'East Sky', south: 'South Sky', west: 'West Sky', north: 'North Sky', zenith: 'Zenith', zenithTop: 'Zenith (Overhead)', backFromZenith: 'Show {dir}', space: '🪐 3D Space', spaceMode: '3D Space', backToSky: 'Sky ({dir})',
                 location: 'Observation location', japanGroup: 'Japan · 47 prefectural capitals', worldGroup: 'World capitals (country · city)',
                 constellationOn: '✨ Constellations: ON', constellationOff: '✨ Constellations: OFF',
