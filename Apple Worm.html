@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Apple Worm - Complete Edition</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1b2838 0%, #0d131a 100%);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            border-radius: 12px;
+            overflow: hidden;
+            background: #7ec0ee;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .header {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            font-size: 16px;
+        }
+
+        #editor-palette {
+            display: none;
+            gap: 5px;
+            margin-top: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 6px 12px;
+            border-radius: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            max-width: 640px;
+        }
+
+        .chip-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid transparent;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .chip-btn.active {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.3);
+        }
+
+        #controller-panel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #dpad {
+            display: grid;
+            grid-template-columns: repeat(3, 42px);
+            grid-template-rows: repeat(3, 42px);
+            gap: 3px;
+        }
+
+        .d-btn {
+            background: rgba(255, 255, 255, 0.18);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 10px;
+            color: white;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .d-btn:active {
+            background: #2ed573;
+        }
+
+        #action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .c-btn {
+            background: rgba(255, 255, 255, 0.85);
+            color: #222;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .c-btn:active {
+            transform: translateY(1px);
+        }
+
+        .edit-btn {
+            background: #5352ed;
+            color: #fff;
+        }
+
+        .undo-btn {
+            background: #ffa502;
+            color: #fff;
+        }
+
+        .reset-btn {
+            background: #ff4757;
+            color: #fff;
+        }
+
+        .nav-btn {
+            background: #70a1ff;
+            color: #fff;
+        }
+
+        #clear-modal {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        #clear-modal h2 {
+            font-size: 32px;
+            color: #ffd700;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="game-container">
+        <div class="header">
+            <div id="level-display">LEVEL 1</div>
+        </div>
+
+        <!-- 640 x 480 キャンバス -->
+        <canvas id="gameCanvas" width="640" height="480"></canvas>
+
+        <div id="clear-modal">
+            <h2>STAGE CLEAR! 🎉</h2>
+            <button class="c-btn nav-btn" style="padding: 10px 24px; font-size: 16px;" onclick="nextLevel()">次のレベルへ
+                ➔</button>
+        </div>
+    </div>
+
+    <!-- コード入出力用モーダル -->
+    <div id="io-modal"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:999; align-items:center; justify-content:center; flex-direction:column;">
+        <div
+            style="background:#2f3542; padding:20px; border-radius:12px; width:520px; display:flex; flex-direction:column; gap:10px;">
+            <h3 id="io-title" style="color:#ffd700;">マップコード</h3>
+            <textarea id="io-textarea"
+                style="width:100%; height:220px; background:#1e272e; color:#7bed9f; font-family:monospace; padding:10px; border-radius:6px; border:1px solid #57606f;"></textarea>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button class="btn" id="io-action-btn" onclick="executeImport()">読み込み適用</button>
+                <button class="btn" onclick="document.getElementById('io-modal').style.display='none'">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- マップエディタパレット -->
+    <div id="editor-palette">
+        <button class="chip-btn active" onclick="setChip('#', this)">🟫 地面</button>
+        <button class="chip-btn" onclick="setChip('S', this)">⬜ 石</button>
+        <button class="chip-btn" onclick="setChip('X', this)">⚙️ 丸ノコ</button>
+        <button class="chip-btn" onclick="setChip('^', this)">▲ 針上</button>
+        <button class="chip-btn" onclick="setChip('v', this)">▼ 針下</button>
+        <button class="chip-btn" onclick="setChip('<', this)">◀ 針左</button>
+        <button class="chip-btn" onclick="setChip('>', this)">▶ 針右</button>
+        <button class="chip-btn" onclick="setChip('A', this)">🍎 リンゴ</button>
+        <button class="chip-btn" onclick="setChip('P', this)">🌀 ゴール</button>
+        <button class="chip-btn" onclick="setChip('W', this)">🐛 ワーム</button>
+        <button class="chip-btn" onclick="setChip('.', this)">🧹 消去</button>
+        <button class="chip-btn" style="background:#3742fa;" onclick="addNewCustomMap()">➕ 新規追加</button>
+        <button class="chip-btn" style="background:#2ed573;" onclick="saveCustomMap()">💾 保存</button>
+        <!-- ★ 追加：書き出し＆読み込みボタン -->
+        <button class="chip-btn" style="background:#e056fd;" onclick="exportMapCode()">📋 書出</button>
+        <button class="chip-btn" style="background:#f0932b;" onclick="importMapCode()">📥 読込</button>
+        <button class="chip-btn" style="background:#ff4757;" onclick="clearCustomMap()">全消去</button>
+    </div>
+
+    <!-- コントローラー（全UIを集約） -->
+    <div id="controller-panel">
+        <div id="dpad">
+            <div></div>
+            <div class="d-btn" onpointerdown="handleInput(0, -1)">▲</div>
+            <div></div>
+            <div class="d-btn" onpointerdown="handleInput(-1, 0)">◀</div>
+            <div class="d-btn" style="background:transparent; border:none; pointer-events:none;"></div>
+            <div class="d-btn" onpointerdown="handleInput(1, 0)">▶</div>
+            <div></div>
+            <div class="d-btn" onpointerdown="handleInput(0, 1)">▼</div>
+            <div></div>
+        </div>
+        <div id="action-buttons">
+            <div class="btn-row">
+                <button class="c-btn edit-btn" id="edit-toggle-btn" onpointerdown="toggleEditMode()">🛠️ エディタ</button>
+                <button class="c-btn undo-btn" onpointerdown="undo()">↶ 戻す (B/Z)</button>
+                <button class="c-btn reset-btn" onpointerdown="restartLevel()">↻ 最初から (Y/R)</button>
+            </div>
+            <div class="btn-row">
+                <button class="c-btn nav-btn" onpointerdown="prevLevel()">◀ 前の面 (L/U)</button>
+                <button class="c-btn nav-btn" onpointerdown="nextLevel()">次の面 (R/I) ▶</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ============================================================
+           効果音エンジン (Web Audio API)
+        ============================================================ */
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, type, duration, startGain = 0.15) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(startGain, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        }
+        const sfx = {
+            step: () => playTone(300, 'triangle', 0.06, 0.08),
+            eat: () => { playTone(550, 'sine', 0.12, 0.2); setTimeout(() => playTone(880, 'triangle', 0.18, 0.2), 60); },
+            fall: () => playTone(120, 'sawtooth', 0.1, 0.1),
+            crush: () => playTone(80, 'square', 0.25, 0.25),
+            win: () => [440, 554, 659, 880].forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.3, 0.2), i * 100)),
+            die: () => playTone(160, 'sawtooth', 0.35, 0.3)
+        };
+
+        /* ============================================================
+           ステージ管理・保存・復元システム（一元同期）
+        ============================================================ */
+        const TILE_SIZE = 40;
+        const gridCols = 16;
+        const gridRows = 12;
+        const STORAGE_KEY = 'apple_worm_unified_data_v6';
+
+        const DEFAULT_MAPS = [
+                {
+                    map: [
+                        "................",
+                        "................",
+                        "................",
+                        "................",
+                        "................",
+                        ".....W.##...P...",
+                        "...##########...",
+                        "................",
+                        "................",
+                        "................",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        "................",
+                        "................",
+                        "...........P....",
+                        "....A...####....",
+                        "........#.......",
+                        ".....W..#.......",
+                        ".....####.......",
+                        "................",
+                        "................",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        "................",
+                        "................",
+                        "................",
+                        "................",
+                        "........A.......",
+                        "......W.....P...",
+                        "....###...###...",
+                        "................",
+                        "................",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        "................",
+                        "................",
+                        "............P...",
+                        ".......##.###...",
+                        ".......#A.#.....",
+                        ".....W....#.....",
+                        "...######.#.....",
+                        "........###.....",
+                        "................",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        "................",
+                        "................",
+                        ".....W..........",
+                        ".....##.##.#....",
+                        ".....#...#.P....",
+                        ".....#.A.#......",
+                        ".....#####......",
+                        "................",
+                        "................",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        ".............P..",
+                        "................",
+                        ".....W..........",
+                        "...###.###.#....",
+                        ".....#..A..#....",
+                        ".....#.###.#....",
+                        ".....###.#.#....",
+                        ".........###....",
+                        "................",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        "................",
+                        ".....W......P...",
+                        "...####.....#...",
+                        "...#..#.....#...",
+                        "...#....A...#...",
+                        "...####...###...",
+                        "................",
+                        "................",
+                        "................",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        "................",
+                        "................",
+                        ".....#..##......",
+                        ".....#..........",
+                        ".....#.A.#......",
+                        ".....W..........",
+                        "..#####...####..",
+                        ".............P..",
+                        "................",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        "................",
+                        "...........P....",
+                        ".......#####....",
+                        ".......#A.#.....",
+                        ".....W....#.....",
+                        "....####..#.....",
+                        ".......####.....",
+                        "................",
+                        "................",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        "................",
+                        "........##......",
+                        "........##......",
+                        "......W.##.P....",
+                        "....###.##.#....",
+                        ".....#..#..#....",
+                        ".....#.....#....",
+                        ".....#.A####....",
+                        ".....##.#.......",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        "................",
+                        "................",
+                        "......#W..P.....",
+                        "................",
+                        "................",
+                        ".......S........",
+                        "....#######.....",
+                        "................",
+                        "................",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 0, y: 1 }
+                },
+                {
+                    map: [
+                        "................",
+                        "............P...",
+                        "........#.......",
+                        "......#A#.......",
+                        "................",
+                        "......W...S.....",
+                        "....###.###.....",
+                        "......###.......",
+                        "................",
+                        "................",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        "................",
+                        ".......S........",
+                        ".......#........",
+                        ".......#....P...",
+                        ".......#A.......",
+                        ".......W........",
+                        ".....#####......",
+                        "................",
+                        "................",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        "................",
+                        "......W.........",
+                        "...####.#.##....",
+                        "......#.#.#P....",
+                        "......#.S.#.....",
+                        "......#.A.#.....",
+                        "......#.###.....",
+                        "......###.......",
+                        "................",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        "................",
+                        ".......#........",
+                        ".......S........",
+                        "......#A#.......",
+                        "......W.........",
+                        "......####......",
+                        ".......P........",
+                        "................",
+                        "..........#.....",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        ".............P..",
+                        "...A............",
+                        ".......S.#......",
+                        ".......###......",
+                        ".....WS.........",
+                        "...#######.###..",
+                        ".........###....",
+                        "................",
+                        "................",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        ".......#####....",
+                        "...........#....",
+                        ".........S.#....",
+                        "....W...A###....",
+                        "....S....#......",
+                        "....###..#......",
+                        "........##......",
+                        "............P...",
+                        "......#.........",
+                        "......###.......",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        "................",
+                        ".....W..........",
+                        "...####.####....",
+                        "....###.###P....",
+                        "....#.S...#.....",
+                        "....#.A.S.#.....",
+                        "....##..###.....",
+                        ".....####.......",
+                        "................",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        "................",
+                        "................",
+                        "....W...........",
+                        "....#..A..#.....",
+                        "....#.....S...P.",
+                        "....#.....S.....",
+                        "....##....#.....",
+                        ".........###....",
+                        "................",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                },
+                {
+                    map: [
+                        "................",
+                        "......#.........",
+                        "......#.........",
+                        "......#.........",
+                        "....S.#.S....P..",
+                        "....#####....#..",
+                        "...A.........#..",
+                        ".......W.....#..",
+                        "..#.#######..#..",
+                        "..###.....####..",
+                        "................",
+                        "................"
+                    ],
+                    length: 3, dir: { x: 1, y: 0 }
+                }
+            ];
+
+        function parseRaw(raw) {
+            const tiles = Array.from({ length: gridRows }, () => Array(gridCols).fill(0));
+            const apples = [];
+            const stones = [];
+            let portal = { x: 14, y: 3 };
+            let worm = [];
+
+            for (let y = 0; y < gridRows; y++) {
+                for (let x = 0; x < gridCols; x++) {
+                    const ch = (raw.map[y] && raw.map[y][x]) ? raw.map[y][x] : '.';
+                    if (ch === '#') tiles[y][x] = 1;
+                    else if (ch === 'X') tiles[y][x] = 2;
+                    else if (ch === '^') tiles[y][x] = 3;
+                    else if (ch === 'v') tiles[y][x] = 4;
+                    else if (ch === '<') tiles[y][x] = 5;
+                    else if (ch === '>') tiles[y][x] = 6;
+                    else if (ch === 'S') stones.push({ x, y });
+                    else if (ch === 'A') apples.push({ x, y });
+                    else if (ch === 'P') portal = { x, y };
+                    else if (ch === 'W') {
+                        worm = [];
+                        for (let len = 0; len < (raw.length || 3); len++) worm.push({ x: x - len, y });
+                    }
+                }
+            }
+            if (worm.length === 0) worm = [{ x: 3, y: 3 }, { x: 2, y: 3 }, { x: 1, y: 3 }];
+            return { tiles, apples, stones, portal, worm, wormDir: raw.dir || { x: 1, y: 0 } };
+        }
+
+        let STAGES = [];
+        function loadAllStages() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    STAGES = JSON.parse(saved);
+                } catch (e) {
+                    STAGES = DEFAULT_MAPS.map(parseRaw);
+                }
+            } else {
+                STAGES = DEFAULT_MAPS.map(parseRaw);
+            }
+        }
+        loadAllStages();
+
+        let currentLevelIndex = 0;
+        let tiles = [];
+        let apples = [];
+        let stones = [];
+        let portal = { x: 0, y: 0 };
+        let worm = [];
+        let wormDir = { x: 1, y: 0 };
+        let history = [];
+        let isAnimating = false;
+        let isClear = false;
+        let isSucking = false;
+        let portalAngle = 0;
+        let sawAngle = 0;
+
+        function loadLevel(idx) {
+            if (STAGES.length === 0) loadAllStages();
+            currentLevelIndex = (idx + STAGES.length) % STAGES.length;
+
+            const data = STAGES[currentLevelIndex];
+            document.getElementById('level-display').innerText = `LEVEL ${currentLevelIndex + 1} / ${STAGES.length}`;
+            document.getElementById('clear-modal').style.display = 'none';
+
+            tiles = JSON.parse(JSON.stringify(data.tiles));
+            apples = JSON.parse(JSON.stringify(data.apples));
+            stones = JSON.parse(JSON.stringify(data.stones));
+            portal = { ...data.portal };
+            worm = JSON.parse(JSON.stringify(data.worm));
+            wormDir = { ...data.wormDir };
+
+            history = [];
+            isClear = false;
+            isSucking = false;
+            isAnimating = false;
+            draw();
+        }
+
+        function saveCustomMap() {
+            STAGES[currentLevelIndex] = {
+                tiles: JSON.parse(JSON.stringify(tiles)),
+                apples: JSON.parse(JSON.stringify(apples)),
+                stones: JSON.parse(JSON.stringify(stones)),
+                portal: { ...portal },
+                worm: JSON.parse(JSON.stringify(worm)),
+                wormDir: { ...wormDir }
+            };
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(STAGES));
+                alert(`LEVEL ${currentLevelIndex + 1} を保存しました！再起動してもこの状態から始まります。`);
+            } catch (e) {
+                alert("保存に失敗しました: " + e.message);
+            }
+        }
+
+        function addNewCustomMap() {
+            const emptyStage = parseRaw({
+                map: [
+                    "................",
+                    "................",
+                    "....W........P..",
+                    "................",
+                    "................",
+                    "................",
+                    "................",
+                    "................",
+                    "................",
+                    "................",
+                    "................",
+                    "................"
+                ],
+                length: 3, dir: { x: 1, y: 0 }
+            });
+            STAGES.push(emptyStage);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(STAGES));
+            loadLevel(STAGES.length - 1);
+            alert(`LEVEL ${STAGES.length} を新規作成しました！`);
+        }
+
+        /* ============================================================
+       📋 マップコードの書き出し（エクスポート）＆ 読み込み（インポート）
+    ============================================================ */
+            // 現在の全ステージを指定された形式のコード文字列に変換して出力
+            function exportMapCode() {
+                // 現在編集中のステージを最新化
+                STAGES[currentLevelIndex] = {
+                    tiles: JSON.parse(JSON.stringify(tiles)),
+                    apples: JSON.parse(JSON.stringify(apples)),
+                    stones: JSON.parse(JSON.stringify(stones)),
+                    portal: { ...portal },
+                    worm: JSON.parse(JSON.stringify(worm)),
+                    wormDir: { ...wormDir }
+                };
+
+                let output = "const DEFAULT_MAPS = [\n";
+                STAGES.forEach((stage, idx) => {
+                    output += "    {\n        map: [\n";
+                    for (let y = 0; y < gridRows; y++) {
+                        let row = "            \"";
+                        for (let x = 0; x < gridCols; x++) {
+                            if (stage.worm[0] && stage.worm[0].x === x && stage.worm[0].y === y) row += 'W';
+                            else if (stage.apples.some(a => a.x === x && a.y === y)) row += 'A';
+                            else if (stage.stones.some(s => s.x === x && s.y === y)) row += 'S';
+                            else if (stage.portal.x === x && stage.portal.y === y) row += 'P';
+                            else {
+                                const t = stage.tiles[y][x];
+                                if (t === 1) row += '#';
+                                else if (t === 2) row += 'X';
+                                else if (t === 3) row += '^';
+                                else if (t === 4) row += 'v';
+                                else if (t === 5) row += '<';
+                                else if (t === 6) row += '>';
+                                else row += '.';
+                            }
+                        }
+                        row += (y < gridRows - 1) ? "\",\n" : "\"\n";
+                        output += row;
+                    }
+                    output += `        ],\n        length: ${stage.worm.length}, dir: { x: ${stage.wormDir.x}, y: ${stage.wormDir.y} }\n    }${idx < STAGES.length - 1 ? ',' : ''}\n`;
+                });
+                output += "];";
+
+                // モーダルに表示＆自動クリップボードコピー
+                document.getElementById('io-title').innerText = "📋 マップコードの書き出し (コピー完了)";
+                document.getElementById('io-textarea').value = output;
+                document.getElementById('io-action-btn').style.display = "none";
+                document.getElementById('io-modal').style.display = "flex";
+                navigator.clipboard.writeText(output).catch(() => { });
+            }
+
+            // 読み込みダイアログを開く
+            function importMapCode() {
+                document.getElementById('io-title').innerText = "📥 マップコードの読み込み (貼り付けてください)";
+                document.getElementById('io-textarea').value = "";
+                document.getElementById('io-action-btn').style.display = "block";
+                document.getElementById('io-modal').style.display = "flex";
+            }
+
+            // 貼り付けられたコードを解析して読み込む
+            function executeImport() {
+                const text = document.getElementById('io-textarea').value;
+                try {
+                    // map: [ ... ] の配列部分を正規表現で抽出
+                    const mapMatches = [...text.matchAll(/map:\s*\[([\s\S]*?)\]/g)];
+                    if (mapMatches.length === 0) throw new Error("有効なマップデータが見つかりません。");
+
+                    const newStages = [];
+                    for (let match of mapMatches) {
+                        const rows = match[1].match(/"([^"]+)"/g).map(s => s.replace(/"/g, ''));
+                        // length 抽出
+                        const lenMatch = text.slice(match.index).match(/length:\s*(\d+)/);
+                        const length = lenMatch ? parseInt(lenMatch[1]) : 3;
+                        newStages.push(parseRaw({ map: rows, length: length, dir: { x: 1, y: 0 } }));
+                    }
+
+                    STAGES = newStages;
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(STAGES));
+                    loadLevel(0);
+                    document.getElementById('io-modal').style.display = 'none';
+                    alert(`${STAGES.length} 個のステージを正常に読み込みました！`);
+                } catch (e) {
+                    alert("読み込みエラー: コードの形式が正しくありません。\n" + e.message);
+                }
+            }
+
+            
+        function restartLevel() { loadLevel(currentLevelIndex); }
+        function nextLevel() { loadLevel(currentLevelIndex + 1); }
+        function prevLevel() { loadLevel(currentLevelIndex - 1); }
+
+        /* ============================================================
+           物理＆アクションエンジン（剛体物理・石押し・トゲ破壊）
+        ============================================================ */
+        function isSolid(x, y) {
+            if (y < 0 || y >= gridRows || x < 0 || x >= gridCols) return true;
+            return tiles[y][x] === 1;
+        }
+        function isDanger(x, y) {
+            if (y < 0 || y >= gridRows || x < 0 || x >= gridCols) return false;
+            return tiles[y][x] >= 2 && tiles[y][x] <= 6;
+        }
+        function isStoneAt(x, y) {
+            return stones.find(s => s.x === x && s.y === y);
+        }
+        function isWormSupported() {
+                for (let part of worm) {
+                    const by = part.y + 1;
+                    if (by < gridRows) {
+                        // 地面または石がある
+                        if (tiles[by][part.x] === 1 || isStoneAt(part.x, by)) return true;
+
+                        // ★ 下にリンゴがある場合：頭が真下（口が下）を向いていないなら、リンゴが足場になって支える！
+                        const isHead = (part === worm[0]);
+                        const isMouthFacingDown = (isHead && wormDir.x === 0 && wormDir.y === 1);
+                        if (!isMouthFacingDown && apples.some(a => a.x === part.x && a.y === by)) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+        function saveState() {
+            history.push({
+                tiles: JSON.parse(JSON.stringify(tiles)),
+                apples: JSON.parse(JSON.stringify(apples)),
+                stones: JSON.parse(JSON.stringify(stones)),
+                worm: JSON.parse(JSON.stringify(worm)),
+                wormDir: { ...wormDir }
+            });
+        }
+
+        function undo() {
+            if (isEditMode) {
+                editorUndo();
+                return;
+            }
+            if (isAnimating || history.length === 0 || isClear) return;
+            const last = history.pop();
+            tiles = last.tiles; apples = last.apples; stones = last.stones;
+            worm = last.worm; wormDir = last.wormDir;
+            sfx.step(); draw();
+        }
+
+        async function handleInput(dx, dy) {
+            if (isClear) { nextLevel(); return; }
+            if (isAnimating) return;
+
+            if (worm.length > 1 && worm[0].x + dx === worm[1].x && worm[0].y + dy === worm[1].y) return;
+
+            const nextHead = { x: worm[0].x + dx, y: worm[0].y + dy };
+            if (isSolid(nextHead.x, nextHead.y)) return;
+
+            // 石ブロックを押す判定
+            const pushedStone = isStoneAt(nextHead.x, nextHead.y);
+            if (pushedStone) {
+                if (dx === 0) return; // 垂直には押せない
+                const stoneTargetX = pushedStone.x + dx;
+                const stoneTargetY = pushedStone.y;
+
+                if (isSolid(stoneTargetX, stoneTargetY) || isStoneAt(stoneTargetX, stoneTargetY)) return;
+                if (worm.some(p => p.x === stoneTargetX && p.y === stoneTargetY)) return;
+                if (apples.some(a => a.x === stoneTargetX && a.y === stoneTargetY)) return;
+
+                saveState();
+                pushedStone.x = stoneTargetX;
+            } else {
+                // 自分の体との衝突チェック
+                for (let i = 0; i < worm.length - 1; i++) {
+                    if (worm[i].x === nextHead.x && worm[i].y === nextHead.y) return;
+                }
+                saveState();
+            }
+
+            // ★ 押した方向に向きを更新（赤い口が左を向くので、左にあるリンゴを正面から食べられる！）
+            wormDir = { x: dx, y: dy };
+
+            const appleIdx = apples.findIndex(a => a.x === nextHead.x && a.y === nextHead.y);
+            const ateApple = (appleIdx !== -1);
+
+            if (ateApple) { apples.splice(appleIdx, 1); sfx.eat(); } else { sfx.step(); }
+
+            worm.unshift(nextHead);
+            if (!ateApple) worm.pop();
+
+            draw();
+
+            // ★★★ 最優先判定：頭がゴールに届いたなら、落ちる前に即座に吸い込まれてクリア！ ★★★
+            if (worm[0].x === portal.x && worm[0].y === portal.y) {
+                checkWinCondition();
+                return; // 重力落下をキャンセルして吸い込み演出へ
+            }
+
+            // ゴールに入っていない場合のみ、重力落下を実行
+            isAnimating = true;
+            await applyAllPhysics();
+            isAnimating = false;
+
+            // トゲ・丸ノコ即死チェック
+            if (worm.some(p => isDanger(p.x, p.y))) {
+                sfx.die();
+                await new Promise(r => setTimeout(r, 300));
+                restartLevel();
+                return;
+            }
+
+            checkWinCondition();
+        }
+
+        async function applyAllPhysics() {
+                let moved = true;
+                while (moved) {
+                    moved = false;
+
+                    // ① 石ブロックの落下（リンゴの上で着地）
+                    for (let stone of stones) {
+                        const underY = stone.y + 1;
+                        const hasAppleUnder = apples.some(a => a.x === stone.x && a.y === underY);
+
+                        if (underY < gridRows && !isSolid(stone.x, underY) && !isStoneAt(stone.x, underY) && !worm.some(p => p.x === stone.x && p.y === underY) && !hasAppleUnder) {
+                            if (tiles[underY][stone.x] >= 3 && tiles[underY][stone.x] <= 6) {
+                                tiles[underY][stone.x] = 0;
+                                sfx.crush();
+                            }
+                            stone.y += 1;
+                            moved = true;
+                        }
+                    }
+
+                    // ② ワームの落下処理
+                    if (!isWormSupported()) {
+                        for (let part of worm) part.y += 1;
+                        sfx.fall();
+                        moved = true;
+
+                        // ★ 口が下を向いている（wormDir.y === 1）時だけ、落ちてリンゴを食べる！
+                        if (wormDir.y === 1) {
+                            const appleIdx = apples.findIndex(a => a.x === worm[0].x && a.y === worm[0].y);
+                            if (appleIdx !== -1) {
+                                apples.splice(appleIdx, 1);
+                                sfx.eat();
+                                const tail = worm[worm.length - 1];
+                                worm.push({ x: tail.x, y: tail.y });
+                            }
+                        }
+                    }
+
+                    if (moved) {
+                        draw();
+                        await new Promise(r => setTimeout(r, 90));
+                    }
+
+                    // 画面外落下判定
+                    if (worm.some(p => p.y >= gridRows)) {
+                        sfx.die();
+                        await new Promise(r => setTimeout(r, 200)); // 即座にやり直す
+                        restartLevel();
+                        return;
+                    }
+                }
+            }
+
+        // クリア判定＆リアル吸い込み演出（頭が消えて最後にお尻が消える）
+        async function checkWinCondition() {
+            if (worm.length > 0 && worm[0].x === portal.x && worm[0].y === portal.y) {
+                isAnimating = true;
+                isSucking = true; // 頭（目玉）を非表示にして穴に突入
+
+                while (worm.length > 0) {
+                    await new Promise(r => setTimeout(r, 110));
+                    sfx.step();
+                    for (let i = worm.length - 1; i > 0; i--) {
+                        worm[i] = { x: worm[i - 1].x, y: worm[i - 1].y };
+                    }
+                    worm.shift();
+                    draw();
+                }
+
+                await new Promise(r => setTimeout(r, 200));
+                isSucking = false; isClear = true; isAnimating = false;
+                sfx.win();
+                document.getElementById('clear-modal').style.display = 'flex';
+            }
+        }
+
+        /* ============================================================
+           キャンバス描画（角丸ワーム・スプライト描画）
+        ============================================================ */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            skyGrad.addColorStop(0, '#68b8f8'); skyGrad.addColorStop(1, '#a6daf8');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drawTerrainAndTraps();
+            drawPortal();
+            for (let apple of apples) drawApple(apple.x * TILE_SIZE, apple.y * TILE_SIZE);
+            for (let stone of stones) drawStone(stone.x * TILE_SIZE, stone.y * TILE_SIZE);
+            drawWorm();
+
+            if (isEditMode) {
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+                ctx.lineWidth = 1;
+                for (let x = 0; x <= canvas.width; x += TILE_SIZE) {
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+                }
+                for (let y = 0; y <= canvas.height; y += TILE_SIZE) {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+                }
+            }
+        }
+
+        function drawTerrainAndTraps() {
+            for (let y = 0; y < gridRows; y++) {
+                for (let x = 0; x < gridCols; x++) {
+                    const t = tiles[y][x];
+                    const px = x * TILE_SIZE; const py = y * TILE_SIZE;
+
+                    if (t === 1) { // 地面
+                        ctx.fillStyle = '#654321'; ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#4a2f13'; ctx.lineWidth = 1; ctx.strokeRect(px, py, TILE_SIZE, TILE_SIZE);
+                        if (y === 0 || tiles[y - 1][x] === 0) {
+                            ctx.fillStyle = '#48b32d'; ctx.fillRect(px, py, TILE_SIZE, 8);
+                            ctx.fillStyle = '#2f7c1d'; ctx.fillRect(px, py + 8, TILE_SIZE, 2);
+                        }
+                    } else if (t === 2) { // 丸ノコ（適度な回転速度）
+                        ctx.save();
+                        ctx.translate(px + TILE_SIZE / 2, py + TILE_SIZE / 2);
+                        ctx.rotate(sawAngle);
+                        ctx.fillStyle = '#dcdde1'; ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+                        ctx.strokeStyle = '#718093'; ctx.lineWidth = 2;
+                        for (let i = 0; i < 8; i++) {
+                            ctx.rotate(Math.PI / 4);
+                            ctx.beginPath(); ctx.moveTo(12, -4); ctx.lineTo(19, 0); ctx.lineTo(12, 4); ctx.fill();
+                        }
+                        ctx.fillStyle = '#2f3640'; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+                        ctx.restore();
+                    } else if (t >= 3 && t <= 6) { // トゲ4方向
+                        ctx.fillStyle = '#7f8c8d'; ctx.strokeStyle = '#2c3e50'; ctx.lineWidth = 1.5;
+                        for (let i = 0; i < 3; i++) {
+                            ctx.beginPath();
+                            if (t === 3) { ctx.moveTo(px + i * 13, py + TILE_SIZE); ctx.lineTo(px + i * 13 + 6.5, py + 12); ctx.lineTo(px + (i + 1) * 13, py + TILE_SIZE); }
+                            else if (t === 4) { ctx.moveTo(px + i * 13, py); ctx.lineTo(px + i * 13 + 6.5, py + TILE_SIZE - 12); ctx.lineTo(px + (i + 1) * 13, py); }
+                            else if (t === 5) { ctx.moveTo(px + TILE_SIZE, py + i * 13); ctx.lineTo(px + 12, py + i * 13 + 6.5); ctx.lineTo(px + TILE_SIZE, py + (i + 1) * 13); }
+                            else if (t === 6) { ctx.moveTo(px, py + i * 13); ctx.lineTo(px + TILE_SIZE - 12, py + i * 13 + 6.5); ctx.lineTo(px, py + (i + 1) * 13); }
+                            ctx.fill(); ctx.stroke();
+                        }
+                    }
+                }
+            }
+        }
+
+        function drawStone(px, py) {
+            ctx.fillStyle = '#95a5a6'; ctx.strokeStyle = '#7f8c8d'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.roundRect(px + 2, py + 2, TILE_SIZE - 4, TILE_SIZE - 4, 8); ctx.fill(); ctx.stroke();
+            ctx.strokeStyle = '#bdc3c7'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(px + 8, py + 10); ctx.lineTo(px + 18, py + 16); ctx.lineTo(px + 28, py + 12); ctx.stroke();
+        }
+
+        function drawPortal() {
+            const cx = portal.x * TILE_SIZE + TILE_SIZE / 2;
+            const cy = portal.y * TILE_SIZE + TILE_SIZE / 2;
+            ctx.save(); ctx.translate(cx, cy); ctx.rotate(portalAngle);
+            const grad = ctx.createRadialGradient(0, 0, 4, 0, 0, TILE_SIZE * 0.55);
+            grad.addColorStop(0, '#10002b'); grad.addColorStop(0.5, '#7b2cbf'); grad.addColorStop(1, 'transparent');
+            ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(0, 0, TILE_SIZE * 0.55, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#e0aaff'; ctx.lineWidth = 3; ctx.beginPath();
+            for (let i = 0; i < 20; i++) {
+                const a = 0.35 * i;
+                const x = (1 + 0.9 * a) * Math.cos(a); const y = (1 + 0.9 * a) * Math.sin(a);
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.stroke(); ctx.restore();
+        }
+
+        function drawApple(px, py) {
+            const cx = px + TILE_SIZE / 2; const cy = py + TILE_SIZE / 2 + 2;
+            ctx.fillStyle = '#e63946';
+            ctx.beginPath(); ctx.arc(cx - 5, cy, 11, 0, Math.PI * 2); ctx.arc(cx + 5, cy, 11, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.beginPath(); ctx.arc(cx - 6, cy - 4, 3, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#4a2810'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(cx, cy - 8); ctx.quadraticCurveTo(cx - 2, cy - 16, cx + 4, cy - 15); ctx.stroke();
+            ctx.fillStyle = '#52b788'; ctx.beginPath(); ctx.ellipse(cx + 6, cy - 13, 5, 2.5, 0.4, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // 隙間なく一体化してつながる角丸四角のワーム描画
+        function drawWorm() {
+            const pad = 3; const size = TILE_SIZE - pad * 2; const round = 8;
+            ctx.fillStyle = '#3db82a';
+            for (let i = 0; i < worm.length - 1; i++) {
+                const cur = worm[i]; const next = worm[i + 1];
+                const minX = Math.min(cur.x, next.x) * TILE_SIZE + pad;
+                const minY = Math.min(cur.y, next.y) * TILE_SIZE + pad;
+                const w = (Math.abs(cur.x - next.x) + 1) * TILE_SIZE - pad * 2;
+                const h = (Math.abs(cur.y - next.y) + 1) * TILE_SIZE - pad * 2;
+                ctx.beginPath(); ctx.roundRect(minX, minY, w, h, round); ctx.fill();
+            }
+            for (let i = worm.length - 1; i >= 0; i--) {
+                const part = worm[i];
+                const px = part.x * TILE_SIZE + pad; const py = part.y * TILE_SIZE + pad;
+                ctx.fillStyle = (i % 2 === 0) ? '#55a630' : '#3db82a';
+                ctx.beginPath(); ctx.roundRect(px, py, size, size, round); ctx.fill();
+
+                // 頭部（目玉と視線）
+                if (i === 0 && !isSucking) {
+                    const cx = part.x * TILE_SIZE + TILE_SIZE / 2;
+                    const cy = part.y * TILE_SIZE + TILE_SIZE / 2;
+
+                    // ★ 目を少し後ろ（中央寄り）にずらす (eyeForward を 6 から 1 に変更)
+                    const eyeForward = 1;
+                    const eyeSide = 7;
+                    const ex1 = cx + wormDir.x * eyeForward - wormDir.y * eyeSide;
+                    const ey1 = cy + wormDir.y * eyeForward + wormDir.x * eyeSide;
+                    const ex2 = cx + wormDir.x * eyeForward + wormDir.y * eyeSide;
+                    const ey2 = cy + wormDir.y * eyeForward - wormDir.x * eyeSide;
+
+                    // 白目
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath(); ctx.arc(ex1, ey1, 5, 0, Math.PI * 2); ctx.arc(ex2, ey2, 5, 0, Math.PI * 2); ctx.fill();
+                    // 黒目 (正面を見る)
+                    ctx.fillStyle = '#111';
+                    ctx.beginPath(); ctx.arc(ex1 + wormDir.x * 2, ey1 + wormDir.y * 2, 2.5, 0, Math.PI * 2); ctx.arc(ex2 + wormDir.x * 2, ey2 + wormDir.y * 2, 2.5, 0, Math.PI * 2); ctx.fill();
+
+                    // ★ 頭の先端に「赤い口」を描画（この口の正面でのみリンゴを食べる！）
+                    const mouthX = cx + wormDir.x * 13;
+                    const mouthY = cy + wormDir.y * 13;
+                    ctx.fillStyle = '#ff4757'; // 鮮やかな赤
+                    ctx.beginPath();
+                    ctx.arc(mouthX, mouthY, 4.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        /* ============================================================
+           エディタ機能（お尻延長・胴体短縮・頭ドラッグ・右クリックスポイト）
+        ============================================================ */
+        let isEditMode = false;
+        let selectedChip = '#';
+        let isPainting = false;
+        let isDraggingHead = false;
+
+        let editorUndoStack = [];
+        let editorRedoStack = [];
+
+        function saveEditorState() {
+            if (!isEditMode) return;
+            editorUndoStack.push({
+                tiles: JSON.parse(JSON.stringify(tiles)),
+                apples: JSON.parse(JSON.stringify(apples)),
+                stones: JSON.parse(JSON.stringify(stones)),
+                portal: { ...portal },
+                worm: JSON.parse(JSON.stringify(worm))
+            });
+            editorRedoStack = [];
+        }
+
+        function editorUndo() {
+            if (editorUndoStack.length === 0) return;
+            editorRedoStack.push({
+                tiles: JSON.parse(JSON.stringify(tiles)),
+                apples: JSON.parse(JSON.stringify(apples)),
+                stones: JSON.parse(JSON.stringify(stones)),
+                portal: { ...portal },
+                worm: JSON.parse(JSON.stringify(worm))
+            });
+            const prev = editorUndoStack.pop();
+            tiles = prev.tiles; apples = prev.apples; stones = prev.stones;
+            portal = prev.portal; worm = prev.worm;
+            sfx.step(); draw();
+        }
+
+        function editorRedo() {
+            if (editorRedoStack.length === 0) return;
+            editorUndoStack.push({
+                tiles: JSON.parse(JSON.stringify(tiles)),
+                apples: JSON.parse(JSON.stringify(apples)),
+                stones: JSON.parse(JSON.stringify(stones)),
+                portal: { ...portal },
+                worm: JSON.parse(JSON.stringify(worm))
+            });
+            const next = editorRedoStack.pop();
+            tiles = next.tiles; apples = next.apples; stones = next.stones;
+            portal = next.portal; worm = next.worm;
+            sfx.step(); draw();
+        }
+
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const btn = document.getElementById('edit-toggle-btn');
+            const palette = document.getElementById('editor-palette');
+
+            if (isEditMode) {
+                btn.innerText = "🎮 プレイ"; btn.style.background = "#2ed573"; btn.style.color = "#fff";
+                palette.style.display = "flex"; isAnimating = false;
+            } else {
+                btn.innerText = "🛠️ エディタ"; btn.style.background = ""; btn.style.color = "";
+                palette.style.display = "none";
+
+                // 編集内容をステージに自動同期
+                STAGES[currentLevelIndex] = {
+                    tiles: JSON.parse(JSON.stringify(tiles)),
+                    apples: JSON.parse(JSON.stringify(apples)),
+                    stones: JSON.parse(JSON.stringify(stones)),
+                    portal: { ...portal },
+                    worm: JSON.parse(JSON.stringify(worm)),
+                    wormDir: { ...wormDir }
+                };
+
+                history = []; isClear = false; isSucking = false;
+                isAnimating = true;
+                applyAllPhysics().then(() => { isAnimating = false; });
+            }
+            draw();
+        }
+
+        function setChip(chip, el) {
+            selectedChip = chip;
+            document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function clearCustomMap() {
+            if (!confirm("全消去しますか？")) return;
+            saveEditorState();
+            tiles = Array.from({ length: gridRows }, () => Array(gridCols).fill(0));
+            apples = []; stones = []; draw();
+        }
+
+        function applyChipToGrid(e) {
+            if (!isEditMode) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / TILE_SIZE);
+            const y = Math.floor((e.clientY - rect.top) / TILE_SIZE);
+            if (x < 0 || x >= gridCols || y < 0 || y >= gridRows) return;
+
+            tiles[y][x] = 0;
+            apples = apples.filter(a => !(a.x === x && a.y === y));
+            stones = stones.filter(s => !(s.x === x && s.y === y));
+
+            if (selectedChip === '#') tiles[y][x] = 1;
+            else if (selectedChip === 'X') tiles[y][x] = 2;
+            else if (selectedChip === '^') tiles[y][x] = 3;
+            else if (selectedChip === 'v') tiles[y][x] = 4;
+            else if (selectedChip === '<') tiles[y][x] = 5;
+            else if (selectedChip === '>') tiles[y][x] = 6;
+            else if (selectedChip === 'S') stones.push({ x, y });
+            else if (selectedChip === 'A') apples.push({ x, y });
+            else if (selectedChip === 'P') portal = { x, y };
+            else if (selectedChip === 'W') worm = [{ x, y }, { x: Math.max(0, x - 1), y }, { x: Math.max(0, x - 2), y }];
+            draw();
+        }
+
+        // 右クリック：スポイト機能
+        canvas.addEventListener('contextmenu', (e) => {
+            if (!isEditMode) return;
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / TILE_SIZE);
+            const y = Math.floor((e.clientY - rect.top) / TILE_SIZE);
+            if (x < 0 || x >= gridCols || y < 0 || y >= gridRows) return;
+
+            let picked = '.';
+            if (worm.some(p => p.x === x && p.y === y)) picked = 'W';
+            else if (apples.some(a => a.x === x && a.y === y)) picked = 'A';
+            else if (stones.some(s => s.x === x && s.y === y)) picked = 'S';
+            else if (portal.x === x && portal.y === y) picked = 'P';
+            else {
+                const t = tiles[y][x];
+                if (t === 1) picked = '#';
+                else if (t === 2) picked = 'X';
+                else if (t === 3) picked = '^';
+                else if (t === 4) picked = 'v';
+                else if (t === 5) picked = '<';
+                else if (t === 6) picked = '>';
+            }
+
+            selectedChip = picked;
+            document.querySelectorAll('.chip-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('onclick')?.includes(`'${picked}'`));
+            });
+            sfx.step();
+        });
+
+        // 左クリック：配置・お尻延長・胴体短縮・頭ドラッグ
+        canvas.addEventListener('pointerdown', (e) => {
+            if (!isEditMode || e.button !== 0) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / TILE_SIZE);
+            const y = Math.floor((e.clientY - rect.top) / TILE_SIZE);
+            if (x < 0 || x >= gridCols || y < 0 || y >= gridRows) return;
+
+            // ① お尻をクリック → 1マス延長
+            const tail = worm[worm.length - 1];
+            if (tail && x === tail.x && y === tail.y) {
+                saveEditorState();
+                let dx = worm.length >= 2 ? tail.x - worm[worm.length - 2].x : -wormDir.x;
+                let dy = worm.length >= 2 ? tail.y - worm[worm.length - 2].y : -wormDir.y;
+                const nx = tail.x + dx, ny = tail.y + dy;
+                if (nx >= 0 && nx < gridCols && ny >= 0 && ny < gridRows) {
+                    worm.push({ x: nx, y: ny });
+                    sfx.eat(); draw();
+                }
+                return;
+            }
+
+            // ② 胴体（頭・お尻以外）をクリック → 1マス短縮
+            const isBody = worm.some((p, idx) => idx > 0 && idx < worm.length - 1 && p.x === x && p.y === y);
+            if (isBody && worm.length > 2) {
+                saveEditorState();
+                worm.pop();
+                sfx.fall(); draw();
+                return;
+            }
+
+            // ③ 頭をクリック → ドラッグ移動
+            const head = worm[0];
+            if (head && x === head.x && y === head.y) {
+                saveEditorState();
+                isDraggingHead = true;
+                return;
+            }
+
+            // 通常のチップ配置
+            saveEditorState();
+            isPainting = true;
+            applyChipToGrid(e);
+        });
+
+        window.addEventListener('pointermove', (e) => {
+            if (!isEditMode) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / TILE_SIZE);
+            const y = Math.floor((e.clientY - rect.top) / TILE_SIZE);
+
+            if (isDraggingHead) {
+                if (x >= 0 && x < gridCols && y >= 0 && y < gridRows) {
+                    const dx = x - worm[0].x, dy = y - worm[0].y;
+                    if (dx !== 0 || dy !== 0) {
+                        for (let seg of worm) { seg.x += dx; seg.y += dy; }
+                        draw();
+                    }
+                }
+                return;
+            }
+            if (isPainting) applyChipToGrid(e);
+        });
+
+        window.addEventListener('pointerup', () => {
+            isDraggingHead = false;
+            isPainting = false;
+        });
+
+        /* ============================================================
+           操作（キーボード＆ゲームパッド対応）
+        ============================================================ */
+        let lastPadButtons = {};
+        let stickCooldown = 0;
+
+        function pollGamepad() {
+            const gp = navigator.getGamepads ? navigator.getGamepads()[0] : null;
+            if (!gp) return;
+            const stickX = gp.axes[0] || 0; const stickY = gp.axes[1] || 0;
+            if (stickCooldown <= 0) {
+                if (gp.buttons[12]?.pressed || stickY < -0.5) { handleInput(0, -1); stickCooldown = 15; }
+                else if (gp.buttons[13]?.pressed || stickY > 0.5) { handleInput(0, 1); stickCooldown = 15; }
+                else if (gp.buttons[14]?.pressed || stickX < -0.5) { handleInput(-1, 0); stickCooldown = 15; }
+                else if (gp.buttons[15]?.pressed || stickX > 0.5) { handleInput(1, 0); stickCooldown = 15; }
+            } else stickCooldown--;
+
+            const checkBtn = (idx, fn) => {
+                if (gp.buttons[idx]?.pressed) { if (!lastPadButtons[idx]) fn(); lastPadButtons[idx] = true; }
+                else lastPadButtons[idx] = false;
+            };
+            checkBtn(0, () => { if (isClear) nextLevel(); });
+            checkBtn(1, undo); checkBtn(3, restartLevel); checkBtn(4, prevLevel); checkBtn(5, nextLevel);
+        }
+
+        function animate() {
+            portalAngle += 0.04;
+            sawAngle += 0.04;
+            pollGamepad();
+            draw();
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            // CTRL+Z (Undo) / CTRL+SHIFT+Z, CTRL+Y (Redo)
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'z' || e.key === 'Z') {
+                    e.preventDefault();
+                    if (e.shiftKey) editorRedo();
+                    else undo();
+                    return;
+                }
+                if (e.key === 'y' || e.key === 'Y') {
+                    e.preventDefault();
+                    editorRedo();
+                    return;
+                }
+            }
+
+            switch (e.key) {
+                case 'ArrowUp': case 'w': case 'W': handleInput(0, -1); break;
+                case 'ArrowDown': case 's': case 'S': handleInput(0, 1); break;
+                case 'ArrowLeft': case 'a': case 'A': handleInput(-1, 0); break;
+                case 'ArrowRight': case 'd': case 'D': handleInput(1, 0); break;
+                case 'z': case 'Z': undo(); break;
+                case 'r': case 'R': restartLevel(); break;
+                case 'u': case 'U': prevLevel(); break;
+                case 'i': case 'I': nextLevel(); break;
+            }
+        });
+
+        // 開始
+        loadLevel(0);
+        requestAnimationFrame(animate);
+    </script>
+</body>
+
+</html>
