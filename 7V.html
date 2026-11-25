@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>7 SEVENS - DIAMOND 7 START</title>
+    <style>
+        :root {
+            --bg: #1a4314;
+            --f-w: clamp(20px, 7.2vw, 60px);
+            --f-h: calc(var(--f-w) * 1.4);
+            --p-w: clamp(45px, 13vw, 80px);
+            --p-h: calc(var(--p-w) * 1.4);
+        }
+
+        body {
+            background: var(--bg);
+            color: white;
+            font-family: 'Arial Black', sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            touch-action: manipulation;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .title {
+            font-size: clamp(40px, 10vw, 70px);
+            font-weight: 900;
+            color: #ff0;
+            text-shadow: 0 0 20px rgba(255, 255, 0, 0.6);
+            margin-bottom: 20px;
+        }
+
+        #info {
+            background: rgba(0, 0, 0, 0.9);
+            text-align: center;
+            padding: 8px;
+            font-weight: bold;
+            font-size: clamp(14px, 4vw, 18px);
+            border-bottom: 2px solid #444;
+            min-height: 1.2em;
+            z-index: 10;
+        }
+
+        #cpu-header {
+            display: flex;
+            justify-content: center;
+            gap: 160px;
+            padding: 10px 0 30px;
+            /* ←下に余白追加（これが本体） */
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+
+        .cpu-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 30%;
+            max-width: 150px;
+            position: relative;
+        }
+
+        .cpu-ui {
+            background: #000;
+            padding: 2px 5px;
+            border-radius: 6px;
+            border: 1px solid #555;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            font-size: 12px;
+            transition: box-shadow 0.3s;
+        }
+
+        .active-turn {
+            box-shadow: 0 0 15px #ff0;
+            border-color: #ff0;
+        }
+
+        .hand-vis {
+            position: absolute;
+            top: 100%;
+            /* ←CPUの下にくっつける */
+            left: 50%;
+            transform: translateX(-50%);
+
+            display: flex;
+            gap: 2px;
+
+            height: 24px;
+            /* カードサイズに合わせる */
+            z-index: 5;
+        }
+
+        .back-mini {
+            width: 18px;
+            height: 30px;
+            background: #2a5a27;
+            border: 1px solid #777;
+            border-radius: 1px;
+            flex-shrink: 0;
+        }
+
+        #game-grid {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            visibility: hidden;
+        }
+
+        #field-container {
+            padding: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        #field {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            transform-origin: center;
+        }
+
+        .suit-row {
+            display: grid;
+            grid-template-columns: repeat(13, 1fr);
+            gap: 2px;
+        }
+
+        .f-slot {
+            width: var(--f-w);
+            height: var(--f-h);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: calc(var(--f-w) * 0.5);
+        }
+
+        .f-slot.active {
+            background: white;
+            color: #111;
+            border: 1px solid #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .f-slot .suit-mini {
+            position: absolute;
+            top: 1px;
+            left: 2px;
+            font-size: calc(var(--f-w) * 0.3);
+        }
+
+        .f-slot .rank {
+            font-size: calc(var(--f-w) * 0.6);
+            font-weight: 900;
+            line-height: 1;
+            margin-top: 4px;
+        }
+
+        .red {
+            color: #d00 !important;
+        }
+
+        #area-player {
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 2px solid #444;
+            padding: 10px 0;
+            position: relative;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        #player-hand {
+            display: flex;
+            gap: 3px;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 5px;
+            width: 100%;
+            min-height: 90px;
+            transition: opacity 0.3s;
+        }
+
+        .p-card {
+            width: var(--p-w);
+            height: var(--p-h);
+            background: white;
+            color: black;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #888;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        .p-card .p-suit-main {
+            font-size: calc(var(--p-w) * 0.6);
+            line-height: 1;
+            margin-bottom: -5px;
+        }
+
+        .p-card .p-rank-main {
+            font-size: calc(var(--p-w) * 0.4);
+            font-weight: 900;
+        }
+
+        .p-card .p-suit-sub {
+            position: absolute;
+            top: 2px;
+            left: 4px;
+            font-size: calc(var(--p-w) * 0.25);
+        }
+
+        .p-card.playable {
+            border: 4px solid #ff0;
+            transform: translateY(-8px);
+            box-shadow: 0 0 15px #ff0;
+            z-index: 10;
+        }
+
+        .p-card.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-top: 5px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .pass-btn {
+            padding: 12px 35px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 25px;
+            border: none;
+            background: #eee;
+            box-shadow: 0 4px 0 #999;
+        }
+
+        .must-pass {
+            transform: scale(1.3) translateY(-45px);
+            z-index: 1000;
+        }
+
+        .must-pass .pass-btn {
+            background: #ff4444;
+            color: white;
+            box-shadow: 0 6px 15px rgba(255, 0, 0, 0.5);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .moving-card {
+            position: fixed;
+            background: white;
+            color: black;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1500;
+            transition: all 0.45s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+            pointer-events: none;
+        }
+
+        .rank-badge,
+        .dq-badge {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            white-space: nowrap;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        .rank-badge {
+            font-size: 24px;
+            color: #ff0;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ff0;
+        }
+
+        .dq-badge {
+            font-size: 18px;
+            color: #f44;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #f44;
+        }
+
+        .dq-area {
+            opacity: 0.2;
+            filter: grayscale(1);
+        }
+
+        .pass-dots {
+            display: flex;
+            gap: 3px;
+            margin-top: 2px;
+            justify-content: center;
+        }
+
+        .dot {
+            width: 7px;
+            height: 7px;
+            background: #333;
+            border-radius: 50%;
+            border: 1px solid #555;
+        }
+
+        .dot.on {
+            background: #ff4444;
+            box-shadow: 0 0 5px #f00;
+        }
+
+        .stats-table {
+            width: 100%;
+            max-width: 400px;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .stats-table td {
+            padding: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .highlight {
+            color: #ff0;
+            font-weight: bold;
+        }
+
+        .start-btn {
+            padding: 15px 50px;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 40px;
+            border: none;
+            background: #fff;
+            color: #000;
+            box-shadow: 0 5px 0 #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-overlay" class="overlay">
+        <div id="overlay-title" class="title">7 SEVENS</div>
+        <div id="stats-container" style="display:none; width: 100%; flex-direction: column; align-items: center;">
+            <table class="stats-table">
+                <tbody id="stats-body"></tbody>
+            </table>
+        </div>
+        <button id="main-btn" class="start-btn" onclick="startGame()">GAME START</button>
+    </div>
+    <div id="info">準備中...</div>
+    <div id="cpu-header">
+        <div id="area-c1" class="cpu-box">
+            <div id="badge-c1"></div>
+            <div class="cpu-ui" id="ui-c1">CPU 1<div class="pass-dots" id="dots-c1">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+            <div id="c1-vis" class="hand-vis"></div>
+        </div>
+        <div id="area-c2" class="cpu-box">
+            <div id="badge-c2"></div>
+            <div class="cpu-ui" id="ui-c2">CPU 2<div class="pass-dots" id="dots-c2">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+            <div id="c2-vis" class="hand-vis"></div>
+        </div>
+        <div id="area-c3" class="cpu-box">
+            <div id="badge-c3"></div>
+            <div class="cpu-ui" id="ui-c3">CPU 3<div class="pass-dots" id="dots-c3">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+            <div id="c3-vis" class="hand-vis"></div>
+        </div>
+    </div>
+    <div id="game-grid">
+        <div id="field-container">
+            <div id="field"></div>
+        </div>
+    </div>
+    <div id="area-player">
+        <div id="badge-player"></div>
+        <div id="player-hand"></div>
+        <div class="controls" id="ui-player">
+            <div style="text-align:center;"><span style="font-size:10px;">PASS</span>
+                <div class="pass-dots" id="dots-player">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+            <button class="pass-btn" id="pass-btn" onclick="playerPass()">PASS</button>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function playSound(f, t, d, v = 0.05) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                g.gain.setValueAtTime(v, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + d);
+                o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + d);
+            } catch (e) { }
+        }
+
+        const SUITS = ['♠', '♥', '♦', '♣'], VALUES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        const SUIT_ORDER = { '♠': 0, '♥': 1, '♦': 2, '♣': 3 };
+        const SCORE_MAP = [10, 5, 2, 0];
+        let players = [], turn = 0, fieldState = {}, isBusy = false, winners = [], losers = [];
+        let globalStats = { 'あなた': [0, 0, 0, 0, 0], 'CPU 1': [0, 0, 0, 0, 0], 'CPU 2': [0, 0, 0, 0, 0], 'CPU 3': [0, 0, 0, 0, 0] };
+
+        function adjustScale() {
+            const field = document.getElementById('field');
+            const container = document.getElementById('field-container');
+            if (!field || !container) return;
+            field.style.transform = 'scale(1)';
+            const scale = Math.min(1, (container.offsetWidth * 0.98) / field.offsetWidth);
+            field.style.transform = `scale(${scale})`;
+        }
+        window.addEventListener('resize', adjustScale);
+
+        function startGame() {
+            document.getElementById('game-overlay').style.display = 'none';
+            document.getElementById('game-grid').style.visibility = 'visible';
+            resetUI(); initGame();
+        }
+
+        function resetUI() {
+            fieldState = {}; winners = []; losers = []; turn = 0; isBusy = false;
+            ['player', 'c1', 'c2', 'c3'].forEach(id => {
+                const badge = document.getElementById(`badge-${id}`);
+                const area = document.getElementById(`area-${id === 0 ? 'player' : id}`);
+                if (area) area.classList.remove('dq-area');
+                if (badge) { badge.innerHTML = ''; badge.className = ''; }
+                updatePassDots(`dots-${id}`, 0);
+            });
+        }
+
+        function updatePassDots(id, count) {
+            const container = document.getElementById(id);
+            if (container) container.querySelectorAll('.dot').forEach((dot, i) => dot.classList.toggle('on', i < count));
+        }
+
+        async function initGame() {
+            isBusy = true;
+            let deck = [];
+            SUITS.forEach(s => VALUES.forEach((v, i) => { deck.push({ s, v, r: i + 1 }); fieldState[s + (i + 1)] = false; }));
+            for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[deck[i], deck[j]] = [deck[j], deck[i]]; }
+            players = Array.from({ length: 4 }, (_, i) => ({ name: i === 0 ? 'あなた' : 'CPU ' + i, id: i === 0 ? 'player' : 'c' + i, hand: [], pass: 0, finished: false }));
+            for (let i = 0; i < deck.length; i++) { players[i % 4].hand.push(deck[i]); render(); if (i % 8 === 0) await new Promise(r => setTimeout(r, 10)); }
+
+            // ♦7を持っている人を探す
+            let starterIdx = 0;
+            players.forEach((p, idx) => { if (p.hand.some(c => c.s === '♦' && c.r === 7)) starterIdx = idx; });
+
+            updateInfo("7を自動で場に出します...");
+            await new Promise(r => setTimeout(r, 500));
+
+            // 全員の7を出す
+            for (let pIdx = 0; pIdx < 4; pIdx++) {
+                let p = players[pIdx];
+                let sevens = p.hand.filter(c => c.r === 7);
+                for (let card of sevens) {
+                    await animateCard(p.id, card, null);
+                    fieldState[card.s + card.r] = true;
+                    p.hand = p.hand.filter(h => h !== card);
+                    render();
+                }
+            }
+
+            sortHand(players[0]);
+            turn = starterIdx; // ♦7を持っていた人から開始
+            isBusy = false;
+
+            updateInfo(`${players[turn].name}からスタート！`);
+            render();
+
+            if (turn !== 0) setTimeout(cpuAction, 1000);
+        }
+
+        async function animateCard(pId, card, clickEl) {
+            return new Promise(resolve => {
+                const slotId = `slot-${card.s}-${card.r}`;
+                const targetEl = document.getElementById(slotId);
+                if (!targetEl) { resolve(); return; }
+
+                let startPos;
+                if (clickEl) {
+                    const rect = clickEl.getBoundingClientRect();
+                    startPos = { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+                } else {
+                    const fromEl = document.getElementById(`ui-${pId}`);
+                    const rect = fromEl.getBoundingClientRect();
+                    startPos = { left: rect.left + rect.width / 2 - 15, top: rect.top + rect.height / 2 - 20, width: 30, height: 42 };
+                }
+
+                const targetRect = targetEl.getBoundingClientRect();
+                const animCard = document.createElement('div');
+                animCard.className = `moving-card ${card.s === '♥' || card.s === '♦' ? 'red' : ''}`;
+                animCard.style.left = `${startPos.left}px`;
+                animCard.style.top = `${startPos.top}px`;
+                animCard.style.width = `${startPos.width}px`;
+                animCard.style.height = `${startPos.height}px`;
+                animCard.innerHTML = `<span style="font-size:12px; position:absolute; top:2px; left:4px;">${card.s}</span><span style="font-size:24px; line-height:1;">${card.s}</span><span style="font-size:16px; font-weight:900;">${card.v}</span>`;
+                document.body.appendChild(animCard);
+
+                playSound(600, 'sine', 0.1);
+                requestAnimationFrame(() => {
+                    animCard.style.left = `${targetRect.left}px`;
+                    animCard.style.top = `${targetRect.top}px`;
+                    animCard.style.width = `${targetRect.width}px`;
+                    animCard.style.height = `${targetRect.height}px`;
+                });
+                setTimeout(() => { animCard.remove(); playSound(800, 'sine', 0.05); resolve(); }, 450);
+            });
+        }
+
+        function sortHand(p) { p.hand.sort((a, b) => SUIT_ORDER[a.s] !== SUIT_ORDER[b.s] ? SUIT_ORDER[a.s] - SUIT_ORDER[b.s] : a.r - b.r); }
+
+        function render() {
+            const fieldEl = document.getElementById('field'); fieldEl.innerHTML = '';
+            SUITS.forEach(s => {
+                const row = document.createElement('div'); row.className = 'suit-row';
+                for (let r = 1; r <= 13; r++) {
+                    const active = fieldState[s + r]; const div = document.createElement('div');
+                    div.id = `slot-${s}-${r}`;
+                    div.className = `f-slot ${active ? 'active' : ''} ${s === '♥' || s === '♦' ? 'red' : ''}`;
+                    div.innerHTML = active ? `<span class="suit-mini">${s}</span><span class="rank">${VALUES[r - 1]}</span>` : s;
+                    row.appendChild(div);
+                }
+                fieldEl.appendChild(row);
+            });
+            adjustScale();
+
+            // 現在のターンを強調
+            for (let i = 1; i <= 3; i++) {
+                const ui = document.getElementById(`ui-c${i}`);
+                if (ui) ui.classList.toggle('active-turn', turn === i && !isBusy);
+                const vis = document.getElementById(`c${i}-vis`); if (!vis) continue; vis.innerHTML = '';
+                if (!players[i].finished) players[i].hand.forEach(() => { const b = document.createElement('div'); b.className = 'back-mini'; vis.appendChild(b); });
+            }
+
+            const pHandEl = document.getElementById('player-hand'); pHandEl.innerHTML = '';
+            let playableCount = 0;
+            players[0].hand.forEach((c, idx) => {
+                const playable = canPlay(c) && turn === 0 && !isBusy;
+                if (playable) playableCount++;
+                const div = document.createElement('div');
+                div.className = `p-card ${c.s === '♥' || c.s === '♦' ? 'red' : ''} ${playable ? 'playable' : ''}`;
+                div.innerHTML = `<span class="p-suit-sub">${c.s}</span><span class="p-suit-main">${c.s}</span><span class="p-rank-main">${c.v}</span>`;
+                if (playable) div.onclick = (e) => playCard(0, c, e.currentTarget);
+                pHandEl.appendChild(div);
+            });
+
+            const controlArea = document.getElementById('ui-player');
+            const passBtn = document.getElementById('pass-btn');
+            const mustPass = (playableCount === 0 && turn === 0 && !isBusy && !players[0].finished);
+            controlArea.classList.toggle('must-pass', mustPass);
+            passBtn.disabled = (turn !== 0 || isBusy || players[0].finished);
+        }
+
+        function canPlay(c) { return c.r === 7 || (c.r > 1 && fieldState[c.s + (c.r - 1)]) || (c.r < 13 && fieldState[c.s + (c.r + 1)]); }
+
+        async function playCard(pIdx, card, clickEl) {
+            isBusy = true;
+            if (clickEl) clickEl.classList.add('hidden');
+            await animateCard(players[pIdx].id, card, clickEl);
+            fieldState[card.s + card.r] = true;
+            players[pIdx].hand = players[pIdx].hand.filter(c => c !== card);
+            updateInfo(`${players[pIdx].name}: ${card.s}${card.v}`);
+            if (players[pIdx].hand.length === 0) finishPlayer(pIdx, false);
+            if (pIdx === 0) sortHand(players[0]);
+            render();
+            setTimeout(nextTurn, 250);
+        }
+
+        function playerPass() {
+            if (isBusy) return;
+            players[0].pass++;
+            playSound(200, 'triangle', 0.2);
+            updatePassDots(`dots-player`, players[0].pass);
+            if (players[0].pass > 3) { finishPlayer(0, true); }
+            nextTurn();
+        }
+
+        async function finishPlayer(idx, isDQ) {
+            if (players[idx].finished) return;
+            players[idx].finished = true;
+            const badge = document.getElementById(`badge-${players[idx].id}`);
+            const area = document.getElementById(`area-${idx === 0 ? 'player' : players[idx].id}`);
+            if (isDQ) {
+                losers.unshift(players[idx].name);
+                badge.innerHTML = '失格'; badge.className = 'dq-badge';
+                if (area) area.classList.add('dq-area');
+                let handCopy = [...players[idx].hand];
+                players[idx].hand = []; render();
+                for (let card of handCopy) { await animateCard(players[idx].id, card, null); fieldState[card.s + card.r] = true; render(); }
+            } else {
+                winners.push(players[idx].name);
+                badge.innerHTML = `${winners.length}位`; badge.className = 'rank-badge';
+                playSound(800 + (winners.length * 100), 'sine', 0.3);
+            }
+        }
+
+        function nextTurn() {
+            if (players.every(p => p.finished)) { setTimeout(showTotalStats, 1000); return; }
+            isBusy = true; turn = (turn + 1) % 4; render();
+            if (players[turn].finished) setTimeout(nextTurn, 50);
+            else if (turn !== 0) setTimeout(cpuAction, 400);
+            else { isBusy = false; updateInfo("あなたの番です"); render(); }
+        }
+
+        async function cpuAction() {
+            const p = players[turn];
+            const moves = p.hand.filter(c => canPlay(c));
+            if (moves.length > 0) {
+                moves.sort((a, b) => Math.abs(7 - b.r) - Math.abs(7 - a.r));
+                await playCard(turn, moves[0], null);
+            } else {
+                p.pass++; playSound(200, 'triangle', 0.1); updatePassDots(`dots-${p.id}`, p.pass);
+                if (p.pass > 3) await finishPlayer(turn, true);
+                nextTurn();
+            }
+        }
+
+        function showTotalStats() {
+            const finalRanks = [...winners, ...losers];
+            finalRanks.forEach((name, i) => { globalStats[name][i]++; globalStats[name][4] += SCORE_MAP[i]; });
+            document.getElementById('overlay-title').textContent = "RESULT";
+            document.getElementById('stats-container').style.display = 'flex';
+            document.getElementById('main-btn').textContent = "AGAIN";
+            const body = document.getElementById('stats-body'); body.innerHTML = '';
+            Object.keys(globalStats).sort((a, b) => globalStats[b][4] - globalStats[a][4]).forEach(name => {
+                const s = globalStats[name];
+                body.innerHTML += `<tr><td class="${name === 'あなた' ? 'highlight' : ''}">${name}</td><td>${s[0]}</td><td>${s[1]}</td><td>${s[2]}</td><td>${s[3]}</td><td class="highlight">${s[4]}pt</td></tr>`;
+            });
+            document.getElementById('game-overlay').style.display = 'flex';
+        }
+        function updateInfo(m) { document.getElementById('info').textContent = m; }
+    </script>
+</body>
+
+</html>

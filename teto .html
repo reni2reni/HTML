@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>HTML5 Tetris - Enhanced</title>
+    <style>
+        body {
+            background: #202028;
+            color: #fff;
+            font-family: sans-serif;
+            text-align: center;
+        }
+
+        canvas {
+            border: solid 2px #fff;
+            background-color: #000;
+        }
+
+        .game-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #score {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            margin-top: 10px;
+            font-size: 0.8em;
+            color: #aaa;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>HTML5 TETRIS</h1>
+    <div class="game-container">
+        <canvas id="tetris" width="240" height="400"></canvas>
+        <div class="side-panel">
+            <div>NEXT</div>
+            <canvas id="next" width="80" height="80"></canvas>
+            <div id="score">Score: 0</div>
+            <div class="controls">
+                ← → : 移動<br>
+                ↑ : 回転 / ↓ : 加速<br>
+                SPACE : ハードドロップ
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('tetris');
+        const context = canvas.getContext('2d');
+        const nextCanvas = document.getElementById('next');
+        const nextContext = nextCanvas.getContext('2d');
+        context.scale(20, 20);
+        nextContext.scale(20, 20);
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(freq, duration, type = 'square') {
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        const matrixes = 'ILJOTSZ'.split('').map(type => {
+            if (type === 'I') return [[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]];
+            if (type === 'L') return [[0, 2, 0], [0, 2, 0], [0, 2, 2]];
+            if (type === 'J') return [[0, 3, 0], [0, 3, 0], [3, 3, 0]];
+            if (type === 'O') return [[4, 4], [4, 4]];
+            if (type === 'T') return [[0, 5, 0], [5, 5, 5], [0, 0, 0]];
+            if (type === 'S') return [[0, 6, 6], [6, 6, 0], [0, 0, 0]];
+            if (type === 'Z') return [[7, 7, 0], [0, 7, 7], [0, 0, 0]];
+        });
+        const colors = [null, '#0FF', '#00F', '#F90', '#FF0', '#90F', '#0F0', '#F00'];
+
+        let arena = createMatrix(12, 20);
+        let player = { pos: { x: 0, y: 0 }, matrix: null, score: 0, next: null };
+        let dropCounter = 0, dropInterval = 1000, lastTime = 0;
+
+        function createMatrix(w, h) {
+            const matrix = [];
+            while (h--) matrix.push(new Array(w).fill(0));
+            return matrix;
+        }
+
+        function collide(arena, player) {
+            const [m, o] = [player.matrix, player.pos];
+            for (let y = 0; y < m.length; ++y) {
+                for (let x = 0; x < m[y].length; ++x) {
+                    if (m[y][x] !== 0 && (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) return true;
+                }
+            }
+            return false;
+        }
+
+        // 描画関数（予測表示用に透過度を追加）
+        function drawMatrix(matrix, offset, ctx = context, isGhost = false) {
+            matrix.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) {
+                        if (isGhost) {
+                            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'; // 予測地点は薄い白
+                        } else {
+                            ctx.fillStyle = colors[value];
+                        }
+                        ctx.fillRect(x + offset.x, y + offset.y, 1, 1);
+                        ctx.lineWidth = 0.05;
+                        ctx.strokeStyle = isGhost ? 'rgba(255, 255, 255, 0.5)' : '#000';
+                        ctx.strokeRect(x + offset.x, y + offset.y, 1, 1);
+                    }
+                });
+            });
+        }
+
+        // 落下予測の描画
+        function drawGhost() {
+            const ghost = {
+                pos: { x: player.pos.x, y: player.pos.y },
+                matrix: player.matrix
+            };
+            // 衝突するまで下にずらす
+            while (!collide(arena, ghost)) {
+                ghost.pos.y++;
+            }
+            ghost.pos.y--; // 衝突直前の位置に戻す
+            drawMatrix(ghost.matrix, ghost.pos, context, true);
+        }
+
+        function draw() {
+            context.fillStyle = '#000';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            nextContext.fillStyle = '#000';
+            nextContext.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
+
+            drawMatrix(arena, { x: 0, y: 0 });
+            drawGhost(); // プレイヤーの前に予測を描画
+            drawMatrix(player.matrix, player.pos);
+            drawMatrix(player.next, { x: 1, y: 1 }, nextContext);
+        }
+
+        function merge(arena, player) {
+            player.matrix.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) arena[y + player.pos.y][x + player.pos.x] = value;
+                });
+            });
+        }
+
+        function arenaSweep() {
+            let rowCount = 0;
+            outer: for (let y = arena.length - 1; y > 0; --y) {
+                for (let x = 0; x < arena[y].length; ++x) {
+                    if (arena[y][x] === 0) continue outer;
+                }
+                arena.splice(y, 1)[0];
+                arena.unshift(new Array(12).fill(0));
+                ++y;
+                rowCount++;
+            }
+            if (rowCount > 0) {
+                player.score += rowCount * 10;
+                playSound(300, 0.1);
+                updateScore();
+            }
+        }
+
+        function playerReset() {
+            if (player.next === null) player.next = matrixes[Math.floor(Math.random() * matrixes.length)];
+            player.matrix = player.next;
+            player.next = matrixes[Math.floor(Math.random() * matrixes.length)];
+            player.pos.y = 0;
+            player.pos.x = Math.floor(arena[0].length / 2) - Math.floor(player.matrix[0].length / 2);
+            if (collide(arena, player)) {
+                playSound(100, 0.5);
+                alert('GAME OVER! Score: ' + player.score);
+                arena.forEach(row => row.fill(0));
+                player.score = 0;
+                updateScore();
+            }
+        }
+
+        function playerRotate(dir) {
+            const pos = player.pos.x;
+            let offset = 1;
+            rotateMatrix(player.matrix, dir);
+            while (collide(arena, player)) {
+                player.pos.x += offset;
+                offset = -(offset + (offset > 0 ? 1 : -1));
+                if (offset > player.matrix[0].length) {
+                    rotateMatrix(player.matrix, -dir);
+                    player.pos.x = pos;
+                    return;
+                }
+            }
+            playSound(400, 0.05);
+        }
+
+        function rotateMatrix(matrix, dir) {
+            for (let y = 0; y < matrix.length; ++y) {
+                for (let x = 0; x < y; ++x) {
+                    [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
+                }
+            }
+            if (dir > 0) matrix.forEach(row => row.reverse());
+            else matrix.reverse();
+        }
+
+        function playerDrop() {
+            player.pos.y++;
+            if (collide(arena, player)) {
+                player.pos.y--;
+                merge(arena, player);
+                playerReset();
+                arenaSweep();
+            }
+            dropCounter = 0;
+        }
+
+        // ハードドロップ（スペースキー用）
+        function playerHardDrop() {
+            while (!collide(arena, player)) {
+                player.pos.y++;
+            }
+            player.pos.y--; // 衝突直前へ
+            merge(arena, player);
+            playSound(200, 0.05, 'sine'); // 設置音
+            playerReset();
+            arenaSweep();
+            dropCounter = 0;
+        }
+
+        function playerMove(dir) {
+            player.pos.x += dir;
+            if (collide(arena, player)) player.pos.x -= dir;
+        }
+
+        function updateScore() {
+            document.getElementById('score').innerText = 'Score: ' + player.score;
+        }
+
+        function update(time = 0) {
+            const deltaTime = time - lastTime;
+            lastTime = time;
+            dropCounter += deltaTime;
+            if (dropCounter > dropInterval) playerDrop();
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        document.addEventListener('keydown', event => {
+            // スペースキーでスクロールしないように
+            if (event.keyCode === 32) event.preventDefault();
+
+            if (event.keyCode === 37) playerMove(-1);      // Left
+            else if (event.keyCode === 39) playerMove(1);  // Right
+            else if (event.keyCode === 40) playerDrop();   // Down
+            else if (event.keyCode === 38) playerRotate(1); // Up
+            else if (event.keyCode === 32) playerHardDrop(); // Space
+        });
+
+        playerReset();
+        updateScore();
+        update();
+    </script>
+</body>
+
+</html>

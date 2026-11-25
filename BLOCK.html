@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ブロック崩し - デンジャラス・カプセル</title>
+    <style>
+        body {
+            background: #050510;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            flex-direction: column;
+        }
+
+        #gameContainer {
+            position: relative;
+            border: 4px solid #444;
+            border-radius: 12px;
+            cursor: none;
+            box-shadow: 0 0 50px rgba(0, 200, 255, 0.3);
+        }
+
+        canvas {
+            background: #000;
+            display: block;
+            border-radius: 8px;
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            border-radius: 8px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #ui {
+            width: 500px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 18px;
+            color: #00d2ff;
+        }
+
+        .label {
+            color: #aaa;
+            font-size: 11px;
+            display: block;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            font-size: 3rem;
+            margin: 0;
+            text-shadow: 0 0 20px #ff4757;
+        }
+
+        p {
+            font-size: 1.1rem;
+            margin-top: 15px;
+            color: #fff;
+            text-align: center;
+        }
+
+        kbd {
+            background: #333;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #777;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="ui">
+        <div><span class="label">Score</span><span id="scoreDisp">0</span></div>
+        <div><span class="label">Stage</span><span id="stageNum">1</span></div>
+        <div><span class="label">Hi-Score</span><span id="hiScoreDisp">0</span></div>
+    </div>
+
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="500" height="600"></canvas>
+        <div id="overlay">
+            <h2 id="statusText">BLOCK BREAKER</h2>
+            <div id="finalScoreArea" class="hidden">
+                <p>FINAL SCORE: <span id="finalScore">0</span></p>
+            </div>
+            <p id="subText">CLICK or <kbd>SPACE</kbd> TO START</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const overlay = document.getElementById("overlay");
+        const statusText = document.getElementById("statusText");
+        const subText = document.getElementById("subText");
+        const scoreDisp = document.getElementById("scoreDisp");
+        const hiScoreDisp = document.getElementById("hiScoreDisp");
+        const stageNumDisp = document.getElementById("stageNum");
+        const finalScoreArea = document.getElementById("finalScoreArea");
+        const finalScoreDisp = document.getElementById("finalScore");
+
+        let audioCtx;
+        let bgmStep = 0;
+        let score = 0;
+        let hiScore = localStorage.getItem("hiScore") || 0;
+        hiScoreDisp.innerText = hiScore;
+
+        function playBeep(freq, duration, type = 'square', vol = 0.05) {
+            if (!audioCtx) return;
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch (e) { }
+        }
+
+        function playVictoryFanfare() {
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((f, i) => { setTimeout(() => playBeep(f, 0.4, 'sine', 0.1), i * 150); });
+        }
+
+        function startBossBGM() {
+            const playNote = () => {
+                if (!boss || !gameActive) return;
+                const tempo = Math.max(80, 250 - ((boss.maxHp - boss.hp) * 2));
+                const notes = [110, 110, 123, 110, 138, 110, 123, 165];
+                playBeep(notes[bgmStep % notes.length], 0.15, 'triangle', 0.08);
+                bgmStep++;
+                setTimeout(playNote, tempo);
+            };
+            playNote();
+        }
+
+        let paddleWidth, paddleX, balls, bricks, capsules, bullets, boss, gameActive = false, currentStage = 1;
+        let particles = [];
+        let rightPressed = false, leftPressed = false;
+        const basePaddleWidth = 100;
+        const ballRadius = 7;
+        const bossEmojis = ["🛡️", "👾", "👁️"];
+
+        function createParticles(x, y, color, count = 8) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x, y,
+                    dx: (Math.random() - 0.5) * 8,
+                    dy: (Math.random() - 0.5) * 8,
+                    size: Math.random() * 4 + 2,
+                    life: 1.0,
+                    color
+                });
+            }
+        }
+
+        function initGame(stage) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (stage === 1) { score = 0; scoreDisp.innerText = "0"; }
+            currentStage = stage;
+            stageNumDisp.innerText = currentStage;
+            paddleWidth = basePaddleWidth;
+            paddleX = (canvas.width - paddleWidth) / 2;
+            gameActive = true;
+            overlay.classList.add("hidden");
+            finalScoreArea.classList.add("hidden");
+            balls = [{ x: canvas.width / 2, y: canvas.height - 60, dx: 4, dy: -4, combo: 0 }];
+            capsules = []; bullets = []; boss = null; particles = [];
+            bricks = [];
+            const rows = 6; const cols = 6;
+            const totalBricksWidth = cols * 65 + (cols - 1) * 6;
+            const startX = (canvas.width - totalBricksWidth) / 2;
+            for (let c = 0; c < cols; c++) {
+                bricks[c] = [];
+                for (let r = 0; r < rows; r++) {
+                    let hp = (currentStage === 3 && r < 2) ? 3 : (currentStage >= 2 && r < 3 ? 2 : 1);
+                    bricks[c][r] = { x: startX + (c * 71), y: (r * 25) + 80, w: 65, hp: hp, hue: r * 40 };
+                }
+            }
+        }
+
+        function addScore(pts) {
+            score += pts;
+            if (score < 0) score = 0;
+            scoreDisp.innerText = score;
+            if (score > hiScore) { hiScore = score; hiScoreDisp.innerText = hiScore; localStorage.setItem("hiScore", hiScore); }
+        }
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowRight") rightPressed = true;
+            else if (e.key === "ArrowLeft") leftPressed = true;
+            else if (e.key === " " && !gameActive) startGameTrigger();
+        });
+        document.addEventListener("keyup", (e) => {
+            if (e.key === "ArrowRight") rightPressed = false;
+            else if (e.key === "ArrowLeft") leftPressed = false;
+        });
+        document.addEventListener("mousemove", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            paddleX = (e.clientX - rect.left) - paddleWidth / 2;
+        });
+        window.addEventListener("mousedown", () => { if (!gameActive) startGameTrigger(); });
+
+        function startGameTrigger() {
+            if (statusText.innerText.includes("ALL CLEAR") || statusText.innerText.includes("GAME OVER")) initGame(1);
+            else initGame(currentStage);
+        }
+
+        function spawnBoss() {
+            const hps = [30, 60, 100];
+            boss = {
+                x: canvas.width / 2, y: -100, targetY: 150,
+                emoji: bossEmojis[currentStage - 1],
+                hp: hps[currentStage - 1], maxHp: hps[currentStage - 1],
+                shotTimer: 0, dx: currentStage + 1
+            };
+            startBossBGM();
+            playBeep(100, 0.8, 'sawtooth', 0.1);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (!gameActive) { requestAnimationFrame(draw); return; }
+
+            if (rightPressed) paddleX += 8; else if (leftPressed) paddleX -= 8;
+            paddleX = Math.max(0, Math.min(canvas.width - paddleWidth, paddleX));
+
+            ctx.fillStyle = "#00d2ff"; ctx.fillRect(paddleX, canvas.height - 30, paddleWidth, 12);
+
+            particles.forEach((p, i) => {
+                p.x += p.dx; p.y += p.dy; p.life -= 0.02;
+                if (p.life <= 0) particles.splice(i, 1);
+                else { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size); ctx.globalAlpha = 1.0; }
+            });
+
+            bricks.forEach(col => col.forEach(b => {
+                if (b.hp > 0) {
+                    let color = `hsl(${b.hue}, 80%, ${90 - b.hp * 20}%)`;
+                    ctx.fillStyle = color; ctx.fillRect(b.x, b.y, b.w, 20);
+                    balls.forEach(ball => {
+                        if (ball.x > b.x && ball.x < b.x + b.w && ball.y > b.y && ball.y < b.y + 20) {
+                            ball.dy *= -1; b.hp--;
+                            createParticles(ball.x, ball.y, color);
+                            if (b.hp <= 0) {
+                                ball.combo++; addScore(150 * ball.combo);
+                                playBeep(500 + (ball.combo * 40), 0.05, 'sine');
+                                if (Math.random() < 0.25) {
+                                    const rand = Math.random();
+                                    const type = rand < 0.4 ? 'L' : (rand < 0.7 ? 'B' : 'X');
+                                    capsules.push({ x: b.x + b.w / 2, y: b.y, type: type });
+                                }
+                            } else playBeep(200, 0.05, 'square', 0.02);
+                        }
+                    });
+                }
+            }));
+
+            if (!bricks.some(col => col.some(b => b.hp > 0)) && !boss) spawnBoss();
+
+            if (boss) {
+                if (boss.y < boss.targetY) boss.y += 1.5;
+                boss.x += boss.dx;
+                if (boss.x > canvas.width - 60 || boss.x < 60) boss.dx *= -1;
+                ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = `100px serif`;
+                ctx.fillText(boss.emoji, boss.x, boss.y); ctx.restore();
+                balls.forEach(ball => {
+                    if (ball.x > boss.x - 50 && ball.x < boss.x + 50 && ball.y > boss.y - 50 && ball.y < boss.y + 50) {
+                        ball.dy *= -1; ball.y += ball.dy * 5;
+                        boss.hp--; addScore(100);
+                        createParticles(ball.x, ball.y, "#ff4757", 12);
+                        playBeep(180 + (boss.hp * 2), 0.1, 'square');
+                        if (boss.hp <= 0) { addScore(10000); playVictoryFanfare(); if (currentStage < 3) endGame(`STAGE ${currentStage} CLEAR`, "#00ff00", true); else endGame("ALL CLEAR!", "#ffd700", false); }
+                    }
+                });
+                if (currentStage === 3) {
+                    boss.shotTimer++;
+                    if (boss.shotTimer > 50) { bullets.push({ x: boss.x, y: boss.y + 20, dy: 5 }); boss.shotTimer = 0; }
+                }
+            }
+
+            capsules.forEach((p, i) => {
+                p.y += 2.5;
+                // 色とラベルの設定
+                let capColor = p.type === 'L' ? '#2ed573' : (p.type === 'B' ? '#1e90ff' : '#ff4757');
+                ctx.fillStyle = capColor; ctx.beginPath(); ctx.arc(p.x, p.y, 12, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = "white"; ctx.font = "bold 14px Arial"; ctx.textAlign = "center";
+                ctx.fillText(p.type, p.x, p.y + 5);
+
+                if (p.y > canvas.height - 40 && p.x > paddleX && p.x < paddleX + paddleWidth) {
+                    if (p.type === 'L') { paddleWidth = 180; setTimeout(() => paddleWidth = basePaddleWidth, 8000); playBeep(600, 0.2, 'triangle'); }
+                    else if (p.type === 'B') { balls.push({ x: paddleX + paddleWidth / 2, y: canvas.height - 50, dx: -4, dy: -4, combo: 0 }); playBeep(600, 0.2, 'triangle'); }
+                    else if (p.type === 'X') {
+                        // デバフ効果
+                        addScore(-500);
+                        if (Math.random() > 0.5) { paddleWidth = 40; setTimeout(() => paddleWidth = basePaddleWidth, 5000); }
+                        else { balls.forEach(b => { b.dx *= 2; b.dy *= 2; }); setTimeout(() => balls.forEach(b => { b.dx /= 2; b.dy /= 2; }), 5000); }
+                        playBeep(100, 0.5, 'sawtooth', 0.1);
+                    }
+                    capsules.splice(i, 1);
+                } else if (p.y > canvas.height) capsules.splice(i, 1);
+            });
+
+            bullets.forEach((m, i) => {
+                m.y += m.dy; ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(m.x, m.y, 8, 0, Math.PI * 2); ctx.fill();
+                if (m.y > canvas.height - 35 && m.x > paddleX && m.x < paddleX + paddleWidth) {
+                    paddleWidth = 35; setTimeout(() => paddleWidth = basePaddleWidth, 4000);
+                    bullets.splice(i, 1); playBeep(80, 0.4, 'sawtooth', 0.1);
+                } else if (m.y > canvas.height) bullets.splice(i, 1);
+            });
+
+            balls.forEach((b, i) => {
+                b.x += b.dx; b.y += b.dy;
+                if (b.x < 7 || b.x > canvas.width - 7) b.dx *= -1;
+                if (b.y < 7) b.dy *= -1;
+                else if (b.y > canvas.height - 40) {
+                    if (b.x > paddleX && b.x < paddleX + paddleWidth) { b.dy *= -1; b.dx = (b.x - (paddleX + paddleWidth / 2)) * 0.25; b.combo = 0; playBeep(300, 0.05, 'triangle'); }
+                    else if (b.y > canvas.height) balls.splice(i, 1);
+                }
+                ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(b.x, b.y, ballRadius, 0, Math.PI * 2); ctx.fill();
+            });
+
+            if (balls.length === 0) endGame("GAME OVER", "#ff4757", false);
+            requestAnimationFrame(draw);
+        }
+
+        function endGame(txt, col, next) {
+            gameActive = false;
+            statusText.innerText = txt; statusText.style.color = col;
+            finalScoreDisp.innerText = score; finalScoreArea.classList.remove("hidden");
+            subText.innerHTML = next ? "CLICK or <kbd>SPACE</kbd> FOR NEXT" : "CLICK or <kbd>SPACE</kbd> TO RESTART";
+            if (next) currentStage++;
+            overlay.classList.remove("hidden");
+        }
+        draw();
+    </script>
+</body>
+
+</html>

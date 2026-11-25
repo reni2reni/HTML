@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>メッシュ画像自由変形ツール</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; padding:18px; font-family:"Meiryo",sans-serif; background:#202329; color:#eee; }
+  h2 { margin:0 0 14px; font-size:22px; }
+  .toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:14px; background:#30343c; border-radius:8px; margin-bottom:14px; }
+  label { font-size:14px; }
+  input[type="number"] { width:66px; padding:7px; border-radius:4px; border:1px solid #777; background:#17191e; color:white; }
+  input[type="file"] { max-width:220px; }
+  input[type="range"] { width:130px; vertical-align:middle; }
+  select { padding:8px; border-radius:4px; background:#17191e; color:white; border:1px solid #777; }
+  button { border:0; border-radius:5px; padding:9px 13px; background:#1687df; color:white; font-weight:bold; cursor:pointer; }
+  button:hover { background:#39a0f3; }
+  button.secondary { background:#565d69; }
+  button.save { background:#17844d; }
+  #status { font-size:13px; color:#c4cbd5; margin:0 0 10px; }
+  #stage {
+    overflow:auto; max-height:75vh; background-color:#17191e;
+    background-image:linear-gradient(45deg,#282b31 25%,transparent 25%),linear-gradient(-45deg,#282b31 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#282b31 75%),linear-gradient(-45deg,transparent 75%,#282b31 75%);
+    background-size:24px 24px; background-position:0 0,0 12px,12px -12px,-12px 0;
+    border:1px solid #50545c; padding:8px; overscroll-behavior:contain;
+  }
+  canvas { display:block; max-width:none; height:auto; margin:0; touch-action:none; cursor:crosshair; }
+  .help { color:#c4cbd5; font-size:13px; line-height:1.8; }
+  .value { min-width:42px; display:inline-block; color:#fff; }
+</style>
+</head>
+<body>
+<h2>メッシュ画像自由変形ツール</h2>
+<div class="toolbar">
+  <label>画像： <input type="file" id="file" accept="image/*"></label>
+  <label>メッシュ間隔：
+    <select id="spacingMode"><option value="same">X・Y同比率</option><option value="separate">X・Y個別</option></select>
+  </label>
+  <label>X間隔(px)： <input type="number" id="spacingX" min="2" max="10000" value="32"></label>
+  <label id="spacingYLabel">Y間隔(px)： <input type="number" id="spacingY" min="2" max="10000" value="32"></label>
+  <button id="applyGrid">メッシュ作成</button>
+  <label>影響範囲：
+    <input type="range" id="influence" min="0.5" max="8" step="0.5" value="2.5">
+    <span class="value" id="influenceValue">2.5マス</span>
+  </label>
+  <button id="reset" class="secondary">変形リセット</button>
+  <button id="toggle" class="secondary" aria-pressed="true">メッシュ非表示</button>
+  <button id="compareOriginal" class="secondary" aria-pressed="false">元画像を表示</button>
+  <button id="zoomOut" class="secondary">－</button>
+  <span class="value" id="zoomLabel">100%</span>
+  <button id="zoomIn" class="secondary">＋</button>
+  <button id="fit" class="secondary">画面に合わせる</button>
+  <label>画質補正：
+    <select id="qualityMode">
+      <option value="standard">標準（高品質補間）</option>
+      <option value="sharp">シャープ補正</option>
+      <option value="strong">強シャープ</option>
+      <option value="edge">エッジ強調</option>
+      <option value="crisp">輪郭優先（補間弱め）</option>
+    </select>
+  </label>
+  <button id="applyQuality" class="secondary">画質補正を切替</button>
+  <label>保存形式：
+    <select id="format">
+      <option value="image/jpeg" selected>JPG</option>
+      <option value="image/png">PNG</option>
+    </select>
+  </label>
+  <button id="save" class="save">画像保存</button>
+</div>
+<div id="status">まず画像を読み込んでください。</div>
+<div id="stage"><canvas id="canvas" width="800" height="600"></canvas></div>
+<p class="help">
+  ・画像ファイルをキャンバス領域へドラッグ＆ドロップして読み込めます。<br>
+  ・メッシュ間隔はピクセル単位です。「X・Y同比率」は同じpx間隔、「X・Y個別」は横・縦を別々に指定します。<br>
+  ・交点をドラッグすると、影響範囲内の周辺交点も滑らかに追従します。<br>
+  ・マウスホイールでポインター位置を中心に拡大・縮小できます。右クリックを押しながらドラッグすると表示位置を移動できます。<br>
+  ・「元画像を表示」ボタンで変更前の画像と変形後を切り替えて比較できます。<br>
+  ・画質補正は「画質補正を切替」でON/OFFできます。シャープ補正・強シャープ・エッジ強調などを選び、プレビューと保存画像に適用します。強い補正は輪郭にハローやノイズが出る場合があります。<br>
+  ・保存はメッシュ線を含まない変形画像を書き出します。PNGは透過を保持し、JPGは白背景になります。<br>
+  ・影響範囲はメッシュのマス数で指定します。値を大きくすると広い範囲がなだらかに動きます。
+</p>
+<script>
+(() => {
+  "use strict";
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  const stage = document.getElementById("stage");
+  const fileInput = document.getElementById("file");
+  const spacingMode = document.getElementById("spacingMode");
+  const spacingXInput = document.getElementById("spacingX");
+  const spacingYInput = document.getElementById("spacingY");
+  const spacingYLabel = document.getElementById("spacingYLabel");
+  const influenceInput = document.getElementById("influence");
+  const influenceValue = document.getElementById("influenceValue");
+  const status = document.getElementById("status");
+  const zoomLabel = document.getElementById("zoomLabel");
+
+  let image = null, cols = 10, rows = 10;
+  let srcNodes = [], dstNodes = [], triangles = [];
+  let selected = -1, dragging = false, panning = false, showMesh = true, showOriginal = false, zoom = 1;
+  let lastPanPoint = null;
+  let dragStartNodes = null, dragStartPoint = null;
+
+  function nodeIndex(x,y) { return y*(cols+1)+x; }
+  function updateZoomLabel() { zoomLabel.textContent = Math.round(zoom*100)+"%"; }
+  function updateMeshToggleLabel() {
+    const toggle = document.getElementById("toggle");
+    toggle.textContent = showMesh ? "メッシュ非表示" : "メッシュ表示";
+    toggle.setAttribute("aria-pressed", String(showMesh));
+  }
+
+  function setZoom(nextZoom, anchorClientX=null, anchorClientY=null) {
+    nextZoom = Math.max(0.1, Math.min(4, nextZoom));
+    if (Math.abs(nextZoom-zoom)<0.0001) return;
+    const oldZoom = zoom;
+    let offsetX=null, offsetY=null;
+    if (anchorClientX!==null && anchorClientY!==null) {
+      const rect=stage.getBoundingClientRect();
+      offsetX=anchorClientX-rect.left;
+      offsetY=anchorClientY-rect.top;
+    }
+    const oldScrollLeft=stage.scrollLeft, oldScrollTop=stage.scrollTop;
+    zoom=nextZoom;
+    canvas.style.width=(canvas.width*zoom)+"px";
+    canvas.style.height=(canvas.height*zoom)+"px";
+    updateZoomLabel();
+    if (offsetX!==null) {
+      stage.scrollLeft=(oldScrollLeft+offsetX)*(zoom/oldZoom)-offsetX;
+      stage.scrollTop=(oldScrollTop+offsetY)*(zoom/oldZoom)-offsetY;
+    }
+    render();
+  }
+
+  function fitToStage() {
+    if (!image) return;
+    const available=Math.max(100,stage.clientWidth-18);
+    setZoom(Math.min(1,available/canvas.width));
+    stage.scrollLeft=0; stage.scrollTop=0;
+  }
+
+  function buildMesh() {
+    if (!image) return;
+    let spacingX=Math.max(2,Math.min(10000,parseInt(spacingXInput.value,10)||50));
+    let spacingY=spacingMode.value==="same" ? spacingX : Math.max(2,Math.min(10000,parseInt(spacingYInput.value,10)||50));
+    spacingXInput.value=spacingX; spacingYInput.value=spacingY;
+    if(spacingMode.value==="same") spacingYInput.value=spacingX;
+    cols=Math.max(1,Math.min(300,Math.ceil(canvas.width/spacingX)));
+    rows=Math.max(1,Math.min(300,Math.ceil(canvas.height/spacingY)));
+    srcNodes=[]; dstNodes=[]; triangles=[];
+    for(let y=0;y<=rows;y++) for(let x=0;x<=cols;x++) {
+      const p={x:x*canvas.width/cols,y:y*canvas.height/rows};
+      srcNodes.push({...p}); dstNodes.push({...p});
+    }
+    for(let y=0;y<rows;y++) for(let x=0;x<cols;x++) {
+      const a=nodeIndex(x,y),b=nodeIndex(x+1,y),c=nodeIndex(x,y+1),d=nodeIndex(x+1,y+1);
+      triangles.push([a,b,d],[a,d,c]);
+    }
+    render();
+    status.textContent=`画像 ${canvas.width} × ${canvas.height} px ／ メッシュ間隔 X:${spacingX}px・Y:${spacingY}px ／ 分割 ${cols} × ${rows} ／ ${dstNodes.length} 交点`;
+  }
+
+  function drawTriangle(indices) {
+    const s0=srcNodes[indices[0]],s1=srcNodes[indices[1]],s2=srcNodes[indices[2]];
+    const d0=dstNodes[indices[0]],d1=dstNodes[indices[1]],d2=dstNodes[indices[2]];
+    const ux=s1.x-s0.x,uy=s1.y-s0.y,vx=s2.x-s0.x,vy=s2.y-s0.y;
+    const det=ux*vy-vx*uy;
+    if(Math.abs(det)<1e-9) return;
+    const a=((d1.x-d0.x)*vy-(d2.x-d0.x)*uy)/det;
+    const c=(ux*(d2.x-d0.x)-vx*(d1.x-d0.x))/det;
+    const b=((d1.y-d0.y)*vy-(d2.y-d0.y)*uy)/det;
+    const d=(ux*(d2.y-d0.y)-vx*(d1.y-d0.y))/det;
+    const e=d0.x-a*s0.x-c*s0.y, f=d0.y-b*s0.x-d*s0.y;
+    ctx.save();
+    ctx.imageSmoothingEnabled=true;
+    ctx.imageSmoothingQuality=selectedSmoothingQuality();
+    ctx.beginPath(); ctx.moveTo(d0.x,d0.y); ctx.lineTo(d1.x,d1.y); ctx.lineTo(d2.x,d2.y); ctx.closePath(); ctx.clip();
+    ctx.setTransform(a,b,c,d,e,f); ctx.drawImage(image,0,0); ctx.restore();
+  }
+
+
+  function createWarpQualityMask(width, height) {
+    const mask = new Float32Array(width * height);
+
+    if (!srcNodes || !dstNodes ||
+      srcNodes.length !== dstNodes.length) {
+      return mask;
+    }
+
+    // 交点の移動量を記録
+    const moved = new Float32Array(srcNodes.length);
+
+    for (let i = 0; i < srcNodes.length; i++) {
+      const sx = srcNodes[i].x;
+      const sy = srcNodes[i].y;
+      const dx = dstNodes[i].x - sx;
+      const dy = dstNodes[i].y - sy;
+
+      moved[i] = Math.hypot(dx, dy);
+    }
+
+    // 移動量の大きい交点の周囲ほど補正を強める
+    const radius = 48;
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        let influence = 0;
+
+        for (let i = 0; i < srcNodes.length; i++) {
+          const amount = moved[i];
+          if (amount < 0.5) continue;
+
+          const dx = x - srcNodes[i].x;
+          const dy = y - srcNodes[i].y;
+          const dist = Math.hypot(dx, dy);
+
+          if (dist >= radius) continue;
+
+          // 中心で強く、周辺に向けて滑らかに減衰
+          const t = 1 - dist / radius;
+          const falloff = t * t * (3 - 2 * t);
+
+          const strength = Math.min(1, amount / 12) * falloff;
+          influence = Math.max(influence, strength);
+        }
+
+        mask[y * width + x] = influence;
+      }
+    }
+
+    return mask;
+  }
+
+  function drawGrid() {
+    ctx.save(); ctx.setTransform(1,0,0,1,0,0);
+    ctx.lineWidth=Math.max(1,canvas.width/1200); ctx.strokeStyle="#00eaff"; ctx.beginPath();
+    for(let y=0;y<=rows;y++) for(let x=0;x<cols;x++) {
+      const p=dstNodes[nodeIndex(x,y)],q=dstNodes[nodeIndex(x+1,y)];
+      ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y);
+    }
+    for(let x=0;x<=cols;x++) for(let y=0;y<rows;y++) {
+      const p=dstNodes[nodeIndex(x,y)],q=dstNodes[nodeIndex(x,y+1)];
+      ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y);
+    }
+    ctx.stroke();
+    const r=Math.max(3,canvas.width/250);
+    for(let i=0;i<dstNodes.length;i++) {
+      const p=dstNodes[i]; ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2);
+      ctx.fillStyle=i===selected?"#ff3030":"#fff000"; ctx.fill();
+      ctx.lineWidth=1; ctx.strokeStyle="#222"; ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  const qualityModeInput = document.getElementById("qualityMode");
+  let qualityEnabled = false;
+  function qualitySettings() {
+    if(!qualityEnabled) return {mode:"standard", enabled:false};
+    return {mode:qualityModeInput.value, enabled:true};
+  }
+  
+  function applyQualityFilter(targetCtx, targetCanvas, mode, warpMask) {
+    if (!mode || mode === "standard") return;
+
+    const w = targetCanvas.width;
+    const h = targetCanvas.height;
+
+    const src = targetCtx.getImageData(0, 0, w, h);
+    const input = src.data;
+    const output = new Uint8ClampedArray(input);
+
+    const strength =
+      mode === "sharp" ? 0.55 :
+        mode === "strong" ? 1.05 :
+          mode === "edge" ? 0.8 : 0.25;
+
+    const center = 1 + 4 * strength;
+    const side = -strength;
+
+    for (let y = 1; y < h - 1; y++) {
+      let idx = (y * w + 1) * 4;
+
+      for (let x = 1; x < w - 1; x++, idx += 4) {
+        // 変形マスクがなければ補正しない
+        // マスクの値は 0〜1（0=補正なし、1=最大補正）
+        const amount = warpMask
+          ? Math.max(0, Math.min(1, warpMask[y * w + x]))
+          : 0;
+
+        if (amount <= 0) continue;
+
+        for (let c = 0; c < 3; c++) {
+          const original = input[idx + c];
+
+          const sharpened =
+            original * center +
+            side * (
+              input[idx - 4 + c] +
+              input[idx + 4 + c] +
+              input[idx - w * 4 + c] +
+              input[idx + w * 4 + c]
+            );
+
+          // 補正前の画素と補正後の画素を合成
+          output[idx + c] = Math.max(
+            0,
+            Math.min(
+              255,
+              original * (1 - amount) +
+              sharpened * amount
+            )
+          );
+        }
+      }
+    }
+
+    src.data.set(output);
+    targetCtx.putImageData(src, 0, 0);
+  }
+
+  function selectedSmoothingQuality() {
+    const mode=qualityEnabled?qualityModeInput.value:"standard";
+    return mode==="crisp" ? "low" : "high";
+  }
+
+  function render(drawMesh=showMesh) {
+    if(!image) return;
+    // 元画像表示中は変形を一時的に切り替えて比較できる（変形データ自体は保持）
+    ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality=selectedSmoothingQuality();
+    if(showOriginal) {
+      ctx.drawImage(image,0,0,canvas.width,canvas.height);
+    } else {
+      for(const tri of triangles) drawTriangle(tri);
+      const q=qualitySettings();
+      if (q.enabled) {
+        const mask = createWarpQualityMask(canvas.width, canvas.height);
+        applyQualityFilter(ctx, canvas, q.mode, mask);
+      }
+      if(drawMesh) drawGrid();
+    }
+  }
+  function updateCompareLabel() {
+    const btn=document.getElementById("compareOriginal");
+    btn.textContent=showOriginal ? "変形後を表示" : "元画像を表示";
+    btn.setAttribute("aria-pressed",String(showOriginal));
+  }
+
+  function pointerPosition(event) {
+    const rect=canvas.getBoundingClientRect();
+    return {x:(event.clientX-rect.left)*canvas.width/rect.width,y:(event.clientY-rect.top)*canvas.height/rect.height};
+  }
+
+  function hitTest(p) {
+    const rect=canvas.getBoundingClientRect(),radius=12*canvas.width/rect.width;
+    let best=radius*radius,hit=-1;
+    for(let i=0;i<dstNodes.length;i++) {
+      const dx=dstNodes[i].x-p.x,dy=dstNodes[i].y-p.y,dist=dx*dx+dy*dy;
+      if(dist<=best){best=dist;hit=i;}
+    }
+    return hit;
+  }
+
+  function influenceCells(){return parseFloat(influenceInput.value)||2.5;}
+  function updateInfluenceLabel(){influenceValue.textContent=influenceCells().toFixed(1).replace(/\.0$/,"")+"マス";}
+
+  function applySmoothMove(p) {
+    if(selected<0||!dragStartNodes||!dragStartPoint)return;
+    const dx=p.x-dragStartPoint.x,dy=p.y-dragStartPoint.y;
+    const cellW=canvas.width/cols,cellH=canvas.height/rows;
+    const radius=influenceCells()*Math.min(cellW,cellH);
+    for(let i=0;i<dstNodes.length;i++) {
+      const orig=dragStartNodes[i],dist=Math.hypot(orig.x-dragStartPoint.x,orig.y-dragStartPoint.y);
+      let weight=0;
+      if(dist<radius){const t=1-dist/radius;weight=t*t*(3-2*t);}
+      dstNodes[i].x=orig.x+dx*weight; dstNodes[i].y=orig.y+dy*weight;
+    }
+    dstNodes[selected].x=p.x; dstNodes[selected].y=p.y;
+    render();
+  }
+
+  canvas.addEventListener("contextmenu",event=>event.preventDefault());
+  canvas.addEventListener("pointerdown",event=>{
+    if(!image)return;
+    if(event.button===2) {
+      panning=true;
+      lastPanPoint={x:event.clientX,y:event.clientY};
+      canvas.style.cursor="grabbing";
+      canvas.setPointerCapture(event.pointerId);
+      event.preventDefault();
+      return;
+    }
+    if(event.button!==0 || showOriginal)return;
+    const p=pointerPosition(event); selected=hitTest(p);
+    if(selected>=0){
+      dragging=true;dragStartNodes=dstNodes.map(n=>({...n}));dragStartPoint={...dstNodes[selected]};
+      canvas.setPointerCapture(event.pointerId);render();
+    }
+  });
+  canvas.addEventListener("pointermove",event=>{
+    if(panning && lastPanPoint) {
+      const dx=event.clientX-lastPanPoint.x,dy=event.clientY-lastPanPoint.y;
+      stage.scrollLeft-=dx;stage.scrollTop-=dy;
+      lastPanPoint={x:event.clientX,y:event.clientY};
+      return;
+    }
+    if(dragging&&selected>=0)applySmoothMove(pointerPosition(event));
+  });
+  function stopPointerAction(){
+    if(dragging){dragging=false;selected=-1;dragStartNodes=null;dragStartPoint=null;render();}
+    if(panning){panning=false;lastPanPoint=null;canvas.style.cursor="crosshair";}
+  }
+  canvas.addEventListener("pointerup",stopPointerAction);
+  canvas.addEventListener("pointercancel",stopPointerAction);
+  canvas.addEventListener("lostpointercapture",()=>{if(dragging||panning)stopPointerAction();});
+
+  stage.addEventListener("wheel",event=>{
+    if(!image)return; event.preventDefault();
+    setZoom(zoom*(event.deltaY<0?1.12:1/1.12),event.clientX,event.clientY);
+  },{passive:false});
+
+  // ドラッグ＆ドロップで画像を読み込む
+  function loadImageFile(file) {
+    if(!file || !file.type.startsWith("image/")) {
+      status.textContent="画像ファイルをドロップしてください。";
+      return;
+    }
+    const url=URL.createObjectURL(file),img=new Image();
+    img.onload=()=>{
+      image=img;canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;zoom=1;
+      canvas.style.width=canvas.width+"px";canvas.style.height=canvas.height+"px";updateZoomLabel();
+      buildMesh();URL.revokeObjectURL(url);fitToStage();
+    };
+    img.onerror=()=>{status.textContent="画像を読み込めませんでした。";URL.revokeObjectURL(url);};
+    img.src=url;
+  }
+  // 既存のファイル選択も共通ローダーを使用
+  fileInput.addEventListener("change",event=>loadImageFile(event.target.files[0]));
+  ["dragenter","dragover"].forEach(type=>stage.addEventListener(type,event=>{
+    event.preventDefault();event.dataTransfer.dropEffect="copy";stage.style.outline="2px solid #39a0f3";
+  }));
+  ["dragleave","drop"].forEach(type=>stage.addEventListener(type,event=>{
+    event.preventDefault();stage.style.outline="";
+  }));
+  stage.addEventListener("drop",event=>loadImageFile(event.dataTransfer.files[0]));
+  document.addEventListener("dragover",event=>event.preventDefault());
+  document.addEventListener("drop",event=>event.preventDefault());
+
+  spacingMode.addEventListener("change",()=>{
+    const same=spacingMode.value==="same";
+    spacingYLabel.style.display=same?"none":"inline-flex";
+    if(same) spacingYInput.value=spacingXInput.value;
+  });
+  spacingXInput.addEventListener("change",()=>{if(spacingMode.value==="same")spacingYInput.value=spacingXInput.value;});
+  document.getElementById("applyGrid").addEventListener("click",buildMesh);
+  document.getElementById("reset").addEventListener("click",()=>{if(!image)return;dstNodes=srcNodes.map(p=>({...p}));selected=-1;render();});
+  document.getElementById("compareOriginal").addEventListener("click",()=>{
+    showOriginal=!showOriginal;
+    updateCompareLabel();
+    render();
+  });
+  document.getElementById("toggle").addEventListener("click",()=>{
+    showMesh=!showMesh;
+    updateMeshToggleLabel();
+    render();
+  });
+  document.getElementById("zoomIn").addEventListener("click",()=>setZoom(zoom*1.2));
+  document.getElementById("zoomOut").addEventListener("click",()=>setZoom(zoom/1.2));
+  document.getElementById("fit").addEventListener("click",fitToStage);
+  document.getElementById("applyQuality").addEventListener("click",()=>{
+    qualityEnabled=!qualityEnabled;
+    const btn=document.getElementById("applyQuality");
+    btn.textContent=qualityEnabled?"画質補正：ON（クリックでOFF）":"画質補正を切替";
+    btn.style.background=qualityEnabled?"#17844d":"#565d69";
+    render();
+  });
+  qualityModeInput.addEventListener("change",()=>{if(qualityEnabled)render();});
+  influenceInput.addEventListener("input",updateInfluenceLabel);
+
+  document.getElementById("save").addEventListener("click",()=>{
+    if(!image){alert("先に画像を読み込んでください。");return;}
+    const mime=document.getElementById("format").value;
+    // 保存操作時は表示メッシュも非表示にする。書き出し先は別canvasで、線は描画しない。
+    showMesh=false;
+    updateMeshToggleLabel();
+    render(false);
+    const exportCanvas=document.createElement("canvas");
+    exportCanvas.width=canvas.width;exportCanvas.height=canvas.height;
+    const exportCtx=exportCanvas.getContext("2d");
+    exportCtx.imageSmoothingEnabled=true;exportCtx.imageSmoothingQuality=selectedSmoothingQuality();
+
+    if(mime==="image/jpeg"){
+      exportCtx.fillStyle="#ffffff";
+      exportCtx.fillRect(0,0,exportCanvas.width,exportCanvas.height);
+    }
+    for(const tri of triangles) {
+      const s0=srcNodes[tri[0]],s1=srcNodes[tri[1]],s2=srcNodes[tri[2]];
+      const d0=dstNodes[tri[0]],d1=dstNodes[tri[1]],d2=dstNodes[tri[2]];
+      const ux=s1.x-s0.x,uy=s1.y-s0.y,vx=s2.x-s0.x,vy=s2.y-s0.y;
+      const det=ux*vy-vx*uy;
+      if(Math.abs(det)<1e-9)continue;
+      const a=((d1.x-d0.x)*vy-(d2.x-d0.x)*uy)/det;
+      const c=(ux*(d2.x-d0.x)-vx*(d1.x-d0.x))/det;
+      const b=((d1.y-d0.y)*vy-(d2.y-d0.y)*uy)/det;
+      const d=(ux*(d2.y-d0.y)-vx*(d1.y-d0.y))/det;
+      const e=d0.x-a*s0.x-c*s0.y,f=d0.y-b*s0.x-d*s0.y;
+      // 三角形の境界を約0.8px外側へ広げ、アンチエイリアス由来の細い線も防ぐ
+      const cx=(d0.x+d1.x+d2.x)/3, cy=(d0.y+d1.y+d2.y)/3;
+      const bleed=0.8;
+      const expand=(p)=>{
+        const vx=p.x-cx, vy=p.y-cy, len=Math.hypot(vx,vy)||1;
+        return {x:p.x+vx/len*bleed, y:p.y+vy/len*bleed};
+      };
+      const q0=expand(d0),q1=expand(d1),q2=expand(d2);
+      exportCtx.save();
+      exportCtx.beginPath();exportCtx.moveTo(q0.x,q0.y);exportCtx.lineTo(q1.x,q1.y);exportCtx.lineTo(q2.x,q2.y);exportCtx.closePath();exportCtx.clip();
+      exportCtx.imageSmoothingEnabled=true;
+      exportCtx.imageSmoothingQuality=selectedSmoothingQuality();
+      exportCtx.setTransform(a,b,c,d,e,f);exportCtx.drawImage(image,0,0);exportCtx.restore();
+    }
+    const q=qualitySettings();
+    if(q.enabled) applyQualityFilter(exportCtx,exportCanvas,q.mode);
+    exportCanvas.toBlob(blob=>{
+      if(!blob){alert("画像を保存できませんでした。");return;}
+      const url=URL.createObjectURL(blob),a=document.createElement("a");
+      a.href=url;a.download=mime==="image/jpeg"?"mesh-warp.jpg":"mesh-warp.png";
+      a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
+    },mime,mime==="image/jpeg"?0.95:undefined);
+  });
+
+  spacingYLabel.style.display="none";
+  updateInfluenceLabel();updateZoomLabel();updateMeshToggleLabel();updateCompareLabel();
+})();
+</script>
+</body>
+</html>

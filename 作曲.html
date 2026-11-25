@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Web Audio Multi-Instrument Looper</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #1a1a1a;
+            color: #eee;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+            font-size: 22px;
+        }
+
+        .panel {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            margin: 2px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        button:hover {
+            background: #0098ff;
+        }
+
+        button.active {
+            background: #e74c3c;
+        }
+
+        button.test-btn {
+            background: #8e44ad;
+            font-size: 10px;
+            padding: 4px 8px;
+        }
+
+        button.test-btn:hover {
+            background: #9b59b6;
+        }
+
+        button.test-btn.active {
+            background: #9b59b6;
+            border: 2px solid #fff;
+        }
+
+        .controls {
+            margin: 10px 0;
+        }
+
+        .parts-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+            max-width: 820px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .part-card {
+            background: #333;
+            padding: 10px;
+            border-radius: 6px;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .part-card.recording {
+            border-color: #e74c3c;
+            background: #3a2222;
+        }
+
+        .part-card.testing {
+            border-color: #8e44ad;
+            background: #2f223a;
+        }
+
+        .part-card.has-data {
+            border-color: #27ae60;
+        }
+
+        select.timbre-select {
+            background: #222;
+            color: #eee;
+            border: 1px solid #555;
+            padding: 4px;
+            border-radius: 4px;
+            margin: 4px 0 6px 0;
+            font-size: 11px;
+            width: 100%;
+        }
+
+        .volume-control {
+            margin: 6px 0;
+            font-size: 10px;
+            color: #aaa;
+            text-align: left;
+        }
+
+        .volume-control input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            margin-top: 2px;
+        }
+
+        .drum-mixer {
+            background: #222;
+            padding: 6px;
+            border-radius: 4px;
+            margin: 4px 0 6px 0;
+            font-size: 9px;
+            text-align: left;
+        }
+
+        .drum-mixer-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+
+        .drum-mixer-row input[type="range"] {
+            width: 60px;
+            cursor: pointer;
+        }
+
+        .drum-pad-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+            margin-top: 4px;
+            margin-bottom: 6px;
+        }
+
+        .drum-pad {
+            background: #444;
+            color: #fff;
+            border: none;
+            padding: 5px 2px;
+            font-size: 9px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .drum-pad:active,
+        .drum-pad.pressed {
+            background: #e74c3c !important;
+        }
+
+        .keyboard-container {
+            display: inline-block;
+            background: #111;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+        .keyboard {
+            display: flex;
+            position: relative;
+            height: 120px;
+            user-select: none;
+        }
+
+        .key {
+            position: relative;
+            width: 32px;
+            height: 120px;
+            background: #fff;
+            border: 1px solid #bbb;
+            box-sizing: border-box;
+            border-radius: 0 0 4px 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 6px;
+            color: #555;
+            font-size: 9px;
+            font-weight: bold;
+            z-index: 1;
+            margin-right: -1px;
+        }
+
+        .key.black {
+            position: absolute;
+            width: 20px;
+            height: 75px;
+            background: #222;
+            color: #ccc;
+            z-index: 3;
+            border-radius: 0 0 3px 3px;
+            border: 1px solid #000;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 4px;
+            font-size: 8px;
+        }
+
+        .key:active,
+        .key.pressed {
+            background: #dcdcdc !important;
+        }
+
+        .key.black:active,
+        .key.black.pressed {
+            background: #444 !important;
+        }
+
+        .status-bar {
+            font-size: 18px;
+            color: #f1c40f;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .info {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Web Audio Multi-Instrument Looper</h1>
+    <div style="font-size: 12px; color: #888; margin-bottom: 15px;">音色テスト＆リアルタイム多重録音シーケンサー</div>
+
+    <div class="panel">
+        <div class="controls">
+            <label>BPM: <input type="number" id="bpm-input" value="120" min="40" max="240"
+                    style="width: 50px; text-align: center;"></label>
+            <label style="margin-left: 15px;">長さ:
+                <select id="beats-select">
+                    <option value="4">4拍 (1小節)</option>
+                    <option value="8" selected>8拍 (2小節)</option>
+                    <option value="16">16拍 (4小節)</option>
+                </select>
+            </label>
+            <button id="play-btn" style="margin-left: 15px;">再生 / 停止</button>
+            <button id="clear-btn" style="background: #555;">全クリア</button>
+        </div>
+        <div class="status-bar" id="status-display">停止中 | 経過: 0.00s</div>
+    </div>
+
+    <div class="parts-grid" id="parts-container"></div>
+
+    <div class="keyboard-container">
+        <div style="font-size: 11px; margin-bottom: 6px; color: #aaa;">3オクターブ鍵盤 (マウスでクリック or 中央部PCキー[A-K]対応)</div>
+        <div class="keyboard" id="keyboard"></div>
+    </div>
+
+    <div class="info">
+        使い方: TESTボタンで音色をONにすると、鍵盤やPCキーでその音を演奏できます（録音は「録音」ボタンで行います）。
+    </div>
+
+    <script>
+        let audioCtx = null;
+        let isPlaying = false;
+        let bpm = 120;
+        let totalBeats = 8;
+
+        let loopDuration = 0;
+        let loopStartTime = 0;
+        let nextScheduleTime = 0;
+        let timerID = null;
+        const lookahead = 10;
+        const scheduleAheadTime = 0.05;
+
+        const activeNotes = {};
+
+        const drumPads = [
+            { id: 'kick', name: 'バス' },
+            { id: 'snare', name: 'スネア' },
+            { id: 'rim', name: 'リム' },
+            { id: 'cymbal', name: 'シンバル' },
+            { id: 'tom-h', name: '高タイコ' },
+            { id: 'tom-m', name: '中タイコ' },
+            { id: 'tom-l', name: '低タイコ' }
+        ];
+
+        const parts = {
+            rhythm: {
+                name: 'リズム (DRUM)',
+                activeRec: false,
+                activeTest: false,
+                events: [],
+                timbre: 'standard',
+                testDrum: 'kick',
+                volume: 0.6,
+                drumVolumes: {
+                    'kick': 0.8,
+                    'snare': 0.6,
+                    'rim': 0.5,
+                    'cymbal': 0.5,
+                    'tom-h': 0.5,
+                    'tom-m': 0.5,
+                    'tom-l': 0.5
+                }
+            },
+            bass: {
+                name: 'ベース (BASS)',
+                activeRec: false,
+                activeTest: false,
+                events: [],
+                timbre: 'fat-saw',
+                volume: 0.4
+            },
+            chord: {
+                name: 'コード (CHORD)',
+                activeRec: false,
+                activeTest: false,
+                events: [],
+                timbre: 'brass',
+                volume: 0.2
+            },
+            melody: {
+                name: 'メロディ (MELODY)',
+                activeRec: false,
+                activeTest: false,
+                events: [],
+                timbre: 'synth-lead',
+                volume: 0.25
+            }
+        };
+
+        const timbres = {
+            bass: [
+                { id: 'fat-saw', name: 'ファットベース (Saw)' },
+                { id: 'sub-bass', name: 'サブベース (Sine)' },
+                { id: 'slap-bass', name: 'スラップ風 (Square)' },
+                { id: 'fm-bass', name: 'FMベース (Tri+FM)' }
+            ],
+            chord: [
+                { id: 'brass', name: 'シンセブラス (Saw+Filter)' },
+                { id: 'strings', name: 'ストリングス (Slow Saw)' },
+                { id: 'epiano', name: 'E.ピアノ風 (Sine+FM)' },
+                { id: 'organ', name: 'オルガン (Multi-Square)' }
+            ],
+            melody: [
+                { id: 'synth-lead', name: 'シンセリード (Sine)' },
+                { id: 'square-lead', name: 'スクエアリード' },
+                { id: 'pluck', name: 'プラック音 (Short)' },
+                { id: 'bell', name: 'ベル風 (FM)' }
+            ],
+            rhythm: [
+                { id: 'standard', name: '標準キット' }
+            ]
+        };
+
+        const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        function getFreq(note, octave) {
+            const semitones = {
+                'C': -9, 'C#': -8, 'D': -7, 'D#': -6, 'E': -5, 'F': -4, 'F#': -3, 'G': -2, 'G#': -1, 'A': 0, 'A#': 1, 'B': 2
+            };
+            const n = semitones[note] + (octave - 4) * 12;
+            return 440 * Math.pow(2, n / 12);
+        }
+
+        const pcKeyMap = {
+            'KeyA': 'C4', 'KeyW': 'C#4', 'KeyS': 'D4', 'KeyE': 'D#4', 'KeyD': 'E4',
+            'KeyF': 'F4', 'KeyT': 'F#4', 'KeyG': 'G4', 'KeyY': 'G#4', 'KeyH': 'A4',
+            'KeyU': 'A#4', 'KeyJ': 'B4', 'KeyK': 'C5'
+        };
+
+        let keysDef = [];
+        const whiteWidth = 32;
+        let currentWhiteIndex = 0;
+
+        for (let octave = 3; octave <= 5; octave++) {
+            for (let i = 0; i < noteNames.length; i++) {
+                const note = noteNames[i];
+                if (octave === 5 && i > 11) break;
+
+                const isBlack = note.includes('#');
+                const noteStr = `${note}${octave}`;
+                const freq = getFreq(note, octave);
+
+                let assignedCode = null;
+                let assignedLabel = '';
+                for (let code in pcKeyMap) {
+                    if (pcKeyMap[code] === noteStr) {
+                        assignedCode = code;
+                        assignedLabel = code.replace('Key', '');
+                        break;
+                    }
+                }
+
+                if (!isBlack) {
+                    keysDef.push({
+                        id: `note-${noteStr}`,
+                        note: noteStr,
+                        freq: freq,
+                        type: 'white',
+                        label: assignedLabel,
+                        code: assignedCode,
+                        whiteIndex: currentWhiteIndex
+                    });
+                    currentWhiteIndex++;
+                } else {
+                    const leftPos = (currentWhiteIndex - 1) * whiteWidth + (whiteWidth - 10);
+                    keysDef.push({
+                        id: `note-${noteStr}`,
+                        note: noteStr,
+                        freq: freq,
+                        type: 'black',
+                        label: assignedLabel,
+                        code: assignedCode,
+                        leftPos: leftPos
+                    });
+                }
+            }
+        }
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function createNoiseBuffer() {
+            const bufferSize = audioCtx.sampleRate * 0.5;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+            return buffer;
+        }
+
+        function playSound(identifier, partName, time, duration = 0.3) {
+            initAudio();
+            const part = parts[partName];
+            const timbre = part ? part.timbre : 'synth-lead';
+            const partVol = part ? part.volume : 0.3;
+
+            if (partName === 'rhythm') {
+                const padVol = (part.drumVolumes && part.drumVolumes[identifier] !== undefined) ? part.drumVolumes[identifier] : 0.5;
+                playDrumSound(identifier, time, partVol * padVol);
+                return;
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            let freq = identifier;
+            if (partName === 'bass') {
+                freq = identifier / 4;
+            } else {
+                freq = identifier / 2;
+            }
+
+            if (partName === 'bass') {
+                osc.type = timbre === 'sub-bass' ? 'sine' : (timbre === 'slap-bass' ? 'square' : 'sawtooth');
+                osc.frequency.setValueAtTime(freq, time);
+                gain.gain.setValueAtTime(partVol, time);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+            } else if (partName === 'chord') {
+                osc.type = timbre === 'organ' ? 'square' : 'sawtooth';
+                osc.frequency.setValueAtTime(freq, time);
+                gain.gain.setValueAtTime(0.01, time);
+                gain.gain.linearRampToValueAtTime(partVol, time + 0.08);
+                gain.gain.setValueAtTime(partVol * 0.9, time + duration * 0.7);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + duration + 0.4);
+                duration += 0.4;
+            } else {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, time);
+                gain.gain.setValueAtTime(partVol, time);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+            }
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(time);
+            osc.stop(time + duration);
+        }
+
+        function startNote(identifier, partName, noteKey) {
+            initAudio();
+            if (activeNotes[noteKey]) {
+                stopNote(noteKey);
+            }
+
+            const part = parts[partName];
+            const timbre = part ? part.timbre : 'synth-lead';
+            const vol = part ? part.volume : 0.3;
+
+            if (partName === 'rhythm') {
+                playSound(identifier, partName, audioCtx.currentTime);
+                return;
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const time = audioCtx.currentTime;
+
+            let freq = identifier;
+            if (partName === 'bass') {
+                freq = identifier / 4;
+            } else {
+                freq = identifier / 2;
+            }
+
+            if (partName === 'bass') {
+                osc.type = timbre === 'sub-bass' ? 'sine' : (timbre === 'slap-bass' ? 'square' : 'sawtooth');
+                osc.frequency.setValueAtTime(freq, time);
+                gain.gain.setValueAtTime(0.01, time);
+                gain.gain.linearRampToValueAtTime(vol, time + 0.03);
+            } else if (partName === 'chord') {
+                osc.type = timbre === 'organ' ? 'square' : 'sawtooth';
+                osc.frequency.setValueAtTime(freq, time);
+                gain.gain.setValueAtTime(0.01, time);
+                gain.gain.linearRampToValueAtTime(vol, time + 0.1);
+                gain.gain.setValueAtTime(vol * 0.8, time + 0.2);
+            } else {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, time);
+                gain.gain.setValueAtTime(0.01, time);
+                gain.gain.linearRampToValueAtTime(vol, time + 0.05);
+            }
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(time);
+
+            activeNotes[noteKey] = { osc, gain, partName };
+        }
+
+        function stopNote(noteKey) {
+            const item = activeNotes[noteKey];
+            if (!item) return;
+
+            const { osc, gain, partName } = item;
+            const time = audioCtx.currentTime;
+            const releaseTime = (partName === 'chord') ? 0.45 : 0.15;
+
+            gain.gain.cancelScheduledValues(time);
+            gain.gain.setValueAtTime(gain.gain.value, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + releaseTime);
+
+            osc.stop(time + releaseTime);
+            delete activeNotes[noteKey];
+        }
+
+        function playDrumSound(type, time, vol = 0.5) {
+            if (type === 'kick') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(130, time);
+                osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.15);
+                gain.gain.setValueAtTime(vol, time);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(time);
+                osc.stop(time + 0.15);
+            } else if (type === 'snare') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(180, time);
+                osc.frequency.exponentialRampToValueAtTime(30, time + 0.1);
+                gain.gain.setValueAtTime(vol * 0.7, time);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(time);
+                osc.stop(time + 0.12);
+            } else if (type === 'rim') {
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = createNoiseBuffer();
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.setValueAtTime(2500, time);
+
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(vol * 0.8, time);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + 0.035);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                noise.start(time);
+                noise.stop(time + 0.035);
+
+                const osc = audioCtx.createOscillator();
+                const oscGain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(1200, time);
+                oscGain.gain.setValueAtTime(vol * 0.5, time);
+                oscGain.gain.exponentialRampToValueAtTime(0.001, time + 0.025);
+                osc.connect(oscGain);
+                oscGain.connect(audioCtx.destination);
+                osc.start(time);
+                osc.stop(time + 0.025);
+            } else if (type === 'cymbal') {
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = createNoiseBuffer();
+
+                const filter1 = audioCtx.createBiquadFilter();
+                filter1.type = 'bandpass';
+                filter1.frequency.setValueAtTime(6000, time);
+                filter1.Q.setValueAtTime(1.5, time);
+
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(vol * 0.8, time);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + 0.35);
+
+                noise.connect(filter1);
+                filter1.connect(gain);
+                gain.connect(audioCtx.destination);
+                noise.start(time);
+                noise.stop(time + 0.35);
+            } else if (type === 'tom-h') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, time);
+                osc.frequency.exponentialRampToValueAtTime(100, time + 0.15);
+                gain.gain.setValueAtTime(vol * 0.7, time);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(time);
+                osc.stop(time + 0.15);
+            } else if (type === 'tom-m') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(210, time);
+                osc.frequency.exponentialRampToValueAtTime(80, time + 0.18);
+                gain.gain.setValueAtTime(vol * 0.75, time);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(time);
+                osc.stop(time + 0.18);
+            } else if (type === 'tom-l') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(140, time);
+                osc.frequency.exponentialRampToValueAtTime(50, time + 0.22);
+                gain.gain.setValueAtTime(vol * 0.8, time);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + 0.22);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(time);
+                osc.stop(time + 0.22);
+            }
+        }
+
+        function playClick(isAccent, time) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.setValueAtTime(isAccent ? 1000 : 750, time);
+            gain.gain.setValueAtTime(0.15, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.03);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(time);
+            osc.stop(time + 0.03);
+        }
+
+        function getActivePart() {
+            let activePart = Object.keys(parts).find(id => parts[id].activeRec);
+            if (!activePart || activePart === 'rhythm') {
+                const testedPart = Object.keys(parts).find(id => id !== 'rhythm' && parts[id].activeTest);
+                activePart = testedPart || 'melody';
+            }
+            return activePart;
+        }
+
+        function buildUI() {
+            const container = document.getElementById('parts-container');
+            container.innerHTML = '';
+            Object.keys(parts).forEach(id => {
+                const p = parts[id];
+                const div = document.createElement('div');
+                div.className = `part-card ${id}`;
+                div.id = `card-${id}`;
+
+                let timbreOptions = '';
+                if (timbres[id]) {
+                    timbres[id].forEach(t => {
+                        timbreOptions += `<option value="${t.id}" ${p.timbre === t.id ? 'selected' : ''}>${t.name}</option>`;
+                    });
+                }
+
+                let extraHtml = '';
+                if (id === 'rhythm') {
+                    extraHtml = `<div class="drum-pad-container">`;
+                    drumPads.forEach(dp => {
+                        extraHtml += `<button class="drum-pad" onmousedown="triggerDrum('${dp.id}', this)" ontouchstart="triggerDrum('${dp.id}', this)">${dp.name}</button>`;
+                    });
+                    extraHtml += `</div><div class="drum-mixer"><div style="font-weight:bold; margin-bottom:3px; color:#aaa;">ドラム個別音量:</div>`;
+                    drumPads.forEach(dp => {
+                        const dVol = (p.drumVolumes && p.drumVolumes[dp.id] !== undefined) ? p.drumVolumes[dp.id] : 0.5;
+                        extraHtml += `
+                        <div class="drum-mixer-row">
+                            <span>${dp.name}: <span id="drum-vol-val-${dp.id}">${Math.round(dVol * 100)}%</span></span>
+                            <input type="range" min="0" max="1" step="0.05" value="${dVol}" oninput="changeDrumVolume('${dp.id}', this.value)">
+                        </div>
+                    `;
+                    });
+                    extraHtml += `</div>`;
+                } else {
+                    extraHtml = `
+                    <select class="timbre-select" onchange="changeTimbre('${id}', this.value)">
+                        ${timbreOptions}
+                    </select>
+                `;
+                }
+
+                div.innerHTML = `
+                <div>
+                    <div style="font-size:11px; font-weight:bold; margin-bottom:4px;">${p.name}</div>
+                    ${extraHtml}
+                    <div class="volume-control">
+                        全体音量: <span id="vol-val-${id}">${Math.round(p.volume * 100)}%</span>
+                        <input type="range" min="0" max="1" step="0.05" value="${p.volume}" oninput="changeVolume('${id}', this.value)">
+                    </div>
+                </div>
+                <div style="margin-top:6px; display:flex; flex-direction:column; gap:2px;">
+                    <div style="display:flex; justify-content:center; gap:2px;">
+                        <button onclick="toggleRec('${id}')" id="rec-btn-${id}" style="flex:1;">録音</button>
+                        <button class="test-btn" onclick="toggleTest('${id}')" id="test-btn-${id}">TEST</button>
+                    </div>
+                    <button onclick="clearPart('${id}')" style="background:#444; font-size:9px; padding:3px 6px;">消去</button>
+                </div>
+            `;
+                container.appendChild(div);
+            });
+
+            const kb = document.getElementById('keyboard');
+            kb.innerHTML = '';
+            let whiteCount = 0;
+
+            keysDef.forEach(k => {
+                const el = document.createElement('div');
+                el.className = `key ${k.type}`;
+                el.id = k.id;
+                el.innerText = k.label || '';
+
+                if (k.type === 'white') {
+                    el.style.left = '0px';
+                    whiteCount++;
+                } else {
+                    el.style.left = `${k.leftPos}px`;
+                }
+
+                el.onmousedown = () => handleKeyDown(k.freq, k.id);
+                el.onmouseup = () => handleKeyUp(k.id);
+                el.onmouseleave = () => handleKeyUp(k.id);
+                el.ontouchstart = (e) => { e.preventDefault(); handleKeyDown(k.freq, k.id); };
+                el.ontouchend = () => handleKeyUp(k.id);
+
+                kb.appendChild(el);
+            });
+            kb.style.width = `${whiteCount * whiteWidth}px`;
+        }
+
+        window.changeVolume = function (partId, value) {
+            parts[partId].volume = parseFloat(value);
+            const label = document.getElementById(`vol-val-${partId}`);
+            if (label) {
+                label.innerText = `${Math.round(parts[partId].volume * 100)}%`;
+            }
+        };
+
+        window.changeDrumVolume = function (drumId, value) {
+            if (!parts.rhythm.drumVolumes) parts.rhythm.drumVolumes = {};
+            parts.rhythm.drumVolumes[drumId] = parseFloat(value);
+            const label = document.getElementById(`drum-vol-val-${drumId}`);
+            if (label) {
+                label.innerText = `${Math.round(parts.rhythm.drumVolumes[drumId] * 100)}%`;
+            }
+        };
+
+        function handleKeyDown(freq, elementId) {
+            const el = document.getElementById(elementId);
+            if (el) el.classList.add('pressed');
+
+            const activePart = getActivePart();
+            startNote(freq, activePart, elementId);
+
+            const recPart = Object.keys(parts).find(id => parts[id].activeRec);
+            if (isPlaying && recPart) {
+                initAudio();
+                const elapsed = Number(((audioCtx.currentTime - loopStartTime) % loopDuration).toFixed(4));
+                parts[recPart].events.push({ time: elapsed, target: freq });
+                updatePartCard(recPart);
+            }
+        }
+
+        function handleKeyUp(elementId) {
+            const el = document.getElementById(elementId);
+            if (el) el.classList.remove('pressed');
+            stopNote(elementId);
+        }
+
+        window.changeTimbre = function (partId, value) {
+            parts[partId].timbre = value;
+        };
+
+        window.toggleTest = function (partId) {
+            parts[partId].activeTest = !parts[partId].activeTest;
+            updatePartCard(partId);
+        };
+
+        window.triggerDrum = function (drumId, element) {
+            if (element) {
+                element.classList.add('pressed');
+                setTimeout(() => element.classList.remove('pressed'), 100);
+            }
+            parts.rhythm.testDrum = drumId;
+
+            initAudio();
+            const now = audioCtx.currentTime;
+            playSound(drumId, 'rhythm', now);
+
+            if (isPlaying && parts.rhythm.activeRec) {
+                const elapsed = Number(((now - loopStartTime) % loopDuration).toFixed(4));
+                parts.rhythm.events.push({ time: elapsed, target: drumId });
+                updatePartCard('rhythm');
+            }
+        };
+
+        window.toggleRec = function (id) {
+            Object.keys(parts).forEach(pId => {
+                parts[pId].activeRec = (pId === id) ? !parts[pId].activeRec : false;
+            });
+            updateAllCards();
+        };
+
+        window.clearPart = function (id) {
+            parts[id].events = [];
+            updatePartCard(id);
+        };
+
+        function updatePartCard(id) {
+            const card = document.getElementById(`card-${id}`);
+            const recBtn = document.getElementById(`rec-btn-${id}`);
+            const testBtn = document.getElementById(`test-btn-${id}`);
+            const hasData = parts[id].events.length > 0;
+
+            let stateClass = '';
+            if (parts[id].activeRec) stateClass = 'recording';
+            else if (parts[id].activeTest) stateClass = 'testing';
+
+            card.className = `part-card ${id} ${stateClass} ${hasData ? 'has-data' : ''}`;
+
+            if (recBtn) {
+                recBtn.className = parts[id].activeRec ? 'active' : '';
+                recBtn.innerText = parts[id].activeRec ? '録音中■' : '録音';
+            }
+            if (testBtn) {
+                testBtn.className = `test-btn ${parts[id].activeTest ? 'active' : ''}`;
+                testBtn.innerText = parts[id].activeTest ? 'TEST ON' : 'TEST';
+            }
+        }
+
+        function updateAllCards() {
+            Object.keys(parts).forEach(id => updatePartCard(id));
+        }
+
+        function scheduler() {
+            while (nextScheduleTime < audioCtx.currentTime + scheduleAheadTime) {
+                const currentLoopCycleStart = loopStartTime + Math.floor((nextScheduleTime - loopStartTime) / loopDuration) * loopDuration;
+
+                Object.keys(parts).forEach(id => {
+                    parts[id].events.forEach(ev => {
+                        const eventAbsoluteTime = currentLoopCycleStart + ev.time;
+                        if (eventAbsoluteTime >= nextScheduleTime && eventAbsoluteTime < nextScheduleTime + 0.012) {
+                            playSound(ev.target, id, eventAbsoluteTime);
+                        }
+                    });
+                });
+
+                const beatDuration = 60 / bpm;
+                const beatIndexInFull = Math.round((nextScheduleTime - loopStartTime) / beatDuration);
+                if (Math.abs((loopStartTime + beatIndexInFull * beatDuration) - nextScheduleTime) < 0.01) {
+                    const beatInLoop = beatIndexInFull % totalBeats;
+                    playClick(beatInLoop === 0, nextScheduleTime);
+
+                    const dispTime = ((nextScheduleTime - loopStartTime) % loopDuration);
+                    document.getElementById('status-display').innerText =
+                        `再生中 | 経過: ${dispTime.toFixed(2)}s / ${loopDuration.toFixed(2)}s`;
+                }
+
+                nextScheduleTime += 0.01;
+            }
+        }
+
+        function togglePlay() {
+            initAudio();
+            isPlaying = !isPlaying;
+            const playBtn = document.getElementById('play-btn');
+
+            if (isPlaying) {
+                playBtn.classList.add('active');
+                playBtn.innerText = '停止';
+                bpm = parseInt(document.getElementById('bpm-input').value) || 120;
+                totalBeats = parseInt(document.getElementById('beats-select').value) || 8;
+
+                loopDuration = (60 / bpm) * totalBeats;
+                loopStartTime = audioCtx.currentTime + 0.05;
+                nextScheduleTime = loopStartTime;
+
+                timerID = setInterval(scheduler, lookahead);
+            } else {
+                playBtn.classList.remove('active');
+                playBtn.innerText = '再生 / 停止';
+                clearInterval(timerID);
+                document.getElementById('status-display').innerText = '停止中 | 経過: 0.00s';
+            }
+        }
+
+        document.getElementById('play-btn').onclick = togglePlay;
+        document.getElementById('clear-btn').onclick = () => {
+            Object.keys(parts).forEach(id => clearPart(id));
+        };
+        document.getElementById('bpm-input').onchange = (e) => {
+            bpm = parseInt(e.target.value) || 120;
+            if (isPlaying) loopDuration = (60 / bpm) * totalBeats;
+        };
+        document.getElementById('beats-select').onchange = (e) => {
+            totalBeats = parseInt(e.target.value) || 8;
+            if (isPlaying) loopDuration = (60 / bpm) * totalBeats;
+        };
+
+        const pressedCodes = {};
+        window.addEventListener('keydown', (e) => {
+            if (e.repeat) return;
+            const code = e.code;
+            if (pcKeyMap[code] && !pressedCodes[code]) {
+                pressedCodes[code] = true;
+                const target = keysDef.find(k => k.code === code);
+                if (target) handleKeyDown(target.freq, target.id);
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const code = e.code;
+            if (pcKeyMap[code] && pressedCodes[code]) {
+                delete pressedCodes[code];
+                const target = keysDef.find(k => k.code === code);
+                if (target) handleKeyUp(target.id);
+            }
+        });
+
+        buildUI();
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS FM vs PSG ジュークボックス</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #0b0b0e;
+            color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: #14141f;
+            padding: 35px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            width: 440px;
+            text-align: center;
+            border: 1px solid #252538;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            background: linear-gradient(45deg, #00ffcc, #ff007f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        /* 音源切り替えスイッチのスタイル */
+        .engine-selector {
+            display: flex;
+            background: #1d1d2b;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+            border: 1px solid #2d2d3f;
+        }
+
+        .engine-btn {
+            flex: 1;
+            background: transparent;
+            color: #888;
+            border: none;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .engine-btn.active {
+            background: #00ffcc;
+            color: #0b0b0e;
+            box-shadow: 0 4px 10px rgba(0, 255, 204, 0.2);
+        }
+
+        .genre-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .genre-btn {
+            background: #1d1d2b;
+            color: #aaa;
+            border: 2px solid #2d2d3f;
+            padding: 15px 10px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            padding-left: 15px;
+        }
+
+        .genre-btn.active {
+            background: #ff007f;
+            color: white;
+            border-color: #ff007f;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
+        }
+
+        .play-btn {
+            background: #00ffcc;
+            color: #0b0b0e;
+            border: none;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.3);
+            margin-bottom: 20px;
+            transition: all 0.2s;
+        }
+
+        .play-btn.playing {
+            background: #e10053;
+            color: white;
+            box-shadow: 0 0 20px rgba(225, 0, 83, 0.4);
+        }
+
+        .desc-box {
+            background: #191926;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 13px;
+            text-align: left;
+            color: #ccc;
+            line-height: 1.6;
+            min-height: 85px;
+            border-left: 4px solid #00ffcc;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="title">FM vs PSG Jukebox</div>
+        <div class="subtitle">Realtime Sound Engine Comparator</div>
+
+        <!-- 音源切り替えスイッチ -->
+        <div class="engine-selector">
+            <button class="engine-btn active" id="fmBtn" onclick="setEngine('FM')">🔊 FM 音源</button>
+            <button class="engine-btn" id="psgBtn" onclick="setEngine('PSG')">👾 PSG (矩形波)</button>
+        </div>
+
+        <!-- ジャンル切り替えボタン -->
+        <div class="genre-grid" style="grid-template-columns: repeat(4, 1fr); gap: 5px;">
+            <button class="genre-btn active" onclick="selectGenre('synthwave')">01</button>
+            <button class="genre-btn" onclick="selectGenre('chiptune')">02</button>
+            <button class="genre-btn" onclick="selectGenre('ambient')">03</button>
+            <button class="genre-btn" onclick="selectGenre('funk')">04</button>
+            <button class="genre-btn" onclick="selectGenre('futurebass')">05</button>
+            <button class="genre-btn" onclick="selectGenre('techno')">06</button>
+            <button class="genre-btn" onclick="selectGenre('citypop')">07</button>
+            <button class="genre-btn" onclick="selectGenre('cinematic')">08</button>
+            <button class="genre-btn" onclick="selectGenre('trance')">09</button>
+            <button class="genre-btn" onclick="selectGenre('lofi')">10</button>
+            <button class="genre-btn" onclick="selectGenre('space')">11</button>
+            <button class="genre-btn" onclick="selectGenre('horror')">12</button>
+            <button class="genre-btn" onclick="selectGenre('jazz')">13</button>
+            <button class="genre-btn" onclick="selectGenre('riddim')">14</button>
+            <button class="genre-btn" onclick="selectGenre('epic')">15</button>
+            <button class="genre-btn" onclick="selectGenre('pop')">16</button>
+            <button class="genre-btn" onclick="selectGenre('acid')">17</button>
+            <button class="genre-btn" onclick="selectGenre('drum')">18</button>
+            <button class="genre-btn" onclick="selectGenre('kawaii')">19</button>
+            <button class="genre-btn" onclick="selectGenre('gothic')">20</button>
+            <button class="genre-btn" onclick="selectGenre('disco')">21</button>
+            <button class="genre-btn" onclick="selectGenre('metal')">22</button>
+            <button class="genre-btn" onclick="selectGenre('minimal')">23</button>
+            <button class="genre-btn" onclick="selectGenre('reggae')">24</button>
+            <button class="genre-btn" onclick="selectGenre('eurobeat')">25</button>
+            <button class="genre-btn" onclick="selectGenre('folk')">26</button>
+            <button class="genre-btn" onclick="selectGenre('noise')">27</button>
+            <button class="genre-btn" onclick="selectGenre('glitch')">28</button>
+            <button class="genre-btn" onclick="selectGenre('trancecore')">29</button>
+            <button class="genre-btn" onclick="selectGenre('hardstyle')">30</button>
+            <button class="genre-btn" onclick="selectGenre('blues')">31</button>
+            <button class="genre-btn" onclick="selectGenre('classical')">32</button>
+        </div>
+
+        <!-- 再生・停止ボタン -->
+        <button class="play-btn" id="playBtn">▶ 演奏スタート</button>
+
+        <!-- 曲解説エリア -->
+        <div class="desc-box" id="descBox">ロード中...</div>
+    </div>
+
+    <!-- 外部スクリプトの読み込み -->
+
+
+    <script>
+        const playBtn = document.getElementById('playBtn');
+        // MIDIノート番号から周波数(Hz)への変換公式
+            function mtof(note) {
+                return note ? 440 * Math.pow(2, (note - 69) / 12) : 0;
+            }
+
+            // 32ジャンル定義
+            const genres = {
+                synthwave: { bpm: 110, desc: "01. Synthwave: 80sレトロフューチャー", insts: { lead: { ratio: 1.0, modS: 20, modE: 500, att: 0.08, dec: 0.5, vol: 0.12 }, bass: { ratio: 1.0, modS: 800, modE: 50, att: 0.005, dec: 0.2, vol: 0.16 }, pad: { ratio: 1.01, modS: 150, modE: 150, att: 0.4, dec: 1.5, vol: 0.06 } }, raw: { lead: "69,0,69,71,72,0,72,74,76,0,76,74,72,0,71,0,69,0,69,71,72,0,72,74,76,74,72,71,69,0,0,0", bass: "45,45,45,45,48,48,48,48,50,50,50,50,47,47,47,47,45,45,45,45,48,48,48,48,50,50,47,47,45,45,45,45", pad: "57,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,62,0,0,0,59,0,0,0,57,0,0,0,0,0,0,0" } },
+                chiptune: { bpm: 145, desc: "02. Chiptune: レトロゲームサウンド", insts: { lead: { ratio: 2.0, modS: 400, modE: 0, att: 0.002, dec: 0.2, vol: 0.13 }, bass: { ratio: 1.0, modS: 100, modE: 0, att: 0.002, dec: 0.1, vol: 0.15 }, pad: { ratio: 3.0, modS: 600, modE: 10, att: 0.002, dec: 0.06, vol: 0.08 } }, raw: { lead: "76,79,81,0,76,79,81,0,83,81,79,76,74,76,74,0,76,79,81,0,76,79,81,0,86,84,83,81,79,81,83,84", bass: "40,40,52,40,40,52,40,40,43,43,55,43,43,55,43,43,45,45,57,45,45,57,45,45,47,47,59,47,47,59,47,47", pad: "64,67,69,71,64,67,69,71,67,69,71,74,67,69,71,74,69,71,72,76,69,71,72,76,71,72,74,77,71,72,74,77" } },
+                ambient: { bpm: 55, desc: "03. Dark Ambient: 宇宙の広がり", insts: { lead: { ratio: 1.414, modS: 400, modE: 400, att: 1.5, dec: 3.5, vol: 0.08 }, bass: { ratio: 0.5, modS: 100, modE: 100, att: 2.2, dec: 4.5, vol: 0.15 }, pad: { ratio: 2.718, modS: 300, modE: 50, att: 1.8, dec: 4.0, vol: 0.06 } }, raw: { lead: "74,0,0,0,0,0,0,0,73,0,0,0,0,0,0,0,70,0,0,0,0,0,0,0,69,0,0,0,0,0,0,0", bass: "38,0,0,0,0,0,0,0,37,0,0,0,0,0,0,0,34,0,0,0,0,0,0,0,33,0,0,0,0,0,0,0", pad: "50,0,0,0,0,0,0,0,49,0,0,0,0,0,0,0,46,0,0,0,0,0,0,0,45,0,0,0,0,0,0,0" } },
+                funk: { bpm: 115, desc: "04. Electro Funk: ワウベースファンク", insts: { lead: { ratio: 4.0, modS: 1200, modE: 0, att: 0.002, dec: 0.12, vol: 0.10 }, bass: { ratio: 1.0, modS: 10, modE: 900, att: 0.04, dec: 0.22, vol: 0.16 }, pad: { ratio: 2.0, modS: 350, modE: 10, att: 0.01, dec: 0.3, vol: 0.08 } }, raw: { lead: "0,0,74,0,0,74,0,0,0,0,76,0,77,0,79,0,0,0,79,0,0,79,0,0,0,0,77,0,76,0,74,0", bass: "38,0,0,38,0,0,50,0,38,0,0,38,0,41,0,42,43,0,0,43,0,0,55,0,43,0,0,43,0,46,0,47", pad: "62,0,62,0,62,0,62,0,65,0,65,0,65,0,65,0,67,0,67,0,67,0,67,0,62,0,62,0,62,0,62,0" } },
+                futurebass: { bpm: 135, desc: "05. Future Bass: きらめくシンセコード", insts: { lead: { ratio: 5.0, modS: 800, modE: 10, att: 0.002, dec: 0.15, vol: 0.12 }, bass: { ratio: 1.0, modS: 400, modE: 0, att: 0.005, dec: 0.25, vol: 0.15 }, pad: { ratio: 1.005, modS: 600, modE: 100, att: 0.05, dec: 0.15, vol: 0.09 } }, raw: { lead: "72,76,79,84,0,84,79,76,74,77,81,86,0,86,81,77,76,79,83,88,0,88,83,79,77,81,84,89,0,89,84,81", bass: "48,0,0,0,48,0,0,0,50,0,0,0,50,0,0,0,52,0,0,0,52,0,0,0,53,0,0,0,53,0,0,0", pad: "60,0,60,0,0,60,0,0,62,0,62,0,0,62,0,0,64,0,64,0,0,64,0,0,65,0,65,0,0,65,0,0" } },
+                techno: { bpm: 128, desc: "06. Industrial Techno: 硬質なミニマル", insts: { lead: { ratio: 3.14, modS: 2000, modE: 0, att: 0.001, dec: 0.05, vol: 0.11 }, bass: { ratio: 1.0, modS: 900, modE: 10, att: 0.01, dec: 0.12, vol: 0.18 }, pad: { ratio: 0.5, modS: 50, modE: 50, att: 0.1, dec: 0.4, vol: 0.07 } }, raw: { lead: "0,0,0,0,72,0,0,0,0,0,0,0,72,0,75,0,0,0,0,0,72,0,0,0,0,0,77,0,72,0,0,0", bass: "33,0,33,0,33,0,33,0,33,0,33,0,33,0,36,37,33,0,33,0,33,0,33,0,33,0,33,0,33,0,39,38", pad: "45,0,0,0,45,0,0,0,45,0,0,0,45,0,0,0,45,0,0,0,45,0,0,0,45,0,0,0,45,0,0,0" } },
+                citypop: { bpm: 114, desc: "07. City Pop: アーバンDX7サウンド", insts: { lead: { ratio: 3.0, modS: 150, modE: 0, att: 0.005, dec: 0.4, vol: 0.10 }, bass: { ratio: 1.0, modS: 200, modE: 10, att: 0.01, dec: 0.25, vol: 0.14 }, pad: { ratio: 1.0, modS: 750, modE: 40, att: 0.005, dec: 0.8, vol: 0.11 } }, raw: { lead: "0,0,0,0,76,78,79,83,0,0,0,0,81,0,0,0,0,0,0,0,74,76,78,81,0,0,0,0,79,0,0,0", bass: "43,0,0,43,0,0,43,0,40,0,0,40,0,0,40,0,38,0,0,38,0,0,38,0,41,0,0,41,0,0,42,0", pad: "67,0,0,0,0,0,0,0,64,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,65,0,0,0,0,0,0,0" } },
+                cinematic: { bpm: 72, desc: "08. Cinematic: 映画的壮大サウンド", insts: { lead: { ratio: 6.0, modS: 500, modE: 50, att: 0.5, dec: 2.0, vol: 0.09 }, bass: { ratio: 0.5, modS: 300, modE: 300, att: 0.8, dec: 2.5, vol: 0.16 }, pad: { ratio: 1.02, modS: 200, modE: 200, att: 0.6, dec: 2.0, vol: 0.08 } }, raw: { lead: "67,0,0,0,0,0,0,0,69,0,0,0,0,0,0,0,70,0,0,0,0,0,0,0,65,0,0,0,0,0,0,0", bass: "31,0,0,0,0,0,0,0,33,0,0,0,0,0,0,0,34,0,0,0,0,0,0,0,29,0,0,0,0,0,0,0", pad: "55,0,0,0,0,0,0,0,57,0,0,0,0,0,0,0,58,0,0,0,0,0,0,0,53,0,0,0,0,0,0,0" } },
+                trance: { bpm: 140, desc: "09. Trance: 高速アルペジオ", insts: { lead: { ratio: 1.0, modS: 200, modE: 0, att: 0.01, dec: 0.2, vol: 0.1 }, bass: { ratio: 1.0, modS: 10, modE: 50, att: 0.005, dec: 0.1, vol: 0.15 }, pad: { ratio: 2.0, modS: 500, modE: 100, att: 0.05, dec: 0.4, vol: 0.07 } }, raw: { lead: "72,76,79,81,84,81,79,76,74,77,81,83,86,83,81,77,72,76,79,81,84,81,79,76,79,83,86,88,91,88,86,83", bass: "48,0,48,0,48,0,48,0,50,0,50,0,50,0,50,0,48,0,48,0,48,0,48,0,52,0,52,0,52,0,52,0", pad: "60,0,0,0,62,0,0,0,64,0,0,0,65,0,0,0,60,0,0,0,62,0,0,0,64,0,0,0,67,0,0,0" } },
+                lofi: { bpm: 80, desc: "10. Lo-Fi: レトロなチルアウト", insts: { lead: { ratio: 0.5, modS: 50, modE: 20, att: 0.2, dec: 1.0, vol: 0.12 }, bass: { ratio: 1.0, modS: 100, modE: 10, att: 0.1, dec: 0.8, vol: 0.14 }, pad: { ratio: 0.99, modS: 100, modE: 50, att: 0.5, dec: 1.2, vol: 0.08 } }, raw: { lead: "67,0,69,0,70,0,69,0,65,0,67,0,69,0,67,0,64,0,65,0,67,0,65,0,62,0,64,0,65,0,64,0", bass: "43,0,0,0,45,0,0,0,41,0,0,0,38,0,0,0,43,0,0,0,45,0,0,0,41,0,0,0,38,0,0,0", pad: "55,0,0,0,57,0,0,0,53,0,0,0,50,0,0,0,55,0,0,0,57,0,0,0,53,0,0,0,50,0,0,0" } },
+                space: { bpm: 100, desc: "11. Space Disco: 浮遊感ある銀河音", insts: { lead: { ratio: 2.0, modS: 800, modE: 0, att: 0.005, dec: 0.3, vol: 0.1 }, bass: { ratio: 1.0, modS: 400, modE: 20, att: 0.01, dec: 0.2, vol: 0.15 }, pad: { ratio: 1.5, modS: 300, modE: 100, att: 0.2, dec: 0.5, vol: 0.07 } }, raw: { lead: "72,74,76,79,81,79,76,74,76,77,79,81,83,81,79,77,79,81,83,84,86,84,83,81,83,84,86,88,91,88,86,84", bass: "36,0,36,0,40,0,40,0,43,0,43,0,45,0,45,0,36,0,36,0,40,0,40,0,43,0,43,0,45,0,48,0", pad: "60,0,0,0,64,0,0,0,67,0,0,0,69,0,0,0,60,0,0,0,64,0,0,0,67,0,0,0,69,0,0,0" } },
+                horror: { bpm: 90, desc: "12. Horror: 不協和音の恐怖", insts: { lead: { ratio: 1.618, modS: 1500, modE: 100, att: 0.5, dec: 2.0, vol: 0.09 }, bass: { ratio: 0.25, modS: 50, modE: 5, att: 0.3, dec: 3.0, vol: 0.18 }, pad: { ratio: 0.5, modS: 20, modE: 20, att: 1.0, dec: 4.0, vol: 0.06 } }, raw: { lead: "0,0,0,84,0,0,0,82,0,0,0,81,0,0,0,79,0,0,0,84,0,0,0,82,0,0,0,81,0,0,0,79", bass: "24,0,24,0,23,0,23,0,22,0,22,0,21,0,21,0,24,0,24,0,23,0,23,0,22,0,22,0,21,0,21,0", pad: "48,0,0,0,47,0,0,0,46,0,0,0,45,0,0,0,48,0,0,0,47,0,0,0,46,0,0,0,45,0,0,0" } },
+                jazz: { bpm: 120, desc: "13. Jazz: 夜のバーの雰囲気", insts: { lead: { ratio: 1.0, modS: 100, modE: 0, att: 0.02, dec: 0.6, vol: 0.11 }, bass: { ratio: 1.0, modS: 50, modE: 0, att: 0.05, dec: 0.4, vol: 0.13 }, pad: { ratio: 1.0, modS: 200, modE: 20, att: 0.1, dec: 1.0, vol: 0.07 } }, raw: { lead: "72,74,76,77,79,0,76,0,77,79,81,83,84,0,81,0,79,81,83,84,86,0,83,0,84,86,88,89,91,0,88,0", bass: "48,0,0,48,0,0,48,0,50,0,0,50,0,0,50,0,52,0,0,52,0,0,52,0,53,0,0,53,0,0,53,0", pad: "60,0,0,0,64,0,0,0,65,0,0,0,69,0,0,0,67,0,0,0,71,0,0,0,72,0,0,0,76,0,0,0" } },
+                riddim: { bpm: 140, desc: "14. Riddim: 重戦車ベース音響", insts: { lead: { ratio: 2.0, modS: 2000, modE: 500, att: 0.001, dec: 0.1, vol: 0.1 }, bass: { ratio: 0.5, modS: 500, modE: 2000, att: 0.01, dec: 0.15, vol: 0.18 }, pad: { ratio: 1.5, modS: 100, modE: 100, att: 0.02, dec: 0.2, vol: 0.08 } }, raw: { lead: "72,0,72,0,75,0,72,0,79,0,72,0,81,0,79,0,72,0,72,0,75,0,72,0,79,0,72,0,81,0,79,0", bass: "36,0,0,36,0,36,0,0,36,0,0,36,0,36,0,0,36,0,0,36,0,36,0,0,36,0,0,36,0,36,0,0", pad: "60,0,0,0,60,0,0,0,60,0,0,0,60,0,0,0,60,0,0,0,60,0,0,0,60,0,0,0,60,0,0,0" } },
+                epic: { bpm: 60, desc: "15. Epic: 交響的な迫力", insts: { lead: { ratio: 1.0, modS: 300, modE: 50, att: 0.3, dec: 1.0, vol: 0.1 }, bass: { ratio: 2.0, modS: 100, modE: 10, att: 0.2, dec: 1.5, vol: 0.15 }, pad: { ratio: 1.0, modS: 500, modE: 200, att: 0.4, dec: 2.0, vol: 0.09 } }, raw: { lead: "67,0,0,0,71,0,0,0,72,0,0,0,74,0,0,0,76,0,0,0,79,0,0,0,77,0,0,0,76,0,0,0", bass: "31,0,0,0,35,0,0,0,36,0,0,0,38,0,0,0,40,0,0,0,43,0,0,0,41,0,0,0,40,0,0,0", pad: "55,0,0,0,59,0,0,0,60,0,0,0,62,0,0,0,64,0,0,0,67,0,0,0,65,0,0,0,64,0,0,0" } },
+                pop: { bpm: 120, desc: "16. J-Pop: 明るい王道ポップス", insts: { lead: { ratio: 1.0, modS: 200, modE: 20, att: 0.01, dec: 0.3, vol: 0.1 }, bass: { ratio: 1.0, modS: 50, modE: 0, att: 0.02, dec: 0.2, vol: 0.14 }, pad: { ratio: 2.0, modS: 150, modE: 50, att: 0.05, dec: 0.4, vol: 0.08 } }, raw: { lead: "72,74,76,77,79,81,83,84,83,81,79,77,76,74,72,0,72,74,76,77,79,81,83,84,86,84,83,81,79,77,76,72", bass: "48,0,48,0,48,0,48,0,50,0,50,0,50,0,50,0,52,0,52,0,52,0,52,0,53,0,53,0,53,0,53,0", pad: "60,0,0,0,64,0,0,0,67,0,0,0,69,0,0,0,72,0,0,0,67,0,0,0,64,0,0,0,60,0,0,0" } },
+                acid: { bpm: 130, desc: "17. Acid: TB-303風うねり", insts: { lead: { ratio: 1.0, modS: 1000, modE: 0, att: 0.01, dec: 0.3, vol: 0.1 }, bass: { ratio: 1.0, modS: 200, modE: 10, att: 0.01, dec: 0.2, vol: 0.15 }, pad: { ratio: 0.5, modS: 50, modE: 50, att: 0.1, dec: 0.5, vol: 0.05 } }, raw: { lead: "60,63,65,67,68,67,65,63,60,63,65,67,72,67,65,63,60,63,65,67,68,67,65,63,60,63,65,67,75,67,65,63", bass: "36,36,0,36,0,36,36,0,36,36,0,36,0,36,36,0,36,36,0,36,0,36,36,0,36,36,0,36,0,36,36,0", pad: "48,0,0,0,52,0,0,0,48,0,0,0,52,0,0,0,48,0,0,0,52,0,0,0,48,0,0,0,52,0,0,0" } },
+                drum: { bpm: 170, desc: "18. D&B: 高速ブレイクビーツ", insts: { lead: { ratio: 5.0, modS: 100, modE: 500, att: 0.005, dec: 0.1, vol: 0.1 }, bass: { ratio: 1.0, modS: 50, modE: 50, att: 0.01, dec: 0.1, vol: 0.2 }, pad: { ratio: 1.0, modS: 100, modE: 100, att: 0.05, dec: 0.1, vol: 0.05 } }, raw: { lead: "72,74,75,77,79,81,83,84,72,74,75,77,79,81,83,84,72,74,75,77,79,81,83,84,72,74,75,77,79,81,83,84", bass: "36,0,0,36,0,36,0,0,36,0,0,36,0,36,0,0,36,0,0,36,0,36,0,0,36,0,0,36,0,36,0,0", pad: "60,0,0,0,60,0,0,0,60,0,0,0,60,0,0,0,60,0,0,0,60,0,0,0,60,0,0,0,60,0,0,0" } },
+                kawaii: { bpm: 160, desc: "19. Kawaii: ピコピコ可愛い系", insts: { lead: { ratio: 1.5, modS: 500, modE: 100, att: 0.005, dec: 0.1, vol: 0.15 }, bass: { ratio: 0.5, modS: 200, modE: 20, att: 0.01, dec: 0.2, vol: 0.15 }, pad: { ratio: 2.5, modS: 300, modE: 50, att: 0.05, dec: 0.3, vol: 0.08 } }, raw: { lead: "79,81,83,84,86,84,83,81,79,81,83,84,86,88,89,91,79,81,83,84,86,84,83,81,84,83,81,79,77,76,74,72", bass: "48,0,48,0,50,0,50,0,52,0,52,0,53,0,53,0,48,0,48,0,50,0,50,0,52,0,52,0,53,0,53,0", pad: "67,0,0,0,69,0,0,0,71,0,0,0,72,0,0,0,67,0,0,0,69,0,0,0,71,0,0,0,72,0,0,0" } },
+                gothic: { bpm: 85, desc: "20. Gothic: 荘厳かつダーク", insts: { lead: { ratio: 2.0, modS: 1000, modE: 10, att: 0.1, dec: 1.0, vol: 0.1 }, bass: { ratio: 1.0, modS: 50, modE: 5, att: 0.2, dec: 1.5, vol: 0.15 }, pad: { ratio: 0.5, modS: 10, modE: 10, att: 0.5, dec: 2.0, vol: 0.07 } }, raw: { lead: "72,71,68,67,65,64,63,62,60,59,56,55,53,52,51,50,48,47,44,43,41,40,39,38,36,35,32,31,29,28,27,26", bass: "36,0,0,0,32,0,0,0,31,0,0,0,29,0,0,0,36,0,0,0,32,0,0,0,31,0,0,0,29,0,0,0", pad: "48,0,0,0,48,0,0,0,48,0,0,0,48,0,0,0,48,0,0,0,48,0,0,0,48,0,0,0,48,0,0,0" } },
+                disco: { bpm: 125, desc: "21. Disco: 70年代の輝き", insts: { lead: { ratio: 1.0, modS: 100, modE: 0, att: 0.01, dec: 0.3, vol: 0.1 }, bass: { ratio: 1.0, modS: 200, modE: 50, att: 0.05, dec: 0.2, vol: 0.15 }, pad: { ratio: 2.0, modS: 300, modE: 50, att: 0.1, dec: 0.4, vol: 0.08 } }, raw: { lead: "72,0,76,0,79,0,81,83,84,0,81,0,79,0,76,0,72,0,76,0,79,0,81,83,84,86,88,86,84,83,81,79", bass: "36,0,40,0,43,0,45,0,48,0,45,0,43,0,40,0,36,0,40,0,43,0,45,0,48,0,50,0,52,0,53,0", pad: "60,0,0,0,64,0,0,0,67,0,0,0,69,0,0,0,60,0,0,0,64,0,0,0,67,0,0,0,69,0,0,0" } },
+                metal: { bpm: 150, desc: "22. Metal: 激しいギター風FM", insts: { lead: { ratio: 3.5, modS: 2000, modE: 500, att: 0.001, dec: 0.1, vol: 0.12 }, bass: { ratio: 0.5, modS: 500, modE: 100, att: 0.005, dec: 0.1, vol: 0.15 }, pad: { ratio: 1.0, modS: 200, modE: 50, att: 0.05, dec: 0.2, vol: 0.08 } }, raw: { lead: "72,72,75,72,77,72,79,81,84,84,87,84,89,84,91,93,72,72,75,72,77,72,79,81,84,84,87,84,89,84,91,96", bass: "36,0,36,0,36,0,36,0,36,0,36,0,36,0,36,0,36,0,36,0,36,0,36,0,36,0,36,0,36,0,36,0", pad: "60,0,60,0,63,0,63,0,65,0,65,0,67,0,67,0,60,0,60,0,63,0,63,0,65,0,65,0,67,0,67,0" } },
+                minimal: { bpm: 125, desc: "23. Minimal: 繰り返しの美学", insts: { lead: { ratio: 1.0, modS: 50, modE: 0, att: 0.01, dec: 0.1, vol: 0.08 }, bass: { ratio: 1.0, modS: 10, modE: 10, att: 0.01, dec: 0.1, vol: 0.15 }, pad: { ratio: 0.5, modS: 10, modE: 10, att: 0.1, dec: 0.3, vol: 0.05 } }, raw: { lead: "72,0,0,0,74,0,0,0,75,0,0,0,77,0,0,0,72,0,0,0,74,0,0,0,75,0,0,0,77,0,0,0", bass: "36,0,0,0,36,0,0,0,36,0,0,0,36,0,0,0,36,0,0,0,36,0,0,0,36,0,0,0,36,0,0,0", pad: "48,0,0,0,48,0,0,0,48,0,0,0,48,0,0,0,48,0,0,0,48,0,0,0,48,0,0,0,48,0,0,0" } },
+                reggae: { bpm: 75, desc: "24. Reggae: 揺らぐリズム", insts: { lead: { ratio: 2.0, modS: 50, modE: 10, att: 0.05, dec: 0.4, vol: 0.1 }, bass: { ratio: 1.0, modS: 100, modE: 0, att: 0.02, dec: 0.3, vol: 0.15 }, pad: { ratio: 1.0, modS: 200, modE: 20, att: 0.1, dec: 0.5, vol: 0.08 } }, raw: { lead: "0,67,0,67,0,67,0,67,0,69,0,69,0,69,0,69,0,70,0,70,0,70,0,70,0,72,0,72,0,72,0,72", bass: "36,0,36,0,36,0,36,0,38,0,38,0,38,0,38,0,40,0,40,0,40,0,40,0,41,0,41,0,41,0,41,0", pad: "60,0,60,0,60,0,60,0,62,0,62,0,62,0,62,0,64,0,64,0,64,0,64,0,65,0,65,0,65,0,65,0" } },
+                eurobeat: { bpm: 155, desc: "25. Eurobeat: 超高速疾走", insts: { lead: { ratio: 1.0, modS: 300, modE: 50, att: 0.002, dec: 0.1, vol: 0.12 }, bass: { ratio: 1.0, modS: 50, modE: 20, att: 0.005, dec: 0.1, vol: 0.15 }, pad: { ratio: 2.0, modS: 400, modE: 100, att: 0.01, dec: 0.2, vol: 0.07 } }, raw: { lead: "72,74,76,77,79,81,83,84,83,81,79,77,76,74,72,74,76,77,79,81,83,84,86,88,86,84,83,81,79,77,76,72", bass: "48,48,48,48,50,50,50,50,52,52,52,52,53,53,53,53,48,48,48,48,50,50,50,50,52,52,52,52,53,53,53,53", pad: "60,0,0,0,62,0,0,0,64,0,0,0,65,0,0,0,60,0,0,0,62,0,0,0,64,0,0,0,65,0,0,0" } },
+                folk: { bpm: 90, desc: "26. Folk: 素朴なメロディ", insts: { lead: { ratio: 1.0, modS: 50, modE: 0, att: 0.05, dec: 0.6, vol: 0.09 }, bass: { ratio: 1.0, modS: 20, modE: 0, att: 0.1, dec: 0.8, vol: 0.12 }, pad: { ratio: 1.0, modS: 100, modE: 10, att: 0.2, dec: 1.0, vol: 0.07 } }, raw: { lead: "67,69,71,72,74,76,77,79,76,74,72,71,69,67,65,64,67,69,71,72,74,76,77,79,81,79,77,76,74,72,71,69", bass: "43,0,0,0,45,0,0,0,47,0,0,0,48,0,0,0,43,0,0,0,45,0,0,0,47,0,0,0,48,0,0,0", pad: "55,0,0,0,57,0,0,0,59,0,0,0,60,0,0,0,55,0,0,0,57,0,0,0,59,0,0,0,60,0,0,0" } },
+                noise: { bpm: 120, desc: "27. Noise: アヴァンギャルド", insts: { lead: { ratio: 10.0, modS: 5000, modE: 2000, att: 0.01, dec: 0.1, vol: 0.08 }, bass: { ratio: 0.1, modS: 1000, modE: 1000, att: 0.01, dec: 0.2, vol: 0.15 }, pad: { ratio: 3.14, modS: 2000, modE: 2000, att: 0.1, dec: 0.5, vol: 0.05 } }, raw: { lead: "72,84,72,84,72,84,72,84,72,84,72,84,72,84,72,84,72,84,72,84,72,84,72,84,72,84,72,84,72,84,72,84", bass: "24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0", pad: "60,0,0,0,60,0,0,0,60,0,0,0,60,0,0,0,60,0,0,0,60,0,0,0,60,0,0,0,60,0,0,0" } },
+                glitch: { bpm: 130, desc: "28. Glitch: 破壊的デジタル音", insts: { lead: { ratio: 2.0, modS: 500, modE: 10, att: 0.001, dec: 0.05, vol: 0.1 }, bass: { ratio: 1.0, modS: 100, modE: 100, att: 0.002, dec: 0.05, vol: 0.15 }, pad: { ratio: 4.0, modS: 300, modE: 300, att: 0.01, dec: 0.1, vol: 0.06 } }, raw: { lead: "72,0,75,0,79,0,84,0,72,0,75,0,79,0,84,0,72,0,75,0,79,0,84,0,72,0,75,0,79,0,84,0", bass: "36,36,0,0,36,36,0,0,36,36,0,0,36,36,0,0,36,36,0,0,36,36,0,0,36,36,0,0,36,36,0,0", pad: "60,0,0,0,64,0,0,0,67,0,0,0,72,0,0,0,60,0,0,0,64,0,0,0,67,0,0,0,72,0,0,0" } },
+                trancecore: {
+                    bpm: 175,
+                    desc: "29. Trancecore: 爆速ハードスタイル",
+                    insts: {
+                        lead: { ratio: 1.0, modS: 500, modE: 0, att: 0.005, dec: 0.1, vol: 0.1 },
+                        bass: { ratio: 1.0, modS: 50, modE: 10, att: 0.005, dec: 0.1, vol: 0.2 },
+                        pad: { ratio: 2.0, modS: 100, modE: 50, att: 0.01, dec: 0.2, vol: 0.08 }
+                    },
+                    raw: {
+                        lead: "72,74,75,77,79,81,83,84,86,88,89,91,93,95,96,98,72,74,75,77,79,81,83,84,86,88,89,91,93,95,96,98",
+                        bass: "48,48,48,48,48,48,48,48,50,50,50,50,50,50,50,50,48,48,48,48,48,48,48,48,50,50,50,50,50,50,50,50",
+                        pad: "60,0,0,0,64,0,0,0,67,0,0,0,72,0,0,0,60,0,0,0,64,0,0,0,67,0,0,0,72,0,0,0"
+                    }
+                },
+                hardstyle: { bpm: 150, desc: "30. Hardstyle: 歪んだキック風", insts: { lead: { ratio: 3.0, modS: 1500, modE: 200, att: 0.005, dec: 0.2, vol: 0.15 }, bass: { ratio: 0.5, modS: 1000, modE: 1000, att: 0.01, dec: 0.15, vol: 0.2 }, pad: { ratio: 1.0, modS: 100, modE: 50, att: 0.05, dec: 0.2, vol: 0.1 } }, raw: { lead: "72,0,72,0,75,0,75,0,77,0,77,0,79,0,79,0,72,0,72,0,75,0,75,0,77,0,77,0,79,0,79,0", bass: "24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0,24,0", pad: "60,0,60,0,63,0,63,0,65,0,65,0,67,0,67,0,60,0,60,0,63,0,63,0,65,0,65,0,67,0,67,0" } },
+                blues: { bpm: 80, desc: "31. Blues: 哀愁のブルース", insts: { lead: { ratio: 1.0, modS: 50, modE: 0, att: 0.05, dec: 0.5, vol: 0.1 }, bass: { ratio: 1.0, modS: 30, modE: 0, att: 0.1, dec: 0.7, vol: 0.14 }, pad: { ratio: 1.0, modS: 100, modE: 20, att: 0.2, dec: 1.0, vol: 0.08 } }, raw: { lead: "64,67,70,67,64,0,67,0,70,73,76,73,70,0,67,0,64,67,70,67,64,0,67,0,70,73,76,79,76,73,70,67", bass: "36,0,0,0,40,0,0,0,43,0,0,0,45,0,0,0,36,0,0,0,40,0,0,0,43,0,0,0,45,0,0,0", pad: "52,0,0,0,55,0,0,0,58,0,0,0,60,0,0,0,52,0,0,0,55,0,0,0,58,0,0,0,60,0,0,0" } },
+                classical: { bpm: 80, desc: "32. Classical: 荘厳な響き", insts: { lead: { ratio: 1.0, modS: 50, modE: 10, att: 0.1, dec: 1.5, vol: 0.1 }, bass: { ratio: 1.0, modS: 20, modE: 10, att: 0.2, dec: 2.0, vol: 0.15 }, pad: { ratio: 1.0, modS: 100, modE: 20, att: 0.3, dec: 2.0, vol: 0.08 } }, raw: { lead: "76,77,79,81,77,76,74,72,76,77,79,81,84,83,81,79,76,77,79,81,77,76,74,72,76,77,79,81,84,86,88,89", bass: "48,0,0,0,45,0,0,0,43,0,0,0,41,0,0,0,48,0,0,0,45,0,0,0,43,0,0,0,41,0,0,0", pad: "60,0,0,0,57,0,0,0,55,0,0,0,53,0,0,0,60,0,0,0,57,0,0,0,55,0,0,0,53,0,0,0" } }
+            };
+
+            // 制御変数（これまでのコードに追加してください）
+            let audioCtx = null;
+            let isPlaying = false;
+            let timerId = null;
+            let currentStep = 0;
+            let currentGenre = 'synthwave';
+            let soundEngine = 'FM';
+            let nextNoteTime = 0.0;
+
+            function selectGenre(genreKey) {
+                // 1. ジャンルを切り替え
+                currentGenre = genreKey;
+                currentStep = 0; // 曲の最初からにする
+
+                // 2. 詳細欄の更新（HTMLに id="description" がある前提）
+                const descElement = document.getElementById('description');
+                if (descElement && genres[genreKey]) {
+                    descElement.innerText = genres[genreKey].desc;
+                }
+
+                // 3. ボタンの見た目を更新（activeクラスの付け替え）
+                document.querySelectorAll('.genre-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.getAttribute('onclick').includes(genreKey)) {
+                        btn.classList.add('active');
+                    }
+                });
+
+                // 4. 再生中ならその場で次の曲へ反映される
+                console.log("Selected: " + genreKey);
+            }
+            // 単音発音処理 (FM / PSG ハイブリッド)
+            function playNote(inst, note, startTime) {
+                if (!note) return;
+                const freq = mtof(note);
+
+                const mainGain = audioCtx.createGain();
+
+                if (soundEngine === 'FM') {
+                    // --- FM音源方式（2オペレータによる複雑な倍音合成） ---
+                    const carrier = audioCtx.createOscillator();
+                    const modulator = audioCtx.createOscillator();
+                    const modGain = audioCtx.createGain();
+
+                    carrier.frequency.setValueAtTime(freq, startTime);
+                    modulator.frequency.setValueAtTime(freq * inst.ratio, startTime);
+
+                    modGain.gain.setValueAtTime(inst.modS, startTime);
+                    modGain.gain.linearRampToValueAtTime(inst.modE, startTime + inst.att);
+                    modGain.gain.exponentialRampToValueAtTime(0.001, startTime + inst.att + inst.dec);
+
+                    modulator.connect(modGain);
+                    modGain.connect(carrier.frequency);
+                    carrier.connect(mainGain);
+
+                    modulator.start(startTime);
+                    carrier.start(startTime);
+                    modulator.stop(startTime + inst.att + inst.dec);
+                    carrier.stop(startTime + inst.att + inst.dec);
+                } else {
+                    // --- PSG音源方式（矩形波によるレトロ・チープ合成） ---
+                    const psgOsc = audioCtx.createOscillator();
+                    psgOsc.type = 'square'; // レトロゲーム定番の矩形波
+                    psgOsc.frequency.setValueAtTime(freq, startTime);
+
+                    psgOsc.connect(mainGain);
+                    psgOsc.start(startTime);
+                    psgOsc.stop(startTime + inst.att + inst.dec);
+                }
+
+                // 全体音量エンベロープ（PSG/FM共通）
+                mainGain.gain.setValueAtTime(0, startTime);
+                mainGain.gain.linearRampToValueAtTime(inst.vol, startTime + inst.att);
+                mainGain.gain.exponentialRampToValueAtTime(0.001, startTime + inst.att + inst.dec);
+                mainGain.connect(audioCtx.destination);
+            }
+
+            // 先読みタイマー
+            function scheduler() {
+                const currentGenreData = genres[currentGenre];
+                if (!currentGenreData) return; // データがない場合は中断
+
+                const stepTime = 60 / currentGenreData.bpm / 4;
+                const scheduleAheadTime = 0.1;
+
+                // ここでカンマ区切りのデータを取得
+                const leadScore = currentGenreData.raw.lead.split(",").map(Number);
+                const bassScore = currentGenreData.raw.bass.split(",").map(Number);
+                const padScore = currentGenreData.raw.pad.split(",").map(Number);
+
+                while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
+                    const insts = currentGenreData.insts;
+
+                    // 【修正】もしデータがそのステップになくても無視するようにする
+                    if (leadScore[currentStep]) playNote(insts.lead, leadScore[currentStep], nextNoteTime);
+                    if (bassScore[currentStep]) playNote(insts.bass, bassScore[currentStep], nextNoteTime);
+                    if (padScore[currentStep]) playNote(insts.pad, padScore[currentStep], nextNoteTime);
+
+                    nextNoteTime += stepTime;
+
+                    // 【修正】配列の長さを動的に判定してループさせる
+                    const maxLen = Math.max(leadScore.length, bassScore.length, padScore.length);
+                    currentStep = (currentStep + 1) % maxLen;
+                }
+                timerId = setTimeout(scheduler, 25);
+            }
+
+        function updateUI() {
+            document.getElementById('descBox').innerHTML = genres[currentGenre].desc;
+        }
+
+        // 音源モードの切り替え処理（演奏中もリアルタイムに変わります）
+        function setEngine(mode) {
+            soundEngine = mode;
+            document.getElementById('fmBtn').classList.toggle('active', mode === 'FM');
+            document.getElementById('psgBtn').classList.toggle('active', mode === 'PSG');
+        }
+
+        function selectGenre(genreType) {
+            currentGenre = genreType;
+            currentStep = 0; // ループを頭に戻す
+
+            if (audioCtx) {
+                nextNoteTime = audioCtx.currentTime + 0.02;
+            }
+
+            document.querySelectorAll('.genre-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            updateUI();
+        }
+
+        playBtn.addEventListener('click', async () => {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            if (audioCtx.state === 'suspended') {
+                await audioCtx.resume();
+            }
+
+            if (isPlaying) {
+                clearTimeout(timerId);
+                playBtn.textContent = "▶ 演奏スタート";
+                playBtn.classList.remove('playing');
+                isPlaying = false;
+            } else {
+                currentStep = 0;
+                nextNoteTime = audioCtx.currentTime + 0.05;
+                scheduler();
+                playBtn.textContent = "■ 演奏ストップ";
+                playBtn.classList.add('playing');
+                isPlaying = true;
+            }
+        });
+
+        updateUI();
+    </script>
+
+</body>
+
+</html>

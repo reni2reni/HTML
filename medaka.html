@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<!-- saved from url=(0022)file:///F:/medaka.html -->
+<html lang="ja">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上見メダカ・自然循環ビオトープ</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0b120d;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: sans-serif;
+            user-select: none;
+        }
+
+        canvas {
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
+            border-radius: 50%;
+            transition: transform 0.1s ease-out;
+            cursor: zoom-in;
+        }
+
+        #panel {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(5, 15, 10, 0.85);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 12px;
+            width: 220px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .control-group {
+            margin-bottom: 10px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 3px;
+            color: #ccc;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            accent-color: #2e7d32;
+        }
+
+        .r-slide {
+            accent-color: #ef5350 !important;
+        }
+
+        .g-slide {
+            accent-color: #66bb6a !important;
+        }
+
+        .b-slide {
+            accent-color: #42a5f5 !important;
+        }
+
+        .value-disp {
+            float: right;
+            color: #81c784;
+            font-weight: bold;
+        }
+
+        #info-text {
+            position: absolute;
+            bottom: 20px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 11px;
+            pointer-events: none;
+            text-align: center;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="info-text">左ドラッグ：エサやり / 右クリック：浮草配置（浮草の上で右クリックすると消去） / ホイール：拡大縮小</div>
+
+    <div id="panel">
+        <div class="control-group">
+            <label>メダカの数 <span id="val-count" class="value-disp">20</span></label>
+            <input type="range" id="param-count" min="1" max="50" value="20">
+        </div>
+        <div class="control-group">
+            <label>同じ方向へ泳ぐ強さ <span id="val-align" class="value-disp">0.03</span></label>
+            <input type="range" id="param-align" min="0" max="0.3" step="0.01" value="0.03">
+        </div>
+        <div class="control-group">
+            <label>集まる強さ <span id="val-coh" class="value-disp">0.01</span></label>
+            <input type="range" id="param-coh" min="0" max="0.1" step="0.005" value="0.01">
+        </div>
+        <div class="control-group">
+            <label>気まぐれ度（自由さ） <span id="val-noise" class="value-disp">0.03</span></label>
+            <input type="range" id="param-noise" min="0" max="0.1" step="0.01" value="0.03">
+        </div>
+        <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:12px 0;">
+        <div class="control-group">
+            <label>水の色：赤（深み） <span id="val-wR" class="value-disp">15</span></label>
+            <input type="range" id="param-wR" class="r-slide" min="0" max="40" value="15">
+        </div>
+        <div class="control-group">
+            <label>水の色：緑（苔・藻） <span id="val-wG" class="value-disp">70</span></label>
+            <input type="range" id="param-wG" class="g-slide" min="10" max="90" value="70">
+        </div>
+        <div class="control-group">
+            <label>水の色：青（透明感） <span id="val-wB" class="value-disp">58</span></label>
+            <input type="range" id="param-wB" class="b-slide" min="50" max="150" value="68">
+        </div>
+    </div>
+
+    <canvas id="aquarium" width="779" height="779"></canvas>
+
+    <script>
+        const canvas = document.getElementById('aquarium');
+        const ctx = canvas.getContext('2d');
+
+        const size = Math.min(window.innerWidth, window.innerHeight) * 0.9;
+        canvas.width = size; canvas.height = size;
+
+        const centerX = size / 2; const centerY = size / 2;
+        const radius = size / 2 - 10;
+
+        let medakas = []; let ripples = []; let foods = []; let plants = [];
+
+        let isPressing = false; let pressX = 0; let pressY = 0;
+        let foodIntervalTimer = 0; let zoomLevel = 1.0; let waveTime = 0;
+
+        const elCount = document.getElementById('param-count');
+        const elAlign = document.getElementById('param-align');
+        const elCoh = document.getElementById('param-coh');
+        const elNoise = document.getElementById('param-noise');
+        const elWR = document.getElementById('param-wR');
+        const elWG = document.getElementById('param-wG');
+        const elWB = document.getElementById('param-wB');
+
+        const dispCount = document.getElementById('val-count');
+        const dispAlign = document.getElementById('val-align');
+        const dispCoh = document.getElementById('val-coh');
+        const dispNoise = document.getElementById('val-noise');
+        const dispWR = document.getElementById('val-wR');
+        const dispWG = document.getElementById('val-wG');
+        const dispWB = document.getElementById('val-wB');
+
+        class Medaka {
+            constructor() {
+                const angle = Math.random() * Math.PI * 2;
+                const r = Math.random() * (radius - 40);
+                this.x = centerX + Math.cos(angle) * r;
+                this.y = centerY + Math.sin(angle) * r;
+                this.speed = Math.random() * 0.8 + 0.6;
+                this.angle = Math.random() * Math.PI * 2;
+                this.size = Math.random() * 3 + 12;
+                this.swimCycle = Math.random() * 100;
+                this.peckCooldown = 0;
+                this.angleHistory = Array(20).fill(this.angle);
+
+                const colors = [
+                    { body: '#e64a19', fin: 'rgba(230, 74, 25, 0.5)', eye: '#111' },
+                    { body: '#8a95a5', fin: 'rgba(138, 149, 165, 0.4)', eye: '#111' },
+                    { body: '#1c1d21', fin: 'rgba(40, 44, 52, 0.35)', eye: '#000' }
+                ];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+
+                this.hasPattern = (this.color.body !== '#1c1d21' && Math.random() < 0.4);
+                this.spots = [];
+                if (this.hasPattern) {
+                    const numSpots = Math.floor(Math.random() * 3) + 2;
+                    for (let i = 0; i < numSpots; i++) {
+                        this.spots.push({
+                            x: (Math.random() - 0.5) * this.size * 1.2,
+                            y: (Math.random() - 0.5) * this.size * 0.3,
+                            r: Math.random() * 2 + 1.5
+                        });
+                    }
+                }
+            }
+            flock(boids) {
+                let separationX = 0, separationY = 0;
+                let alignmentAngle = 0;
+                let cohesionX = 0, cohesionY = 0;
+                let sepCount = 0, alignCount = 0, cohCount = 0;
+
+                const forceAlign = parseFloat(elAlign.value);
+                const forceCoh = parseFloat(elCoh.value);
+                const sepRadius = 32; const alignRadius = 70; const cohRadius = 75;
+
+                boids.forEach(other => {
+                    if (other === this) return;
+                    const d = Math.hypot(this.x - other.x, this.y - other.y);
+                    if (d > 0 && d < sepRadius) {
+                        separationX += (this.x - other.x) / d;
+                        separationY += (this.y - other.y) / d;
+                        sepCount++;
+                    }
+                    if (d > 0 && d < alignRadius) { alignmentAngle += other.angle; alignCount++; }
+                    if (d > 0 && d < cohRadius) { cohesionX += other.x; cohesionY += other.y; cohCount++; }
+                });
+
+                let targetAngle = this.angle;
+                let desireX = Math.cos(this.angle); let desireY = Math.sin(this.angle);
+
+                if (sepCount > 0) { desireX += (separationX / sepCount) * 0.5; desireY += (separationY / sepCount) * 0.5; }
+                if (alignCount > 0 && forceAlign > 0) {
+                    const avgAlignAngle = alignmentAngle / alignCount;
+                    desireX += Math.cos(avgAlignAngle) * forceAlign * 5; desireY += Math.sin(avgAlignAngle) * forceAlign * 5;
+                }
+                if (cohCount > 0 && forceCoh > 0) {
+                    const avgCohX = cohesionX / cohCount; const avgCohY = cohesionY / cohCount;
+                    const toCohAngle = Math.atan2(avgCohY - this.y, avgCohX - this.x);
+                    desireX += Math.cos(toCohAngle) * forceCoh * 5; desireY += Math.sin(toCohAngle) * forceCoh * 5;
+                }
+
+                targetAngle = Math.atan2(desireY, desireX);
+
+                if (foods.length > 0 && this.peckCooldown <= 0) {
+                    let closestFood = null; let minDist = 200;
+                    foods.forEach(food => {
+                        const d = Math.hypot(food.x - this.x, food.y - this.y);
+                        if (d < minDist) { minDist = d; closestFood = food; }
+                    });
+                    if (closestFood) { targetAngle = Math.atan2(closestFood.y - this.y, closestFood.x - this.x); }
+                }
+
+                if (Math.hypot(this.x - centerX, this.y - centerY) > radius - 30) { targetAngle = Math.atan2(centerY - this.y, centerX - this.x); }
+
+                const forceNoise = parseFloat(elNoise.value);
+                if (Math.random() < 0.04 && this.peckCooldown <= 0) { targetAngle += (Math.random() - 0.5) * (forceNoise * 15); }
+
+                let angleDiff = targetAngle - this.angle;
+                while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+                while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+
+                const maxTurnSpeed = 0.055;
+                if (Math.abs(angleDiff) > maxTurnSpeed) { this.angle += Math.sign(angleDiff) * maxTurnSpeed; } else { this.angle = targetAngle; }
+
+                if (!this.angleHistory || this.angleHistory.length === 0) { this.angleHistory = Array(20).fill(this.angle); }
+                this.angleHistory.shift(); this.angleHistory.push(this.angle);
+            }
+
+            update() {
+                this.swimCycle += 0.25;
+                if (this.peckCooldown > 0) { this.peckCooldown--; this.speed *= 0.8; } else {
+                    if (Math.random() < 0.015) { this.speed = Math.random() * 1.5 + 1.2; }
+                    this.speed *= 0.95;
+                    if (this.speed < 0.4) this.speed = 0.4;
+                    if (foods.length > 0) this.speed = Math.max(this.speed, 1.1);
+                }
+
+                const currentSpeed = (this.peckCooldown > 0) ? -0.2 : this.speed;
+                this.x += Math.cos(this.angle) * currentSpeed; this.y += Math.sin(this.angle) * currentSpeed;
+
+                const mouthX = this.x + Math.cos(this.angle) * (this.size * 1.1); const mouthY = this.y + Math.sin(this.angle) * (this.size * 1.1);
+
+                for (let i = foods.length - 1; i >= 0; i--) {
+                    const food = foods[i]; const distToMouth = Math.hypot(food.x - mouthX, food.y - mouthY);
+                    if (distToMouth < 9 && this.peckCooldown <= 0) {
+                        food.hp--; this.peckCooldown = 25;
+                        if (food.hp <= 0) { foods.splice(i, 1); }
+                        break;
+                    }
+                }
+            }
+
+            drawShape(isShadow) {
+                const headAngle = this.angleHistory[this.angleHistory.length - 1];
+                const midAngle = this.angleHistory[this.angleHistory.length - 7];
+                const tailAngle = this.angleHistory[this.angleHistory.length - 13];
+
+                ctx.save();
+                if (isShadow) {
+                    const wobbleIntensity = 0.2 + (this.speed * 1.1);
+                    const shadowWobbleX = Math.sin(waveTime * 2 + this.swimCycle) * wobbleIntensity;
+                    const shadowWobbleY = Math.cos(waveTime * 1.5 + this.swimCycle) * wobbleIntensity;
+                    ctx.translate(this.x + 8 + shadowWobbleX, this.y + 12 + shadowWobbleY);
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+                } else { ctx.translate(this.x, this.y); }
+                ctx.rotate(headAngle);
+
+                const tailWag = (this.peckCooldown > 0) ? 0 : Math.sin(this.swimCycle * 1.5) * (0.12 + this.speed * 0.08);
+
+                if (!isShadow) ctx.fillStyle = this.color.fin;
+                ctx.beginPath();
+                ctx.ellipse(this.size * 0.1, -this.size * 0.32, this.size * 0.12, this.size * 0.05, -Math.PI / 6, 0, Math.PI * 2);
+                ctx.ellipse(this.size * 0.1, this.size * 0.32, this.size * 0.12, this.size * 0.05, Math.PI / 6, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (!isShadow) ctx.fillStyle = this.color.body;
+                ctx.beginPath(); ctx.moveTo(this.size * 1.1, 0);
+                const diffMid = midAngle - headAngle; const midX = -this.size * 0.2;
+                ctx.bezierCurveTo(this.size * 0.9, -this.size * 0.45, midX + Math.sin(diffMid) * this.size * 0.2, -this.size * 0.35, midX, -this.size * 0.26);
+                const diffTail = tailAngle - headAngle; const tailX = -this.size;
+                ctx.lineTo(tailX, -this.size * 0.06); ctx.lineTo(tailX, this.size * 0.06); ctx.lineTo(midX, this.size * 0.26);
+                ctx.bezierCurveTo(midX + Math.sin(diffMid) * this.size * 0.2, this.size * 0.35, this.size * 0.9, this.size * 0.45, this.size * 1.1, 0);
+                ctx.closePath(); ctx.fill();
+
+                if (!isShadow && this.hasPattern) {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+                    this.spots.forEach(spot => { ctx.beginPath(); ctx.arc(spot.x, spot.y, spot.r, 0, Math.PI * 2); ctx.fill(); });
+                }
+
+                if (!isShadow) {
+                    ctx.fillStyle = this.color.eye;
+                    ctx.beginPath();
+                    ctx.arc(this.size * 0.76, -this.size * 0.20, this.size * 0.16, 0, Math.PI * 2);
+                    ctx.arc(this.size * 0.76, this.size * 0.20, this.size * 0.16, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                if (!isShadow) ctx.fillStyle = this.color.fin;
+                ctx.save(); ctx.translate(tailX, 0); ctx.rotate(diffTail + tailWag); ctx.beginPath(); ctx.moveTo(0, 0);
+                ctx.lineTo(-this.size * 0.7, -this.size * 0.38); ctx.lineTo(-this.size * 0.48, 0); ctx.lineTo(-this.size * 0.7, this.size * 0.38);
+                ctx.closePath(); ctx.fill(); ctx.restore(); ctx.restore();
+            }
+        }
+
+        function adjustMedakaCount() {
+            const targetCount = parseInt(elCount.value); dispCount.textContent = targetCount;
+            while (medakas.length < targetCount) medakas.push(new Medaka());
+            while (medakas.length > targetCount) medakas.splice(Math.floor(Math.random() * medakas.length), 1);
+        }
+        elCount.addEventListener('input', adjustMedakaCount);
+        elAlign.addEventListener('input', () => dispAlign.textContent = elAlign.value);
+        elCoh.addEventListener('input', () => dispCoh.textContent = elCoh.value);
+        elNoise.addEventListener('input', () => dispNoise.textContent = elNoise.value);
+        elWR.addEventListener('input', () => dispWR.textContent = elWR.value);
+        elWG.addEventListener('input', () => dispWG.textContent = elWG.value);
+        elWB.addEventListener('input', () => dispWB.textContent = elWB.value);
+
+        adjustMedakaCount();
+        // 【追加】起動時にランダムな位置・サイズ・角度で浮草を5個配置する
+        for (let i = 0; i < 5; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            // 鉢の内側に収まるようにランダムな距離（最大半径の60%以内）を設定
+            const rDist = Math.random() * (radius * 0.6);
+            const px = centerX + Math.cos(angle) * rDist;
+            const py = centerY + Math.sin(angle) * rDist;
+            const randomTargetR = Math.random() * 20 + 28; // 成長後のターゲット半径(20〜35px)
+
+            plants.push({
+                x: px,
+                y: py,
+                r: randomTargetR,
+                targetR: randomTargetR,
+                angle: Math.random() * Math.PI * 2,
+                age: 14400 + Math.floor(Math.random() * 7200),
+                hasSpawned: false,
+
+                witherAge: 46800 * (0.8 + Math.random() * 0.4),
+                deathAge: 54000 * (0.8 + Math.random() * 0.4)
+            });
+        }
+        function animate() {
+            waveTime += 0.015;
+
+            const r = elWR.value; const g = elWG.value; const b = elWB.value;
+            const grad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+            grad.addColorStop(0, `rgb(${Math.min(r * 2.5, 255)}, ${Math.min(g * 1.8, 255)}, ${Math.min(b * 1.5, 255)})`);
+            grad.addColorStop(1, `rgb(${Math.floor(r * 0.4)}, ${Math.floor(g * 0.4)}, ${Math.floor(b * 0.4)})`);
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+            for (let i = 0; i < 6; i++) {
+                const offsetW = Math.sin(waveTime + i * 0.8) * 15; const offsetH = Math.cos(waveTime * 0.8 + i * 0.5) * 15;
+                ctx.beginPath(); ctx.arc(centerX + offsetW, centerY + offsetH, radius - 10, 0, Math.PI * 2); ctx.fill();
+            }
+            ctx.restore();
+
+            ctx.save(); ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            plants.forEach(plant => {
+                const pWobbleX = Math.sin(waveTime * 1.5) * 3.5; const pWobbleY = Math.cos(waveTime * 1.2) * 3.5;
+                // 老化で溶け出している間は、地面に落ちる影もうっすら透けるように連動させる
+                if (plant.age > plant.witherAge) {
+                    const alpha =
+                        Math.max(
+                            0,
+                            1 - (plant.age - plant.witherAge) /
+                            (plant.deathAge - plant.witherAge)
+                        );
+
+                    ctx.fillStyle = `rgba(0, 0, 0, ${alpha * 0.4})`;
+                } else {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                }
+                ctx.beginPath(); ctx.arc(plant.x + 15 + pWobbleX, plant.y + 22 + pWobbleY, plant.r, 0, Math.PI * 2); ctx.fill();
+            });
+            ctx.restore();
+
+            medakas.forEach(medaka => { medaka.drawShape(true); });
+
+            ctx.strokeStyle = '#1a1107'; ctx.lineWidth = 14;
+            ctx.beginPath(); ctx.arc(centerX, centerY, radius, 0, Math.PI * 2); ctx.stroke();
+
+            if (isPressing) {
+                foodIntervalTimer++;
+                if (foodIntervalTimer % 12 === 0) {
+                    for (let i = 0; i < 10; i++) {
+                        const scatterAngle = Math.random() * Math.PI * 2; const scatterDist = Math.random() * 30;
+                        const fx = pressX + Math.cos(scatterAngle) * scatterDist; const fy = pressY + Math.sin(scatterAngle) * scatterDist;
+                        if (Math.hypot(fx - centerX, fy - centerY) < radius - 20) foods.push({ x: fx, y: fy, hp: 3 });
+                    }
+                }
+            }
+
+            ctx.fillStyle = '#b57c43';
+            foods.forEach(food => {
+                ctx.beginPath(); const r = food.hp === 3 ? 1.5 : (food.hp === 2 ? 1.0 : 0.6);
+                ctx.arc(food.x, food.y, r, 0, Math.PI * 2); ctx.fill();
+            });
+
+            ripples.forEach((ripple, index) => {
+                ripple.r += 1.5; ripple.alpha -= 0.012;
+                if (ripple.alpha <= 0) ripples.splice(index, 1);
+                else {
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${ripple.alpha})`; ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.arc(ripple.x, ripple.y, ripple.r, 0, Math.PI * 2); ctx.stroke();
+                }
+            });
+
+            medakas.forEach(medaka => { medaka.flock(medakas); medaka.update(); medaka.drawShape(false); });
+
+            let newChildren = [];
+            for (let i = plants.length - 1; i >= 0; i--) {
+                const plant = plants[i]; plant.age += 1;
+
+                if (plant.age <= plant.witherAge) {
+                    const progress = plant.age / plant.witherAge;
+                    plant.r = 4 + (plant.targetR - 4) * progress;
+                }
+
+                // 10分経った瞬間に、100%確実に【1株〜2株】の子ども株を周囲に誕生させる
+                if (plant.age === 36000 && !plant.hasSpawned) {
+                    plant.hasSpawned = true;
+                    const spawnCount = Math.random() < 0.5 ? 1 : 2; // 50%の確率で1株、50%の確率で2株
+                    for (let c = 0; c < spawnCount; c++) {
+                        const spawnAngle = Math.random() * Math.PI * 2; const spawnDist = plant.r + 15;
+                        const childX = plant.x + Math.cos(spawnAngle) * spawnDist; const childY = plant.y + Math.sin(spawnAngle) * spawnDist;
+                        if (Math.hypot(childX - centerX, childY - centerY) < radius - 30) {
+                            newChildren.push({
+                                x: childX,
+                                y: childY,
+                                r: 4,
+                                targetR: Math.random() * 18 + 25,
+                                angle: Math.random() * Math.PI * 2,
+                                age: 0,
+                                hasSpawned: false,
+
+                                witherAge: 46800 * (0.8 + Math.random() * 0.4),
+                                deathAge: 54000 * (0.8 + Math.random() * 0.4)
+                            });
+                            ripples.push({ x: childX, y: childY, r: 0, alpha: 0.3 });
+                        }
+                    }
+                }
+
+                // 老化・溶解：縮むのではなく、サイズを保ったまま12分に達したら完全に溶けて消え去る
+                // 個体ごとの寿命で消滅
+                if (plant.age >= plant.deathAge) {
+                    plants.splice(i, 1);
+                    continue;
+                }
+
+                if (plant.vx === undefined) {
+                    const angle = Math.random() * Math.PI * 2; plant.vx = Math.cos(angle) * 0.012; plant.vy = Math.sin(angle) * 0.012;
+                }
+                plants.forEach(other => {
+                    if (plant === other) return;
+                    const d = Math.hypot(plant.x - other.x, plant.y - other.y); const minTargetDist = (plant.r + other.r) * 0.85;
+                    if (d < minTargetDist) {
+                        const pushAngle = d > 0 ? Math.atan2(plant.y - other.y, plant.x - other.x) : Math.random() * Math.PI * 2;
+                        plant.vx += Math.cos(pushAngle) * 0.0005; plant.vy += Math.sin(pushAngle) * 0.0005;
+                    }
+                });
+                const s = Math.hypot(plant.vx, plant.vy);
+                if (s > 0.02) { plant.vx = (plant.vx / s) * 0.02; plant.vy = (plant.vy / s) * 0.02; }
+                plant.x += plant.vx; plant.y += plant.vy;
+                if (Math.hypot(plant.x - centerX, plant.y - centerY) > radius - plant.r - 10) {
+                    const toCenterAngle = Math.atan2(centerY - plant.y, centerX - plant.x);
+                    plant.vx = Math.cos(toCenterAngle) * 0.012; plant.vy = Math.sin(toCenterAngle) * 0.012;
+                }
+            }
+
+            if (newChildren.length > 0) { plants = plants.concat(newChildren); }
+            // 実体としての浮草の描画（10分以降は黄色・茶色に変色し、溶けるように透ける）
+            plants.forEach(plant => {
+                ctx.save();
+                ctx.translate(plant.x, plant.y);
+                ctx.rotate(plant.angle);
+                ctx.globalAlpha = 1.0;
+                // 老化期（10分＝36000F以降）は透明度（alpha）を2分間かけてじわじわ0にする
+                let alpha = 1.0;
+
+                if (plant.age > plant.witherAge) {
+                    alpha = Math.max(
+                        0,
+                        1 - (plant.age - plant.witherAge) /
+                        (plant.deathAge - plant.witherAge)
+                    );
+                }
+
+                ctx.globalAlpha = alpha;
+
+                const leafGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, plant.r);
+
+                if (plant.age > plant.witherAge) {
+                    leafGrad.addColorStop(0, '#f1d58b'); // 黄色っぽい
+                    leafGrad.addColorStop(0.7, '#b08a5a');
+                    leafGrad.addColorStop(1, '#5a3d2b');
+                } else {
+                    leafGrad.addColorStop(0, '#5cb85c');
+                    leafGrad.addColorStop(0.7, '#2e7d32');
+                    leafGrad.addColorStop(1, '#1b5e20');
+                }
+
+                ctx.fillStyle = leafGrad;
+                ctx.beginPath();
+                ctx.arc(0, 0, plant.r, 0.15, Math.PI * 2 - 0.15); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill();
+
+                // 葉脈（老化に合わせて葉脈もうっすら消えていく）
+                ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.2})`; ctx.lineWidth = 1;
+                for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+                    if (a > 0.2 && a < Math.PI * 2 - 0.2) {
+                        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * plant.r, Math.sin(a) * plant.r); ctx.stroke();
+                    }
+                }
+                ctx.restore();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        function getCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX = e.clientX || (e.touches && e.touches && e.touches.clientX);
+            let clientY = e.clientY || (e.touches && e.touches && e.touches.clientY);
+            if (clientX === undefined || clientY === undefined) return { x: null, y: null };
+            return {
+                x: (clientX - rect.left) * (canvas.width / rect.width),
+                y: (clientY - rect.top) * (canvas.height / rect.height)
+            };
+        }
+
+        function handleMouseDown(e) {
+            if (e.target.closest('#panel')) return;
+            const coords = getCoords(e);
+            if (coords.x === null || coords.y === null) return;
+
+            if (Math.hypot(coords.x - centerX, coords.y - centerY) < radius) {
+                if (e.button === 2) { // 右クリック処理
+                    let clickedPlantIndex = -1;
+
+                    // クリックした座標にすでに浮草があるかチェック（重なり判定）
+                    for (let i = plants.length - 1; i >= 0; i--) {
+                        if (Math.hypot(coords.x - plants[i].x, coords.y - plants[i].y) < plants[i].r) {
+                            clickedPlantIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (clickedPlantIndex >= 0) {
+                        // 【新機能】すでに浮草がある場所なら、その浮草を間引く（消去）
+                        ripples.push({ x: plants[clickedPlantIndex].x, y: plants[clickedPlantIndex].y, r: 0, alpha: 0.4 });
+                        plants.splice(clickedPlantIndex, 1);
+                    } else {
+                        // 浮草がない空きスペースなら、新しい浮草を赤ちゃんサイズで配置
+                        plants.push({
+                            x: coords.x,
+                            y: coords.y,
+                            r: 4,
+                            targetR: Math.random() * 18 + 25,
+                            angle: Math.random() * Math.PI * 2,
+                            age: 0,
+                            hasSpawned: false,
+
+                            witherAge: 46800 * (0.8 + Math.random() * 0.4),
+                            deathAge: 54000 * (0.8 + Math.random() * 0.4)
+                        });
+                        ripples.push({ x: coords.x, y: coords.y, r: 0, alpha: 0.25 });
+                    }
+                } else if (e.button === 0) { // 左クリック（エサやり）
+                    isPressing = true; pressX = coords.x; pressY = coords.y;
+                    for (let i = 0; i < 10; i++) {
+                        const angle = Math.random() * Math.PI * 2, dist = Math.random() * 25;
+                        const fx = coords.x + Math.cos(angle) * dist, fy = coords.y + Math.sin(angle) * dist;
+                        if (Math.hypot(fx - centerX, fy - centerY) < radius - 20) foods.push({ x: fx, y: fy, hp: 3 });
+                    }
+                    ripples.push({ x: coords.x, y: coords.y, r: 0, alpha: 0.35 });
+                }
+            }
+        }
+
+        let touchStartTimer = null;
+        function handleTouchStart(e) {
+            if (e.target.closest('#panel')) return;
+            const coords = getCoords(e);
+            if (coords.x === null || coords.y === null) return;
+            if (Math.hypot(coords.x - centerX, coords.y - centerY) < radius) {
+                pressX = coords.x; pressY = coords.y;
+
+                // スマホ用の長押し（浮草の配置または消去）
+                touchStartTimer = setTimeout(() => {
+                    let clickedPlantIndex = -1;
+                    for (let i = plants.length - 1; i >= 0; i--) {
+                        if (Math.hypot(coords.x - plants[i].x, coords.y - plants[i].y) < plants[i].r) {
+                            clickedPlantIndex = i; break;
+                        }
+                    }
+                    if (clickedPlantIndex >= 0) {
+                        plants.splice(clickedPlantIndex, 1);
+                    } else {
+                        plants.push({ x: coords.x, y: coords.y, r: 4, targetR: Math.random() * 15 + 20, angle: Math.random() * Math.PI * 2, age: 0, hasSpawned: false });
+                    }
+                    ripples.push({ x: coords.x, y: coords.y, r: 0, alpha: 0.25 });
+                    touchStartTimer = null;
+                }, 500);
+                isPressing = true;
+            }
+        }
+
+        function handleTouchEnd() {
+            if (touchStartTimer) {
+                clearTimeout(touchStartTimer); touchStartTimer = null;
+                for (let i = 0; i < 10; i++) {
+                    const angle = Math.random() * Math.PI * 2, dist = Math.random() * 25;
+                    const fx = pressX + Math.cos(angle) * dist, fy = pressY + Math.sin(angle) * dist;
+                    if (Math.hypot(fx - centerX, fy - centerY) < radius - 20) foods.push({ x: fx, y: fy, hp: 3 });
+                }
+                ripples.push({ x: pressX, y: pressY, r: 0, alpha: 0.35 });
+            }
+            isPressing = false; foodIntervalTimer = 0;
+        }
+
+        function handleMouseMove(e) {
+            if (!isPressing) return;
+            const coords = getCoords(e);
+            if (coords.x !== null && coords.y !== null) { pressX = coords.x; pressY = coords.y; }
+        }
+
+        window.addEventListener('contextmenu', e => { if (!e.target.closest('#panel')) e.preventDefault(); });
+        window.addEventListener('mousedown', handleMouseDown);
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', () => { isPressing = false; foodIntervalTimer = 0; });
+        window.addEventListener('touchstart', handleTouchStart, { passive: true });
+        window.addEventListener('touchmove', handleMouseMove, { passive: true });
+        window.addEventListener('touchend', handleTouchEnd);
+        window.addEventListener('wheel', (e) => {
+            if (e.target.closest('#panel')) return; e.preventDefault();
+            zoomLevel = e.deltaY < 0 ? Math.min(zoomLevel + 0.1, 3.5) : Math.max(zoomLevel - 0.1, 0.5);
+            canvas.style.transform = `scale(${zoomLevel})`;
+        }, { passive: false });
+
+        animate();
+    </script>
+</body>
+
+</html>

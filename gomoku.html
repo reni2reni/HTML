@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>五目並べ 極み - ゴースト表示機能付</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #1a1a1a;
+            color: white;
+            font-family: 'Meiryo', sans-serif;
+            margin: 0;
+            padding: 10px;
+        }
+
+        #info {
+            margin: 10px;
+            font-size: 1.2rem;
+            height: 35px;
+            font-weight: bold;
+            color: #f1c40f;
+            text-shadow: 1px 1px 2px black;
+        }
+
+        #board-container {
+            position: relative;
+            padding: 12px;
+            background: #5d4037;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+        }
+
+        canvas {
+            background-color: #deb887;
+            cursor: crosshair;
+            display: block;
+            border: 2px solid #3e2723;
+        }
+
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 620px;
+        }
+
+        button,
+        select {
+            padding: 8px 15px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            background: #444;
+            border: 1px solid #666;
+            color: white;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #666;
+        }
+
+        #startBtn {
+            background: #e67e22;
+            border: none;
+            font-weight: bold;
+        }
+
+        #startBtn:hover {
+            background: #d35400;
+        }
+
+        #startBtn:disabled {
+            background: #333;
+            color: #777;
+        }
+
+        .guide-active {
+            background: #c0392b !important;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        #roulette-box {
+            background: #eee;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            color: #333;
+            min-width: 280px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="info">レベルを選んで開始してください</div>
+    <div id="board-container">
+        <canvas id="goban" width="600" height="600"></canvas>
+    </div>
+
+    <div class="controls">
+        <select id="levelSelect">
+            <option value="0">Lv.1 超初心者</option>
+            <option value="1">Lv.2 初心者</option>
+            <option value="2" selected>Lv.3 普通</option>
+            <option value="3">Lv.4 強い</option>
+            <option value="4">Lv.5 最強</option>
+        </select>
+        <button id="startBtn" onclick="startRoulette()">対局開始</button>
+        <button id="undoBtn" onclick="undoMove()" disabled>待った</button>
+        <button id="guideBtn" onclick="toggleGuide()">ガイド: OFF</button>
+        <button onclick="resetGame()">リセット</button>
+    </div>
+
+    <div id="overlay">
+        <div id="roulette-box">
+            <h2 id="rouletteTitle" style="margin-top:0">先手・後手 抽選</h2>
+            <div id="rollingText" style="font-size:2.5rem; margin:20px; font-weight:bold; color:#e67e22;">...</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('goban');
+        const ctx = canvas.getContext('2d');
+        const info = document.getElementById('info');
+        const SIZE = 15, CELL = 40, OFFSET = 20;
+
+        let board = [], history = [], gameOver = false, turn = 0, playerColor = 1, isGuideActive = false, lastMove = null;
+        let hoverPos = null; // マウスカーソル下の座標
+
+        // 音声エンジン
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            if (type === 'put') {
+                osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(); osc.stop(now + 0.1);
+            } else if (type === 'start') {
+                osc.frequency.setValueAtTime(440, now); osc.frequency.exponentialRampToValueAtTime(880, now + 0.2);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(); osc.stop(now + 0.3);
+            } else if (type === 'win') {
+                [523, 659, 783].forEach((f, i) => {
+                    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                    o.connect(g); g.connect(audioCtx.destination);
+                    o.frequency.setValueAtTime(f, now + i * 0.1);
+                    g.gain.setValueAtTime(0.1, now + i * 0.1); g.gain.linearRampToValueAtTime(0, now + i * 0.1 + 0.3);
+                    o.start(now + i * 0.1); o.stop(now + i * 0.1 + 0.3);
+                });
+            } else if (type === 'lose') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, now);
+                osc.frequency.linearRampToValueAtTime(110, now + 0.5);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(); osc.stop(now + 0.5);
+            }
+        }
+
+        function initBoard() {
+            board = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+            history = []; lastMove = null;
+            document.getElementById('undoBtn').disabled = true;
+        }
+
+        function startRoulette() {
+            audioCtx.resume();
+            const overlay = document.getElementById('overlay');
+            overlay.style.display = 'flex';
+            let count = 0;
+            const inv = setInterval(() => {
+                document.getElementById('rollingText').innerText = (count++ % 2 === 0) ? "● 黒 (先手)" : "○ 白 (後手)";
+                if (count % 2 === 0) playSound('put');
+            }, 100);
+            setTimeout(() => {
+                clearInterval(inv);
+                playerColor = Math.random() < 0.5 ? 1 : 2;
+                document.getElementById('rollingText').innerText = playerColor === 1 ? "あなたは 黒 です" : "あなたは 白 です";
+                playSound('start');
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    document.getElementById('startBtn').disabled = true;
+                    turn = 1; updateStatus(); drawBoard();
+                    if (playerColor === 2) setTimeout(cpuMove, 600);
+                }, 1200);
+            }, 1500);
+        }
+
+        function drawBoard() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 罫線
+            ctx.strokeStyle = '#3e2723';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < SIZE; i++) {
+                ctx.beginPath(); ctx.moveTo(OFFSET + i * CELL, OFFSET); ctx.lineTo(OFFSET + i * CELL, OFFSET + (SIZE - 1) * CELL); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(OFFSET, OFFSET + i * CELL); ctx.lineTo(OFFSET + (SIZE - 1) * CELL, OFFSET + i * CELL); ctx.stroke();
+            }
+
+            // 星
+            [3, 7, 11].forEach(r => [3, 7, 11].forEach(c => {
+                ctx.beginPath(); ctx.arc(OFFSET + c * CELL, OFFSET + r * CELL, 4, 0, Math.PI * 2); ctx.fillStyle = "#3e2723"; ctx.fill();
+            }));
+
+            // ゴースト（マウスホバー）
+            if (hoverPos && turn === playerColor && !gameOver && board[hoverPos.y][hoverPos.x] === 0) {
+                drawGhost(hoverPos.x, hoverPos.y, playerColor);
+            }
+
+            // 配置された石
+            for (let y = 0; y < SIZE; y++) {
+                for (let x = 0; x < SIZE; x++) {
+                    if (board[y][x] !== 0) drawStone(x, y, board[y][x]);
+                }
+            }
+
+            // 最終手強調
+            if (lastMove) {
+                ctx.strokeStyle = "#3498db"; ctx.lineWidth = 3;
+                ctx.strokeRect(OFFSET + lastMove.x * CELL - 18, OFFSET + lastMove.y * CELL - 18, 36, 36);
+            }
+
+            // ガイド表示
+            if (isGuideActive && !gameOver && turn === playerColor) drawGuide();
+        }
+
+        function drawStone(x, y, color) {
+            const px = OFFSET + x * CELL, py = OFFSET + y * CELL;
+            ctx.beginPath(); ctx.arc(px, py, 17, 0, Math.PI * 2);
+            const grad = ctx.createRadialGradient(px - 5, py - 5, 2, px, py, 17);
+            if (color === 1) { grad.addColorStop(0, '#555'); grad.addColorStop(1, '#000'); }
+            else { grad.addColorStop(0, '#fff'); grad.addColorStop(1, '#bbb'); }
+            ctx.fillStyle = grad; ctx.fill();
+        }
+
+        function drawGhost(x, y, color) {
+            const isForbidden = (color === 1 && isForbiddenThreeThree(x, y, 1));
+            const px = OFFSET + x * CELL, py = OFFSET + y * CELL;
+            ctx.save();
+            ctx.globalAlpha = 0.4;
+            ctx.beginPath(); ctx.arc(px, py, 17, 0, Math.PI * 2);
+            if (isForbidden) {
+                ctx.fillStyle = "#e74c3c"; // 禁手は赤く表示
+            } else {
+                ctx.fillStyle = (color === 1) ? "#000" : "#fff";
+            }
+            ctx.fill();
+            ctx.restore();
+
+            if (isForbidden) {
+                ctx.fillStyle = "white"; ctx.font = "bold 12px sans-serif"; ctx.textAlign = "center";
+                ctx.fillText("×", px, py + 4);
+            }
+        }
+
+        function drawGuide() {
+            const opp = (playerColor === 1 ? 2 : 1);
+            for (let y = 0; y < SIZE; y++) {
+                for (let x = 0; x < SIZE; x++) {
+                    if (board[y][x] === 0) {
+                        let s = evaluate(x, y, opp);
+                        if (s >= 2500) drawMarker(x, y, "4", "#ff0000");
+                        else if (s >= 1500) drawMarker(x, y, "3", "#00d4ff");
+                    }
+                }
+            }
+        }
+
+        function drawMarker(x, y, txt, col) {
+            ctx.save();
+            ctx.fillStyle = col; ctx.font = "bold 22px Arial";
+            ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.shadowColor = "black"; ctx.shadowBlur = 4;
+            ctx.fillText(txt, OFFSET + x * CELL, OFFSET + y * CELL);
+            ctx.restore();
+        }
+
+        // 三三判定
+        function isForbiddenThreeThree(x, y, color) {
+            if (color !== 1) return false;
+            let openThreeCount = 0;
+            const directions = [[1, 0], [0, 1], [1, 1], [1, -1]];
+            board[y][x] = color;
+            for (const [dx, dy] of directions) {
+                if (checkOpenThree(x, y, dx, dy, color)) openThreeCount++;
+            }
+            board[y][x] = 0;
+            return openThreeCount >= 2;
+        }
+
+        function checkOpenThree(x, y, dx, dy, color) {
+            let line = [];
+            for (let i = -4; i <= 4; i++) {
+                let nx = x + dx * i, ny = y + dy * i;
+                if (nx >= 0 && nx < SIZE && ny >= 0 && ny < SIZE) line.push({ v: board[ny][nx], isO: (i === 0) });
+                else line.push({ v: -1 });
+            }
+            const pts = [[0, 1, 1, 1, 0], [0, 1, 0, 1, 1, 0], [0, 1, 1, 0, 1, 0]];
+            for (let p of pts) {
+                for (let s = 0; s <= line.length - p.length; s++) {
+                    let match = true, hasO = false;
+                    for (let j = 0; j < p.length; j++) {
+                        if (line[s + j].v !== p[j]) { match = false; break; }
+                        if (line[s + j].isO) hasO = true;
+                    }
+                    if (match && hasO) return true;
+                }
+            }
+            return false;
+        }
+
+        function evaluate(x, y, color) {
+            let score = 0;
+            const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+            for (let [dx, dy] of dirs) {
+                let cnt = 1, open = 0;
+                for (let s of [-1, 1]) {
+                    let nx = x + dx * s, ny = y + dy * s;
+                    while (nx >= 0 && nx < SIZE && ny >= 0 && ny < SIZE && board[ny][nx] === color) { cnt++; nx += dx * s; ny += dy * s; }
+                    if (nx >= 0 && nx < SIZE && ny >= 0 && ny < SIZE && board[ny][nx] === 0) open++;
+                }
+                if (cnt >= 5) score += 100000;
+                else if (cnt === 4 && open === 2) score += 10000;
+                else if (cnt === 4 && open === 1) score += 2500;
+                else if (cnt === 3 && open === 2) score += 1800;
+            }
+            return score;
+        }
+
+        function cpuMove() {
+            if (gameOver) return;
+            const lv = parseInt(document.getElementById('levelSelect').value);
+            const cpuCol = (playerColor === 1 ? 2 : 1);
+            let candidates = [];
+            for (let y = 0; y < SIZE; y++) {
+                for (let x = 0; x < SIZE; x++) {
+                    if (board[y][x] === 0) {
+                        if (cpuCol === 1 && isForbiddenThreeThree(x, y, 1)) continue;
+                        let myS = evaluate(x, y, cpuCol);
+                        let opS = evaluate(x, y, playerColor);
+
+                        // 中央優先ロジック
+                        const centerWeight = (14 - (Math.abs(x - 7) + Math.abs(y - 7))) * 5;
+
+                        let total = 0;
+                        switch (lv) {
+                            case 0: total = myS * 0.5 + opS * 0.2 + centerWeight + Math.random() * 100; break;
+                            case 1: total = myS + opS * 0.5 + centerWeight + Math.random() * 50; break;
+                            case 2: total = myS + opS * 1.1 + centerWeight; break;
+                            case 3: total = myS * 1.2 + opS * 1.5 + centerWeight; break;
+                            case 4: total = myS * 1.5 + opS * 2.0 + centerWeight; break;
+                        }
+                        candidates.push({ x, y, s: total });
+                    }
+                }
+            }
+            candidates.sort((a, b) => b.s - a.s);
+            let bestMoves = candidates.filter(c => c.s === candidates[0].s);
+            const move = bestMoves[Math.floor(Math.random() * bestMoves.length)] || { x: 7, y: 7 };
+            makeMove(move.x, move.y);
+        }
+
+        function makeMove(x, y) {
+            if (board[y][x] !== 0 || gameOver) return;
+            if (turn === 1 && isForbiddenThreeThree(x, y, 1)) {
+                info.innerText = "⚠️ 三三は打てません！";
+                setTimeout(updateStatus, 1200); return;
+            }
+            board[y][x] = turn; playSound('put');
+            lastMove = { x, y }; history.push({ x, y, turn });
+            document.getElementById('undoBtn').disabled = false;
+            if (checkWin(x, y, turn)) {
+                drawBoard();
+                const win = (turn === playerColor);
+                info.innerText = win ? "🎉 あなたの勝ち！" : "💀 CPUの勝ち...";
+                playSound(win ? 'win' : 'lose');
+                gameOver = true; return;
+            }
+            turn = (turn === 1 ? 2 : 1);
+            drawBoard(); updateStatus();
+            if (turn !== playerColor && !gameOver) setTimeout(cpuMove, 500);
+        }
+
+        function checkWin(x, y, c) {
+            const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+            for (let [dx, dy] of dirs) {
+                let cnt = 1;
+                for (let s of [-1, 1]) {
+                    let nx = x + dx * s, ny = y + dy * s;
+                    while (nx >= 0 && nx < SIZE && ny >= 0 && ny < SIZE && board[ny][nx] === c) { cnt++; nx += dx * s; ny += dy * s; }
+                }
+                if (cnt >= 5) return true;
+            }
+            return false;
+        }
+
+        function updateStatus() {
+            if (gameOver) return;
+            info.innerText = (turn === playerColor) ? `あなたの番 (${playerColor === 1 ? '黒' : '白'})` : "CPU思考中...";
+        }
+
+        function undoMove() {
+            if (history.length < 2 || gameOver) return;
+            for (let i = 0; i < 2; i++) { let m = history.pop(); board[m.y][m.x] = 0; }
+            lastMove = history.length > 0 ? history[history.length - 1] : null;
+            turn = playerColor; drawBoard(); updateStatus();
+        }
+
+        function toggleGuide() {
+            isGuideActive = !isGuideActive;
+            const b = document.getElementById('guideBtn');
+            b.innerText = `ガイド: ${isGuideActive ? 'ON' : 'OFF'}`;
+            b.classList.toggle('guide-active', isGuideActive);
+            drawBoard();
+        }
+
+        // マウス移動イベント（ゴースト用）
+        canvas.addEventListener('mousemove', (e) => {
+            const r = canvas.getBoundingClientRect();
+            const x = Math.round((e.clientX - r.left - OFFSET) / CELL);
+            const y = Math.round((e.clientY - r.top - OFFSET) / CELL);
+            if (x >= 0 && x < SIZE && y >= 0 && y < SIZE) {
+                if (!hoverPos || hoverPos.x !== x || hoverPos.y !== y) {
+                    hoverPos = { x, y };
+                    drawBoard();
+                }
+            } else {
+                hoverPos = null;
+                drawBoard();
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            hoverPos = null;
+            drawBoard();
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (turn !== playerColor || gameOver || turn === 0) return;
+            const r = canvas.getBoundingClientRect();
+            const x = Math.round((e.clientX - r.left - OFFSET) / CELL);
+            const y = Math.round((e.clientY - r.top - OFFSET) / CELL);
+            if (x >= 0 && x < SIZE && y >= 0 && y < SIZE) makeMove(x, y);
+        });
+
+        function resetGame() {
+            initBoard(); gameOver = false; turn = 0;
+            document.getElementById('startBtn').disabled = false;
+            info.innerText = "レベルを選んで開始してください";
+            drawBoard();
+        }
+
+        initBoard(); drawBoard();
+    </script>
+</body>
+
+</html>

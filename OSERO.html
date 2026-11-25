@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>本格オセロ AI対戦 (リアル質感版)</title>
+    <style>
+        :root {
+            --bg-color: #2c3e50;
+            --board-color: #1e7a41;
+            /* 鮮やかな深緑 */
+            --border-color: #0d4a27;
+            /* 濃い緑の線 */
+            --frame-color: #5d4037;
+            /* 木目調の茶色 */
+            --black-disc: #111;
+            --white-disc: #fff;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: #ecf0f1;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin-top: 20px;
+            font-weight: 300;
+        }
+
+        /* スコア・ステータスエリア */
+        #header {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .info-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+        }
+
+        .status-disc {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        #turn-text {
+            font-weight: bold;
+        }
+
+        /* 盤面の外枠（木目調） */
+        #board-frame {
+            background-color: var(--frame-color);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+        }
+
+        /* 盤面本体（緑色部分） */
+        #board {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
+            gap: 1px;
+            /* マス目の境界線 */
+            background-color: var(--border-color);
+            /* 境界線の色 */
+            border: 2px solid var(--border-color);
+        }
+
+        /* マス目 */
+        .cell {
+            width: 60px;
+            height: 60px;
+            background-color: var(--board-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        /* ホバー時の効果（打てる場所） */
+        .cell.playable:hover {
+            background-color: #269c53;
+        }
+
+        /* 石（リアル質感） */
+        .disc {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            box-sizing: border-box;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+
+            /* 立体感（3Dシャドウとグラデーション） */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 黒石の質感 */
+        .black {
+            background: radial-gradient(circle at 30% 30%, #444, var(--black-disc));
+            border: 1px solid #000;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* 白石の質感 */
+        .white {
+            background: radial-gradient(circle at 30% 30%, #fff, #e0e0e0);
+            border: 1px solid #ccc;
+            opacity: 1;
+            transform: scale(1);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>本格オセロ vs AI</h1>
+
+    <div id="header">
+        <div class="info-box">
+            <div id="turn-disc" class="status-disc black"></div>
+            <span id="turn-text">あなたの番です</span>
+        </div>
+        <div class="info-box">
+            <span>●<span id="black-count">2</span></span>
+            <span>○<span id="white-count">2</span></span>
+        </div>
+    </div>
+
+    <div id="board-frame">
+        <div id="board">
+            <!-- JavaScriptでここにマス目が生成される -->
+        </div>
+    </div>
+
+    <script>
+        // ゲーム状態
+        let board = Array(8).fill(null).map(() => Array(8).fill(0));
+        board[3][3] = 1;  // 黒
+        board[3][4] = -1; // 白
+        board[4][3] = -1; // 白
+        board[4][4] = 1;  // 黒
+
+        let turn = 1; // 1: 人間(黒), -1: AI(白)
+        let isAiThinking = false; // AIが思考中かどうか
+
+        // 盤面を描画する関数
+        function render() {
+            const boardEl = document.getElementById('board');
+            boardEl.innerHTML = ''; // 一旦クリア
+
+            let blackCount = 0;
+            let whiteCount = 0;
+
+            const playableMoves = getValidMoves(board, turn);
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+
+                    // 石の描画
+                    if (board[r][c] !== 0) {
+                        const disc = document.createElement('div');
+                        disc.className = 'disc ' + (board[r][c] === 1 ? 'black' : 'white');
+                        cell.appendChild(disc);
+                        if (board[r][c] === 1) blackCount++; else whiteCount++;
+                    } else if (turn === 1 && playableMoves.some(m => m[0] === r && m[1] === c)) {
+                        // 人間のターンで、置ける場所を強調
+                        cell.classList.add('playable');
+                        cell.onclick = () => playerMove(r, c);
+                    }
+
+                    boardEl.appendChild(cell);
+                }
+            }
+
+            // スコアと手番の更新
+            document.getElementById('black-count').innerText = blackCount;
+            document.getElementById('white-count').innerText = whiteCount;
+
+            const turnDisc = document.getElementById('turn-disc');
+            const turnText = document.getElementById('turn-text');
+
+            if (turn === 1) {
+                turnDisc.className = 'status-disc black';
+                turnText.innerText = "あなたの番です";
+            } else {
+                turnDisc.className = 'status-disc white';
+                turnText.innerText = "AIが思考中です...";
+            }
+        }
+
+        // --- ロジック系関数 ---
+
+        // 置ける場所のリストを取得
+        function getValidMoves(b, t) {
+            let moves = [];
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if (b[r][c] === 0 && canFlip(b, r, c, t).length > 0) {
+                        moves.push([r, c]);
+                    }
+                }
+            }
+            return moves;
+        }
+
+        // 石を置いたときにひっくり返せる全リストを取得
+        function canFlip(b, r, c, t) {
+            let flips = [];
+            const directions = [
+                [-1, -1], [-1, 0], [-1, 1],
+                [0, -1], [0, 1],
+                [1, -1], [1, 0], [1, 1]
+            ];
+
+            for (const [dr, dc] of directions) {
+                let path = [];
+                let nr = r + dr;
+                let nc = c + dc;
+
+                // 相手の石が続く限り進む
+                while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && b[nr][nc] === -t) {
+                    path.push([nr, nc]);
+                    nr += dr;
+                    nc += dc;
+                }
+
+                // 最後に自分の石があれば、その経路の相手石は全てひっくり返せる
+                if (path.length > 0 && nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && b[nr][nc] === t) {
+                    flips.push(...path);
+                }
+            }
+            return flips;
+        }
+
+        // --- 進行管理 ---
+
+        // プレイヤーの手
+        function playerMove(r, c) {
+            if (turn !== 1 || isAiThinking) return;
+
+            const flips = canFlip(board, r, c, 1);
+            if (flips.length === 0) return; // 置けない場所
+
+            executeMove(r, c, flips, 1);
+        }
+
+        // AIの手
+        function aiMove() {
+            if (turn !== -1) return;
+
+            isAiThinking = true;
+            const moves = getValidMoves(board, -1);
+
+            if (moves.length === 0) {
+                console.log("AI Pass");
+            } else {
+                // 簡易的なAI: 角を最優先、次に端、残りはランダム
+                const boardScores = [
+                    [100, -20, 10, 5, 5, 10, -20, 100],
+                    [-20, -50, -2, -2, -2, -2, -50, -20],
+                    [10, -2, 5, 1, 1, 5, -2, 10],
+                    [5, -2, 1, 0, 0, 1, -2, 5],
+                    [5, -2, 1, 0, 0, 1, -2, 5],
+                    [10, -2, 5, 1, 1, 5, -2, 10],
+                    [-20, -50, -2, -2, -2, -2, -50, -20],
+                    [100, -20, 10, 5, 5, 10, -20, 100]
+                ];
+
+                // 置ける場所の中から、最もスコアが高い場所を選ぶ
+                moves.sort((a, b) => boardScores[b[0]][b[1]] - boardScores[a[0]][a[1]]);
+                const [r, c] = moves[0];
+                const flips = canFlip(board, r, c, -1);
+                executeMove(r, c, flips, -1);
+            }
+
+            isAiThinking = false;
+        }
+
+        // 手を実行して描画を更新、ターンを回す
+        // --- 修正版 executeMove 関数 ---
+            async function executeMove(r, c, flips, t) {
+                // 1. まず石を配置
+                board[r][c] = t;
+                flips.forEach(([fr, fc]) => board[fr][fc] = t);
+
+                // 2. 描画を強制的に更新（非同期で待機）
+                render();
+                await new Promise(resolve => setTimeout(resolve, 50));
+
+                // 3. ターン切り替え
+                turn = -t;
+                render();
+
+                // 4. 次のプレイヤーの手番を確認
+                if (getValidMoves(board, turn).length === 0) {
+                    if (getValidMoves(board, -turn).length === 0) {
+                        setTimeout(endGame, 500);
+                        return;
+                    }
+                    // パス処理
+                    turn = -turn;
+                    render();
+                }
+
+                // 5. AIのターンなら少し待ってから思考
+                if (turn === -1) {
+                    // AI思考中はクリックできないようにする
+                    setTimeout(() => {
+                        aiMove();
+                    }, 500);
+                }
+            }
+
+        function endGame() {
+            let blackCount = 0;
+            let whiteCount = 0;
+            for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) if (board[r][c] === 1) blackCount++; else if (board[r][c] === -1) whiteCount++;
+
+            let result;
+            if (blackCount > whiteCount) result = `あなたの勝ち！ (${blackCount}対${whiteCount})`;
+            else if (whiteCount > blackCount) result = `AIの勝ち... (${blackCount}対${whiteCount})`;
+            else result = `引き分け (${blackCount}対${whiteCount})`;
+
+            alert(`ゲーム終了！\n${result}`);
+            // ページをリロードして再戦
+            location.reload();
+        }
+
+        // 初期描画
+        render();
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1246 @@
+
+
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>おばけ誘導パズル</title>
+  <style>
+    :root {
+      --bg: #101322;
+      --panel: #1b2035;
+      --panel2: #252c46;
+      --text: #f5f6ff;
+      --muted: #aab2d0;
+      --accent: #9d8cff;
+      --good: #73e0b0;
+      --gold: #ffce73
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #252747 0, #101322 55%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      min-height: 100vh
+    }
+
+    body.layout-portrait .wrap {
+      max-width: 640px
+    }
+
+    body.layout-portrait .card {
+      padding: clamp(10px, 3vw, 18px)
+    }
+
+    body.layout-portrait .game-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 0
+    }
+
+    body.layout-portrait .game-main,
+    body.layout-portrait .game-side {
+      width: 100%
+    }
+
+    body.layout-portrait .game-side .pad {
+      margin-top: 8px
+    }
+
+    body.layout-landscape .wrap {
+      max-width: 1180px
+    }
+
+    body.layout-landscape .game-layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 1fr) minmax(300px, .9fr);
+      gap: 20px;
+      align-items: start
+    }
+
+    body.layout-landscape .game-main {
+      min-width: 0
+    }
+
+    body.layout-landscape .game-side {
+      min-width: 0
+    }
+
+    body.layout-landscape #grid {
+      max-width: min(100%, 560px)
+    }
+
+    body.layout-landscape .tile {
+      font-size: clamp(1.25rem, 3vw, 2.1rem)
+    }
+
+    body.layout-landscape header {
+      padding: 12px 16px 4px
+    }
+
+    body.layout-landscape .settings-grid {
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr))
+    }
+
+    header {
+      text-align: center;
+      padding: 26px 16px 12px
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.7rem, 5vw, 2.5rem)
+    }
+
+    header p {
+      color: var(--muted);
+      margin: 8px auto;
+      max-width: 700px
+    }
+
+    .wrap {
+      max-width: 900px;
+      margin: auto;
+      padding: 12px 15px 40px
+    }
+
+    .card {
+      background: linear-gradient(145deg, rgba(31, 37, 62, .97), rgba(23, 27, 45, .97));
+      border: 1px solid #343b5c;
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 18px 50px #0003
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    h2 {
+      margin: 0 0 6px;
+      font-size: 1.35rem
+    }
+
+    .desc,
+    .help {
+      color: var(--muted);
+      line-height: 1.6
+    }
+
+    .desc {
+      margin: 0 0 12px
+    }
+
+    .help {
+      font-size: .93rem;
+      margin: 8px 0
+    }
+
+    .stats,
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .pill {
+      background: #111629;
+      border: 1px solid #39405f;
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-size: .9rem
+    }
+
+    .btn {
+      border: 1px solid #424967;
+      background: var(--panel2);
+      color: var(--text);
+      border-radius: 11px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer
+    }
+
+    .btn:hover {
+      filter: brightness(1.12)
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: transparent;
+      color: #17132d
+    }
+
+    .btn:disabled {
+      opacity: .4;
+      cursor: not-allowed
+    }
+
+    #grid {
+      display: grid;
+      gap: 5px;
+      justify-content: center;
+      margin: 18px auto;
+      max-width: 480px
+    }
+
+    .tile {
+      aspect-ratio: 1;
+      min-width: 0;
+      border-radius: 9px;
+      background: #343b56;
+      border: 2px solid #4a5272;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1.35rem, 5vw, 2.2rem);
+      line-height: 1;
+      font-weight: 800;
+      position: relative;
+      overflow: hidden
+    }
+
+    /* 捕獲されたおばけ：灰色の檻と縦棒3本 */
+    .echo.cage-trapped {
+      background: #596170;
+      border-color: #c1c7d0;
+      box-shadow: inset 0 0 0 2px #89919e;
+    }
+
+    .echo.cage-trapped::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border: 2px solid #d5d9df;
+      border-radius: 3px;
+      background: linear-gradient(to right,
+        transparent 0%, transparent 20%, #e1e5eb 20%, #e1e5eb 25%,
+        transparent 25%, transparent 47%, #e1e5eb 47%, #e1e5eb 52%,
+        transparent 52%, transparent 74%, #e1e5eb 74%, #e1e5eb 79%,
+        transparent 79%, transparent 100%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* センサー反応中のおばけを黄色く発光 */
+    .echo.sensor-glow {
+      background: #806522;
+      border-color: #ffe36b;
+      box-shadow: 0 0 8px 4px #ffd83d, inset 0 0 12px #ffec8a;
+      animation: sensorPulse .8s ease-in-out infinite alternate;
+    }
+
+    @keyframes sensorPulse {
+      from { box-shadow: 0 0 5px 2px #ffd83d, inset 0 0 8px #ffec8a; }
+      to { box-shadow: 0 0 15px 7px #ffe45c, inset 0 0 16px #fff2a8; }
+    }
+
+    .wall {
+      background: #0d1120;
+      border-color: #303650
+    }
+
+    .player {
+      background: #8877f7;
+      color: #17132d;
+      border-color: #d1c9ff
+    }
+
+    .echo {
+      background: #3d6f8a;
+      border-color: #9be2ff
+    }
+
+    .goal {
+      background: #1e765d;
+      border-color: #70e9b7
+    }
+
+    .switch {
+      background: #6b4c21;
+      border-color: #ffce73
+    }
+
+    .locked {
+      background: #4a5268 !important;
+      border-color: #d5deff !important;
+      color: white
+    }
+
+    .on {
+      box-shadow: inset 0 0 0 3px #ffe18a
+    }
+
+    .pad {
+      display: grid;
+      grid-template-columns: repeat(3, 52px);
+      gap: 7px;
+      justify-content: center;
+      margin: 14px auto
+    }
+
+    .pad .btn {
+      padding: 8px;
+      font-size: 1.2rem
+    }
+
+    .status {
+      min-height: 28px;
+      color: var(--good);
+      font-weight: 700;
+      margin: 10px 0
+    }
+
+    .controls {
+      justify-content: center;
+      margin-top: 10px
+    }
+
+    details {
+      background: #141a2d;
+      border: 1px solid #39405f;
+      border-radius: 13px;
+      margin-top: 14px;
+      padding: 12px
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 800
+    }
+
+    label {
+      display: block;
+      color: #e1e4ff;
+      margin: 12px 0 5px
+    }
+
+    select,
+    input[type="number"] {
+      background: #252c46;
+      color: white;
+      border: 1px solid #4a5272;
+      border-radius: 8px;
+      padding: 8px;
+      font: inherit;
+      max-width: 100%
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 10px
+    }
+
+    .editor-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 10px 0
+    }
+
+    .tool.active {
+      background: var(--accent);
+      color: #17132d
+    }
+
+    .small {
+      font-size: .85rem;
+      color: var(--muted)
+    }
+
+    .editor-grid {
+      touch-action: manipulation;
+      cursor: crosshair
+    }
+
+    .editor-fields {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 12px
+    }
+
+    .size-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end
+    }
+
+    .size-row .field-item {
+      flex: 1
+    }
+
+    .size-row input {
+      width: 100%
+    }
+
+    @media(max-width:520px) {
+      .card {
+        padding: 13px
+      }
+
+      .tile {
+        border-radius: 6px
+      }
+
+      #grid {
+        gap: 3px
+      }
+
+      .btn {
+        padding: 9px 11px
+      }
+    }
+    /* 横長画面でのみ「左右入替」ボタンを表示 */
+    #swapSidesBtn { display: none; }
+    body.layout-landscape #swapSidesBtn { display: inline-block; }
+
+    /* 左右入れ替え状態（ゲーム画面を右、説明を左へ） */
+    body.layout-landscape.layout-swap .game-layout {
+      grid-template-columns: minmax(300px, .9fr) minmax(280px, 1fr);
+    }
+    body.layout-landscape.layout-swap .game-main { order: 2; }
+    body.layout-landscape.layout-swap .game-side { order: 1; }
+
+    .action-bar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .action-bar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* 横長・左画面のとき：左に移動ボタン、右に大きく離して操作ボタン */
+    body.layout-landscape:not(.layout-swap) .action-bar {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 14px;
+    }
+    body.layout-landscape:not(.layout-swap) .pad {
+      margin: 0 0 0 100px;
+    }
+
+    /* 横長・右画面のとき：右下に移動ボタン、左に大きく離して操作ボタン */
+    body.layout-landscape.layout-swap .action-bar {
+      flex-direction: row-reverse;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 14px;
+    }
+    body.layout-landscape.layout-swap .pad {
+      margin: 0 100px 0 0;
+    }
+  </style>
+</head>
+
+<body>
+<header>
+    <h1>👻 おばけ誘導パズル</h1>
+</header>
+  <main class="wrap">
+    <section class="card">
+      <div class="game-layout">
+        <div class="game-main">
+            <div class="top">
+                <div></div>
+                <div class="stats"><span class="pill" id="levelLabel">ステージ 1</span><span class="pill" id="stepLabel">手数：0</span>
+                </div>
+            </div>
+            <div id="grid" aria-label="パズル盤面"></div>
+            <!-- ★ここへ移動：盤面の真下に配置されます -->
+            <div class="action-bar">
+                <div class="pad" aria-label="移動操作"><span></span><button class="btn" data-dir="up">↑</button><span></span><button
+                        class="btn" data-dir="left">←</button><button class="btn" data-dir="down">↓</button><button class="btn"
+                        data-dir="right">→</button></div>
+                        
+                <div class="controls">
+                    <button class="btn primary" id="next" disabled>次のステージ →</button>
+                    <button class="btn" id="undo">1手戻す ↶</button>
+                    <button class="btn" id="reset">やり直す ↻</button>
+                    <button class="btn" id="swapSidesBtn" type="button">左右入替 ⇄</button>
+                </div>
+            </div>
+            </div>
+        <div class="game-side">
+            <div class="status" id="status" aria-live="polite">矢印キー / WASD / 画面ボタン / ゲームコントローラーで操作できます。</div>
+            <p class="desc" style="margin-bottom:6px">自分と同じ方向へ動くおばけを壁にぶつけて位置を調整しよう。前半は檻に閉じ込め、後半はセンサーとお出口へ同時到達！</p>
+            <p class="desc">🧍＝プレイヤー、👻＝おばけ、▥＝檻、🔦＝おばけセンサー、🚪＝出口、黒＝壁。</p>
+            
+          <p class="help">🎮 コントローラー：十字キー・左スティック＝移動／A（決定）＝選択・編集／LB・RB＝ツール切替／X＝1手戻す／Y＝やり直す／Start＝設定／Back＝エディタ。</p>
+          
+
+          <details id="settings">
+            <summary>⚙ 設定</summary>
+            <div class="settings-grid">
+              <div><label for="mapPreset">マップ選択</label><select id="mapPreset">
+                  <option value="0">檻 1・壁あわせ</option>
+                  <option value="1">檻 2・迂回ルート</option>
+                  <option value="2">檻 3・すれ違い迷宮</option>
+                  <option value="3">檻 4・奥の檻と四連柱</option>
+                  <option value="4">センサー 1・歩数の同期</option>
+                  <option value="5">センサー 2・交差回廊</option>
+                  <option value="6">センサー 3・精密な時間差</option>
+                  <option value="7">センサー 4・最終試練</option>
+                  <option value="custom">自作マップ</option>
+                </select>
+                <p class="small">ステージを選んで挑戦できます。</p>
+              </div>
+              <div><label for="layoutMode">画面レイアウト</label><select id="layoutMode">
+                  <option value="auto">自動（画面に合わせる）</option>
+                  <option value="portrait">縦長（スマホ向け）</option>
+                  <option value="landscape">横長（PC・横向き画面向け）</option>
+                </select>
+                <p class="small">盤面・説明・設定・エディタの配置を切り替えます。</p>
+              </div>
+              <div><label><input id="sfxToggle" type="checkbox" checked> 効果音</label><label><input id="bgmToggle"
+                    type="checkbox" checked> BGM（8小節の曲）</label>
+                <p class="small">効果音と8小節フレーズのBGMを切り替えます。</p>
+              </div>
+            </div>
+          </details>
+
+          <details id="editor">
+            <summary>🧱 マップエディタ</summary>
+            <p class="help">ツールを選び盤面マスをタップして配置。壁を使っておばけの動きをずらすルートを作ろう。🎮 コントローラーは十字キーでマス移動、Aで配置、LB/RBでツール切替、Bで閉じます。</p>
+            <div class="editor-tools">
+              <button class="btn tool active" data-tool="wall">⬛ 壁</button><button class="btn tool"
+                data-tool="erase">消しゴム</button><button class="btn tool" data-tool="player">🟣 プレイヤー</button><button
+                class="btn tool" data-tool="echo">👻 おばけ</button><button class="btn tool" data-tool="switch">▥
+                檻／センサー</button><button class="btn tool" data-tool="goal">🚪 出口</button>
+            </div>
+
+            <div class="editor-fields">
+              <div style="grid-column: 1 / -1;">
+                <label for="editorMapSelect">編集するマップ</label>
+                <div style="display:flex;gap:8px">
+                  <select id="editorMapSelect" style="flex:1"></select>
+                  <button class="btn" id="newMapBtn" type="button">＋ 新規作成</button>
+                  <button class="btn" id="deleteMapBtn" type="button" style="background:#7b2d3b;color:#fff" disabled>🗑️ 削除</button>
+                </div>
+              </div>
+              <div>
+                <label for="editorKind">マップのルール</label>
+                <select id="editorKind" style="width:100%">
+                  <option value="cage">前半：檻（入ると停止）</option>
+                  <option value="sensor">後半：センサー（止まらない）</option>
+                </select>
+              </div>
+              <div>
+                <label>マップサイズ</label>
+                <div class="size-row">
+                  <div class="field-item"><input id="mapW" type="number" min="5" max="10" value="7" title="幅 (5〜10)">
+                  </div>
+                  <div style="padding-bottom:8px;font-weight:bold;color:var(--muted)">×</div>
+                  <div class="field-item"><input id="mapH" type="number" min="5" max="9" value="6" title="高さ (5〜9)">
+                  </div>
+                  <button class="btn" id="resizeMap">変更</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="controls">
+              <button class="btn primary" id="playMap">このマップで遊ぶ</button>
+              <button class="btn" id="reverseCreateBtn" style="background:#5e48a3;color:#fff">⏪ クリアから逆算作成</button>
+              <button class="btn" id="revStayBtn" style="display:none;background:#c05621;color:#fff">▥ おばけを壁に残す (Space)</button>
+              <button class="btn" id="revDoneBtn" style="display:none;background:#2b6cb0;color:#fff">✅ スタートに決定 (Enter)</button>
+              <button class="btn" id="downloadMap">💾 ファイルに保存</button>
+              <button class="btn" id="loadMapBtn">📂 ファイルから開く</button>
+              <input type="file" id="mapFileInput" accept=".json,application/json" style="display:none">
+              <button class="btn" id="exportMap">JSON表示</button>
+              <button class="btn" id="importMap">JSON適用</button>
+            </div>
+            <textarea id="mapData" rows="3" placeholder="マップデータのJSONをここに貼り付け、または編集"
+              style="width:100%;margin-top:10px;background:#0f1426;color:#e8eaff;border:1px solid #39405f;border-radius:8px;padding:9px"></textarea>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+    // 難易度調整版プリセット
+    // 前半：檻（cage）… おばけを檻にハメると停止。壁を使ってオバケの位置をずらす。
+    // 後半：センサー（sensor）… おばけは止まらない。Pがゴール、Eがセンサーに「同時に」到達する必要がある。
+    const presets = [
+      // 1. 檻 1・壁あわせ（基本テクニック：壁におばけだけを当ててズレを作る）
+      { name: '檻 1・壁あわせ', kind: 'cage', w: 7, h: 6, start: [1, 4], echo: [1, 1], sw: [5, 1], goal: [5, 4], walls: [[2, 1], [3, 3], [4, 1], [4, 3]] },
+      // 2. 檻 2・迂回ルート（オバケが引っかかりやすい柱と壁の配置）
+      { name: '檻 2・迂回ルート', kind: 'cage', w: 7, h: 6, start: [1, 4], echo: [4, 1], sw: [1, 1], goal: [5, 4], walls: [[2, 1], [2, 2], [2, 3], [4, 2], [4, 4], [3, 4]] },
+      // 3. 檻 3・すれ違い迷宮（入り組んだ壁でおばけを微調整して檻の袋小路へ誘導）
+      { name: '檻 3・すれ違い迷宮', kind: 'cage', w: 8, h: 6, start: [1, 4], echo: [1, 1], sw: [6, 1], goal: [6, 4], walls: [[2, 0], [2, 1], [2, 2], [4, 1], [4, 2], [4, 3], [6, 2], [3, 4], [5, 4]] },
+      // 4. 檻 4・奥の檻と四連柱（複雑な位置補正が必要な檻の難関）
+      { name: '檻 4・奥の檻と四連柱', kind: 'cage', w: 8, h: 7, start: [1, 5], echo: [1, 1], sw: [6, 1], goal: [6, 5], walls: [[2, 1], [2, 2], [3, 3], [4, 3], [5, 1], [5, 2], [2, 4], [5, 4], [3, 5]] },
+      // 5. センサー 1・歩数の同期（センサーにピッタリ合わせる基礎）
+      { name: 'センサー 1・歩数の同期', kind: 'sensor', w: 7, h: 6, start: [1, 4], echo: [1, 1], sw: [5, 1], goal: [5, 4], walls: [[2, 1], [2, 3], [4, 2], [3, 4]] },
+      // 6. センサー 2・交差回廊（おばけとプレイヤーが上下ですれ違いながら同期）
+      { name: 'センサー 2・交差回廊', kind: 'sensor', w: 7, h: 6, start: [1, 4], echo: [5, 1], sw: [1, 1], goal: [5, 4], walls: [[3, 0], [3, 1], [3, 4], [3, 5], [1, 2], [5, 3]] },
+      // 7. センサー 3・精密な時間差（ピンポン移動を使い歩数を合わせる）
+      { name: 'センサー 3・精密な時間差', kind: 'sensor', w: 8, h: 6, start: [1, 4], echo: [2, 1], sw: [6, 1], goal: [6, 4], walls: [[3, 1], [3, 2], [4, 3], [4, 4], [1, 2], [6, 2], [3, 4]] },
+      // 8. センサー 4・最終試練（複雑なセットアップと一寸の狂いも許されない同時ゴール）
+      { name: 'センサー 4・最終試練', kind: 'sensor', w: 8, h: 7, start: [1, 5], echo: [1, 1], sw: [6, 1], goal: [6, 5], walls: [[2, 1], [2, 2], [4, 1], [4, 2], [3, 4], [5, 4], [2, 5], [6, 3], [4, 5]] }
+    ];
+
+    let level = 0, map, state, history = [], tool = 'wall', customMode = false;
+    const grid = document.getElementById('grid');
+    const copyMap = m => JSON.parse(JSON.stringify(m));
+    function currentPreset() { return presets[level % presets.length] }
+
+    function initLevel(idx = level) {
+      level = idx; customMode = false; map = copyMap(currentPreset());
+      state = { p: [...map.start], e: [...map.echo], path: [], replay: 0, locked: false, won: false, dead: false };
+      history = [];
+      document.getElementById('levelLabel').textContent = map.name || `ステージ ${level + 1}`;
+      document.getElementById('stepLabel').textContent = '手数：0';
+      document.getElementById('next').disabled = true;
+      document.getElementById('status').textContent = map.kind === 'sensor'
+        ? '🔦 おばけをセンサーへ。あなたも出口へ同時に到達しよう。'
+        : '▥ おばけを檻へ誘導して閉じ込めよう。';
+      document.getElementById('mapPreset').value = String(level);
+      render();
+    }
+
+    function same(a, b) { return a[0] === b[0] && a[1] === b[1] }
+    function isWall(pos) { return pos[0] < 0 || pos[1] < 0 || pos[0] >= map.w || pos[1] >= map.h || map.walls.some(w => same(w, pos)) }
+    function switchActive() {
+      if (map.kind === 'sensor') return same(state.e, map.sw);
+      return state.locked;
+    }
+
+    function render() {
+      grid.style.gridTemplateColumns = `repeat(${map.w},minmax(0,1fr))`; grid.innerHTML = '';
+      for (let y = 0; y < map.h; y++)for (let x = 0; x < map.w; x++) {
+        const pos = [x, y], el = document.createElement('div'); el.className = 'tile';
+        if (map.walls.some(w => same(w, pos))) { el.classList.add('wall') }
+        if (same(pos, map.goal)) {
+          el.classList.add('goal');
+          // おばけが捕獲されるかセンサーが反応するまでは出口を施錠
+          el.textContent = switchActive() ? '🚪' : '🔒';
+          if (!switchActive()) el.classList.add('locked');
+        }
+        if (same(pos, map.sw)) { el.classList.add('switch'); el.classList.toggle('on', switchActive()); el.textContent = map.kind === 'sensor' ? '🔦' : (state.locked ? '🔒' : '▥') }
+        if (same(pos, state.e)) {
+          el.className = 'tile echo';
+          if (state.locked) el.classList.add('cage-trapped');
+          else if (map.kind === 'sensor' && same(state.e, map.sw)) el.classList.add('sensor-glow');
+          el.textContent = '👻';
+        }
+        if (same(pos, state.p)) {
+              el.className = 'tile player';
+              if (state.dead) {
+                  el.textContent = '💀'; // お化けの隣に行ったらドクロ
+              } else if (state.won) {
+                  el.textContent = '✅'; // クリア時はチェック
+              } else {
+                  el.textContent = '🧍';
+              }
+          }
+        grid.appendChild(el);
+      }
+    }
+
+    function snapshot() { history.push(JSON.stringify({ state, map })); if (history.length > 150) history.shift() }
+
+    function move(dir) {
+        if (isReverseMode) { moveReverse(dir); return; } // ★追加：逆算モード中の移動
+        if (document.getElementById('editor')?.open) return;
+        if (state.won || state.dead) return;
+        const d = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[dir]; if (!d) return;
+      const np = [state.p[0] + d[0], state.p[1] + d[1]]; if (isWall(np)) return;
+      snapshot(); state.p = np; state.path.push(dir);
+      if (!state.locked) {
+        const replayDir = state.path[state.replay];
+        if (replayDir) {
+          const ed = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[replayDir];
+          const ne = [state.e[0] + ed[0], state.e[1] + ed[1]];
+          if (!isWall(ne)) state.e = ne;
+          state.replay++;
+        }
+        if (map.kind === 'cage' && same(state.e, map.sw)) {
+          state.locked = true;
+          document.getElementById('status').textContent = '🔒 おばけを檻に閉じ込めた！出口へ向かおう。';
+        }
+      }
+
+      // お化けの隣のマス（上下左右）、または重なったら GAME OVER
+        const isNear = (Math.abs(state.p[0] - state.e[0]) + Math.abs(state.p[1] - state.e[1])) <= 1;
+        if (!state.locked && isNear) {
+            state.dead = true;
+            sound('gameover'); // ★バッド音を再生
+            document.getElementById('status').textContent = '💀 おばけに捕まった！GAME OVER（やり直します…）';
+            render();
+            setTimeout(() => {
+                if (customMode) startCustom();
+                else initLevel(level);
+            }, 800);
+            return;
+        }
+
+      const cleared = map.kind === 'sensor'
+        ? (same(state.p, map.goal) && same(state.e, map.sw))
+        : (same(state.p, map.goal) && state.locked);
+      if (cleared) {
+        state.won = true;
+        document.getElementById('status').textContent = map.kind === 'sensor'
+          ? '✨ 同時到達！センサーを通過して見事クリア！'
+          : '🎉 おばけを檻に閉じ込めて出口から脱出クリア！';
+        document.getElementById('next').disabled = false;
+      } else if (map.kind === 'sensor') {
+        document.getElementById('status').textContent = same(state.e, map.sw)
+          ? '🔦 センサー反応中！今この手番で出口へ！'
+          : '👻 おばけは止まらない！センサーと出口に同時到達しよう。';
+      } else if (!state.locked) {
+        document.getElementById('status').textContent = '▥ 壁を使っておばけの動きをずらし、檻へ誘導しよう！';
+      }
+      document.getElementById('stepLabel').textContent = `手数：${state.path.length}`; render();
+    }
+
+    document.querySelectorAll('[data-dir]').forEach(b => b.onclick = () => move(b.dataset.dir));
+    document.addEventListener('keydown', e => {
+        if (isReverseMode) {
+          if (e.key === 'Enter') { finishReverseMode(true); return; }
+          if (e.key === 'Escape') { finishReverseMode(false); return; }
+          if (e.code === 'Space') {
+            e.preventDefault();
+            leaveGhostNext = true;
+            document.getElementById('status').textContent = '▥ 次に動く方向におばけを壁に残します（矢印を押してください）。';
+            return;
+          }
+        }
+        const mapKey = { ArrowUp: 'up', w: 'up', W: 'up', ArrowDown: 'down', s: 'down', S: 'down', ArrowLeft: 'left', a: 'left', A: 'left', ArrowRight: 'right', d: 'right', D: 'right' };
+        if (mapKey[e.key] && !e.target.matches('textarea,input,select')) { e.preventDefault(); move(mapKey[e.key]) }
+      });
+    document.getElementById('next').onclick = () => initLevel((level + 1) % presets.length);
+    document.getElementById('reset').onclick = () => {
+        if (document.getElementById('editor')?.open) return; // ★追加
+        if (customMode) { startCustom() } else initLevel(level)
+      };
+    // 左右入れ替えボタンの処理
+        document.getElementById('swapSidesBtn').onclick = () => {
+            document.body.classList.toggle('layout-swap');
+        };
+      document.getElementById('undo').onclick = () => {
+        if (document.getElementById('editor')?.open) return; // ★追加
+        if (!history.length || state.won) return; const prev = JSON.parse(history.pop()); state = prev.state; map = prev.map; document.getElementById('stepLabel').textContent = `手数：${state.path.length}`; document.getElementById('status').textContent = '1手戻したよ。'; render()
+      };
+    
+    document.getElementById('mapPreset').onchange = e => { if (e.target.value === 'custom') { document.getElementById('editor').open = true; return } initLevel(Number(e.target.value)) };
+
+    // マップエディタ機能
+    let editorMap = copyMap(presets[0]);
+      let currentEditIdx = 0; // 現在編集中のマップ番号
+
+      // セレクトボックスの選択肢を更新する関数
+      const defaultStageCount = 8; // 初期ステージ数（削除不可の保護対象）
+        const STORAGE_KEY = 'obake_puzzle_custom_maps';
+
+        // ★追加：カスタムマップをブラウザに自動保存
+        function saveCustomMaps() {
+          const customList = presets.slice(defaultStageCount);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(customList));
+        }
+
+        // ★追加：起動時に保存データを復元
+        function loadCustomMaps() {
+          try {
+            const data = localStorage.getItem(STORAGE_KEY);
+            if (data) {
+              const loaded = JSON.parse(data);
+              if (Array.isArray(loaded)) presets.push(...loaded);
+            }
+          } catch (e) { console.error('カスタムマップ復元失敗', e); }
+        }
+
+        // セレクトボックスの選択肢を更新する関数
+        function updateMapSelectOptions() {
+          const selGame = document.getElementById('mapPreset');
+          const selEdit = document.getElementById('editorMapSelect');
+          selGame.innerHTML = '';
+          selEdit.innerHTML = '';
+          presets.forEach((p, idx) => {
+            const opt1 = new Option(p.name, idx);
+            const opt2 = new Option(p.name, idx);
+            selGame.appendChild(opt1);
+            selEdit.appendChild(opt2);
+          });
+          selGame.value = String(level);
+          selEdit.value = String(currentEditIdx);
+
+          // ★カスタムマップ（8番目以降）のときだけ削除ボタンを有効化
+          const delBtn = document.getElementById('deleteMapBtn');
+          if (delBtn) delBtn.disabled = (currentEditIdx < defaultStageCount);
+        }
+
+        // エディタの選択マップ切り替え
+        document.getElementById('editorMapSelect').onchange = (e) => {
+          currentEditIdx = Number(e.target.value);
+          editorMap = copyMap(presets[currentEditIdx]);
+          document.getElementById('editorKind').value = editorMap.kind;
+          document.getElementById('mapW').value = editorMap.w;
+          document.getElementById('mapH').value = editorMap.h;
+          updateMapSelectOptions(); // ★追加：削除ボタンの有効/無効を更新
+          renderEditorBoard();
+        };
+
+        // ★追加：削除ボタンのクリック処理
+        document.getElementById('deleteMapBtn').onclick = () => {
+          if (currentEditIdx < defaultStageCount) {
+            alert('最初からある通常ステージは削除できません。');
+            return;
+          }
+          const targetName = presets[currentEditIdx].name;
+          if (!confirm(`「${targetName}」を削除してもよろしいですか？`)) return;
+
+          // 配列から削除
+          presets.splice(currentEditIdx, 1);
+          currentEditIdx = Math.max(0, currentEditIdx - 1);
+          editorMap = copyMap(presets[currentEditIdx]);
+          document.getElementById('editorKind').value = editorMap.kind;
+          document.getElementById('mapW').value = editorMap.w;
+          document.getElementById('mapH').value = editorMap.h;
+
+          saveCustomMaps();
+          updateMapSelectOptions();
+          renderEditorBoard();
+          document.getElementById('status').textContent = `「${targetName}」を削除しました。`;
+        };
+
+      // ＋ 新規作成（追加）ボタンの処理
+      document.getElementById('newMapBtn').onclick = () => {
+          const newCount = presets.filter(p => p.name.startsWith('カスタム')).length + 1;
+          const newMap = {
+            name: `カスタムステージ ${newCount}`,
+            kind: document.getElementById('editorKind').value || 'cage',
+            w: 7, h: 6,
+            start: [1, 4], echo: [1, 1], sw: [5, 1], goal: [5, 4],
+            walls: []
+          };
+          presets.push(newMap);
+          currentEditIdx = presets.length - 1;
+          editorMap = copyMap(newMap);
+          document.getElementById('mapW').value = editorMap.w;
+          document.getElementById('mapH').value = editorMap.h;
+          updateMapSelectOptions();
+          renderEditorBoard();
+          saveCustomMaps(); // ★追加：ブラウザに保存
+          document.getElementById('status').textContent = `「${newMap.name}」を新規追加しました！`;
+        };
+
+      function startCustom() {
+        customMode = false;
+        presets[currentEditIdx] = copyMap(editorMap); // 編集内容をプリセットへ保存
+        saveCustomMaps();
+        initLevel(currentEditIdx); // そのままステージとして開始
+      }
+
+    document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { tool = b.dataset.tool; document.querySelectorAll('[data-tool]').forEach(x => x.classList.toggle('active', x === b)) });
+
+    function editorResize() {
+      const w = Math.max(5, Math.min(10, Number(document.getElementById('mapW').value) || 7));
+      const h = Math.max(5, Math.min(9, Number(document.getElementById('mapH').value) || 6));
+      editorMap = { name: '自作マップ', kind: document.getElementById('editorKind').value || 'cage', w, h, start: [0, h - 1], echo: [0, 0], sw: [w - 2, 1], goal: [w - 2, h - 1], walls: [] };
+      renderEditorBoard();
+    }
+    // ====== ここから「クリアから逆算作成モード」 ======
+      let isReverseMode = false;
+      let revState = { p: [0, 0], e: [0, 0], steps: 0 };
+
+      document.getElementById('reverseCreateBtn').onclick = () => {
+          if (isReverseMode) return;
+          isReverseMode = true;
+          revState = { p: [...editorMap.goal], e: [...editorMap.sw], steps: 0 };
+          document.getElementById('revStayBtn').style.display = 'inline-block';
+          document.getElementById('revDoneBtn').style.display = 'inline-block';
+          document.getElementById('reverseCreateBtn').style.display = 'none';
+          document.getElementById('status').textContent = '⏪ 逆算作成開始：矢印で自由に移動できます。ズレを作りたいときはSpaceキー（または下のボタン）！';
+          renderReverseBoard();
+        };
+
+        // 「おばけを壁に残す」ボタン
+        document.getElementById('revStayBtn').onclick = () => {
+          leaveGhostNext = true;
+          document.getElementById('status').textContent = '▥ 次に動く方向におばけを壁に残します（矢印を押してください）。';
+        };
+        // 「スタートに決定」ボタン
+        document.getElementById('revDoneBtn').onclick = () => finishReverseMode(true);
+
+      function renderReverseBoard() {
+        grid.style.gridTemplateColumns = `repeat(${editorMap.w},minmax(0,1fr))`;
+        grid.innerHTML = '';
+        for (let y = 0; y < editorMap.h; y++) {
+          for (let x = 0; x < editorMap.w; x++) {
+            const pos = [x, y], el = document.createElement('div');
+            el.className = 'tile';
+            if (editorMap.walls.some(w => same(w, pos))) el.classList.add('wall');
+            if (same(pos, editorMap.goal)) { el.classList.add('goal'); el.textContent = '🚪'; }
+            if (same(pos, editorMap.sw)) { el.classList.add('switch'); el.textContent = (editorMap.kind === 'sensor' ? '🔦' : '▥'); }
+            if (same(pos, revState.e)) { el.className = 'tile echo'; el.textContent = '👻'; }
+            if (same(pos, revState.p)) { el.className = 'tile player'; el.textContent = '🧍'; }
+            grid.appendChild(el);
+          }
+        }
+        // 画面下に逆算用の決定・キャンセルボタンを表示
+        document.getElementById('stepLabel').textContent = `逆算手数：${revState.steps}手`;
+      }
+
+      // 逆再生の移動計算
+      let leaveGhostNext = false; // おばけを壁に残すフラグ
+
+        // 逆再生の移動計算（改善版）
+        function moveReverse(dir, stayGhost = false) {
+          const d = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[dir];
+          if (!d) return;
+          const isW = p => p[0] < 0 || p[1] < 0 || p[0] >= editorMap.w || p[1] >= editorMap.h || editorMap.walls.some(w => same(w, p));
+          const np = [revState.p[0] + d[0], revState.p[1] + d[1]];
+          if (isW(np)) return; // プレイヤーの進行方向が壁なら動けない
+
+          const backPos = [revState.e[0] - d[0], revState.e[1] - d[1]];
+          const canLeave = isW(backPos); // 背後に壁があるか？
+
+          if (stayGhost || leaveGhostNext) {
+            // ★ズレ作成：背後に壁がある時だけ、おばけを置いてプレイヤーだけ動く
+            leaveGhostNext = false;
+            if (!canLeave) {
+              document.getElementById('status').textContent = '⚠️ おばけの背後に壁がないため、この方向ではズレを作れません。';
+              return;
+            }
+            revState.p = np;
+            document.getElementById('status').textContent = '▥ おばけを壁に残しました！（ズレ+1手）';
+          } else {
+            // ★通常移動：角でも外壁でも、進行方向が空いていれば一緒にスムーズに動く
+            revState.p = np;
+            const ne = [revState.e[0] + d[0], revState.e[1] + d[1]];
+            if (!isW(ne)) revState.e = ne;
+            document.getElementById('status').textContent = canLeave
+              ? '💡 おばけの背後に壁があります！[Space]か下のボタンで「壁に残す」とズレを作れます。'
+              : '⏪ 逆算移動中：矢印で一緒に移動、Spaceキーでおばけを壁に残せます。';
+          }
+
+          revState.steps++;
+          renderReverseBoard();
+        }
+
+      // 決定・キャンセル処理
+      function finishReverseMode(apply) {
+          if (!isReverseMode) return;
+          isReverseMode = false;
+          document.getElementById('revStayBtn').style.display = 'none';
+          document.getElementById('revDoneBtn').style.display = 'none';
+          document.getElementById('reverseCreateBtn').style.display = 'inline-block';
+          if (apply) {
+            editorMap.start = [...revState.p];
+            editorMap.echo = [...revState.e];
+            document.getElementById('status').textContent = `✅ ${revState.steps}手でクリア可能な初期位置を確定しました！`;
+          } else {
+            document.getElementById('status').textContent = '逆算作成をキャンセルしました。';
+          }
+          renderEditorBoard();
+        }
+
+    function renderEditorBoard() {
+      grid.style.gridTemplateColumns = `repeat(${editorMap.w},minmax(0,1fr))`; grid.innerHTML = '';
+      for (let y = 0; y < editorMap.h; y++)for (let x = 0; x < editorMap.w; x++) {
+        const pos = [x, y], el = document.createElement('button'); el.className = 'tile'; el.type = 'button';
+        if (editorMap.walls.some(w => same(w, pos))) { el.classList.add('wall') }
+        if (same(pos, editorMap.start)) { el.classList.add('player'); el.textContent = '🧍' }
+        if (same(pos, editorMap.echo)) { el.classList.add('echo'); el.textContent = '👻' }
+        if (same(pos, editorMap.sw)) { el.classList.add('switch'); el.textContent = (editorMap.kind === 'sensor' ? '🔦' : '▥') }
+        if (same(pos, editorMap.goal)) { el.classList.add('goal'); el.textContent = '🚪' }
+        el.onclick = () => editCell(pos); grid.appendChild(el);
+      }
+    }
+
+    function editCell(pos) {
+      editorMap.walls = editorMap.walls.filter(w => !same(w, pos));
+      if (['player', 'echo', 'switch', 'goal'].includes(tool)) {
+        const k = { player: 'start', echo: 'echo', switch: 'sw', goal: 'goal' }[tool]; editorMap[k] = [...pos];
+      } else if (tool === 'wall') {
+        if (![editorMap.start, editorMap.echo, editorMap.sw, editorMap.goal].some(p => same(p, pos))) editorMap.walls.push([...pos]);
+      }
+      renderEditorBoard();
+    }
+
+    document.getElementById('resizeMap').onclick = editorResize;
+    document.getElementById('playMap').onclick = () => {
+        if (isReverseMode) finishReverseMode(true); // ★追加
+        startCustom(); document.getElementById('editor').open = false; document.getElementById('mapPreset').value = 'custom'
+      };
+    document.getElementById('exportMap').onclick = () => { document.getElementById('mapData').value = JSON.stringify(editorMap) };
+    document.getElementById('importMap').onclick = () => {
+      try {
+        const m = JSON.parse(document.getElementById('mapData').value);
+        applyLoadedMap(m);
+        document.getElementById('status').textContent = 'マップデータを読み込みました。';
+      } catch (e) { alert('マップデータを読み込めません。正しいJSONを貼り付けてください。') }
+    };
+
+    function applyLoadedMap(m) {
+      if (!m.w || !m.h || !m.start || !m.echo || !m.sw || !m.goal || !Array.isArray(m.walls)) throw new Error('Invalid format');
+      m.kind = m.kind || 'cage';
+      editorMap = m;
+      document.getElementById('editorKind').value = m.kind;
+      document.getElementById('mapW').value = m.w;
+      document.getElementById('mapH').value = m.h;
+      renderEditorBoard();
+    }
+
+    // ファイル保存・読み込み
+    document.getElementById('downloadMap').onclick = () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(editorMap, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute("href", dataStr);
+      a.setAttribute("download", `obake_map_${editorMap.kind || 'cage'}_${editorMap.w}x${editorMap.h}.json`);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    };
+
+    const fileInput = document.getElementById('mapFileInput');
+    document.getElementById('loadMapBtn').onclick = () => fileInput.click();
+    fileInput.onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = evt => {
+        try {
+          const m = JSON.parse(evt.target.result);
+          applyLoadedMap(m);
+          document.getElementById('mapData').value = JSON.stringify(m);
+          document.getElementById('status').textContent = `ファイル「${file.name}」を読み込みました。`;
+        } catch (err) { alert('ファイルの読み込みに失敗しました。有効なマップJSONファイルを選択してください。') }
+        fileInput.value = '';
+      };
+      reader.readAsText(file);
+    };
+
+    document.getElementById('editor').addEventListener('toggle', () => { if (document.getElementById('editor').open) renderEditorBoard() });
+    document.getElementById('editorKind').addEventListener('change', e => { editorMap.kind = e.target.value; renderEditorBoard() });
+
+    // 初期マップ反映
+    loadCustomMaps();
+    editorMap = copyMap(presets[0]);
+      updateMapSelectOptions(); // ★追加：セレクトボックスを初期化
+      initLevel(0);
+
+    // レイアウト設定
+    const layoutMode = document.getElementById('layoutMode');
+    function applyLayout() {
+      const mode = layoutMode.value;
+      document.body.classList.remove('layout-portrait', 'layout-landscape');
+      if (mode === 'portrait') document.body.classList.add('layout-portrait');
+      else if (mode === 'landscape') document.body.classList.add('layout-landscape');
+      else if (window.matchMedia('(orientation: landscape) and (min-width: 650px)').matches) document.body.classList.add('layout-landscape');
+      else document.body.classList.add('layout-portrait');
+    }
+    layoutMode.addEventListener('change', applyLayout);
+    window.addEventListener('resize', () => { if (layoutMode.value === 'auto') applyLayout() });
+    applyLayout();
+
+    // WebAudio 効果音 & BGM
+    let audioCtx = null, masterGain = null, bgmTimer = null, bgmOn = false, musicBar = 0;
+    function ensureAudio() {
+      if (!audioCtx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false; audioCtx = new AC(); masterGain = audioCtx.createGain(); masterGain.gain.value = .8; masterGain.connect(audioCtx.destination); }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return true;
+    }
+    function midi(n) { return 440 * Math.pow(2, (n - 69) / 12) }
+    function playTone(freq, when, duration, wave = 'sine', volume = .06, slideTo = null) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+      osc.type = wave; osc.frequency.setValueAtTime(freq, when);
+      if (slideTo) osc.frequency.exponentialRampToValueAtTime(Math.max(1, slideTo), when + duration);
+      gain.gain.setValueAtTime(.0001, when); gain.gain.exponentialRampToValueAtTime(volume, when + .015); gain.gain.exponentialRampToValueAtTime(.0001, when + duration);
+      osc.connect(gain); gain.connect(masterGain); osc.start(when); osc.stop(when + duration + .025);
+    }
+    function sound(kind) {
+      if (!document.getElementById('sfxToggle').checked || !ensureAudio()) return;
+      const t = audioCtx.currentTime;
+      if (kind === 'move') playTone(520, t, .065, 'triangle', .045, 360);
+      if (kind === 'switch') { [523, 659, 784, 1047].forEach((f, i) => playTone(f, t + i * .075, .17, i === 3 ? 'triangle' : 'sine', .065)) }
+      if (kind === 'clear') { [523, 659, 784, 1047, 1319].forEach((f, i) => playTone(f, t + i * .11, .34, 'triangle', .075)) }
+        if (kind === 'gameover') {
+            // 低いノコギリ波の不快な下降音（デデーン…）
+            playTone(220, t, 0.16, 'sawtooth', 0.08, 140);
+            playTone(146, t + 0.14, 0.35, 'sawtooth', 0.09, 70);
+        }
+    }
+    const tune = [
+      [64, 67, 71, 76, 71, 67, 64, 67], [62, 66, 69, 74, 69, 66, 62, 66],
+      [59, 62, 67, 71, 74, 71, 67, 62], [60, 64, 67, 72, 76, 72, 67, 64],
+      [65, 69, 72, 77, 81, 77, 72, 69], [62, 67, 71, 74, 79, 74, 71, 67],
+      [60, 64, 69, 72, 76, 72, 69, 64], [62, 66, 69, 74, 78, 74, 69, 66]
+    ];
+    const roots = [48, 45, 43, 48, 41, 43, 48, 45];
+    function playBar(bar, when) {
+      const beat = 60 / 104, root = roots[bar];
+      const arp = [0, 7, 12, 7, 4, 7, 12, 7];
+      for (let i = 0; i < 8; i++) {
+        const at = when + i * beat / 2;
+        playTone(midi(root + arp[i]), at, beat * .42, 'sine', .018);
+        playTone(midi(tune[bar][i]), at, beat * .38, 'triangle', .033);
+      }
+      playTone(midi(root), when, beat * 3.6, 'sine', .012);
+    }
+    function stopMusic() { if (bgmTimer) clearTimeout(bgmTimer); bgmTimer = null; bgmOn = false }
+    function startMusic() {
+      if (bgmOn || !document.getElementById('bgmToggle').checked || !ensureAudio()) return;
+      bgmOn = true;
+      const barMs = 60 / 104 * 4 * 1000;
+      function tick() {
+        if (!document.getElementById('bgmToggle').checked) { stopMusic(); return }
+        playBar(musicBar, audioCtx.currentTime + .04);
+        musicBar = (musicBar + 1) % 8;
+        bgmTimer = setTimeout(tick, barMs - 30);
+      }
+      tick();
+    }
+    document.getElementById('bgmToggle').addEventListener('change', e => { if (e.target.checked) startMusic(); else stopMusic() });
+    document.addEventListener('pointerdown', () => { ensureAudio(); if (document.getElementById('bgmToggle').checked) startMusic() }, { once: true });
+    document.addEventListener('keydown', () => { ensureAudio(); if (document.getElementById('bgmToggle').checked) startMusic() }, { once: true });
+
+    // ゲームパッド操作
+    let padPrev = [], padAxisAt = 0, padFocusIndex = 0, padEditorCursor = [0, 0];
+    function visibleControls() {
+      return [...document.querySelectorAll('button,select,input,textarea,summary,[tabindex]:not([tabindex="-1"])')]
+        .filter(e => !e.disabled && e.offsetParent !== null && !e.closest('[hidden]'));
+    }
+    function focusControllerStep(delta) {
+      const list = visibleControls();
+      if (!list.length) return;
+      let i = list.indexOf(document.activeElement);
+      if (i < 0) i = 0; else i = (i + delta + list.length) % list.length;
+      list[i].focus({ preventScroll: false }); padFocusIndex = i;
+    }
+    function controllerIsEditor() { return document.getElementById('editor')?.open === true }
+    function controllerIsClear() { const n = document.getElementById('next'); return !!n && !n.disabled }
+    function controllerSelectNextStage() { const next = document.getElementById('next'); if (next && !next.disabled) { next.click(); return true } return false }
+    function controllerCycleTool(delta) {
+      const buttons = [...document.querySelectorAll('[data-tool]')];
+      if (!buttons.length) return;
+      let i = buttons.findIndex(b => b.dataset.tool === tool);
+      if (i < 0) i = 0; else i = (i + delta + buttons.length) % buttons.length;
+      buttons[i].click();
+    }
+    function controllerMove(dx, dy) {
+      if (document.getElementById('settings')?.open && !controllerIsEditor()) {
+        const active = document.activeElement;
+        if (dx !== 0 && active && active.matches('select')) {
+          const max = active.options.length;
+          active.selectedIndex = (active.selectedIndex + (dx > 0 ? 1 : -1) + max) % max;
+          active.dispatchEvent(new Event('change', { bubbles: true }));
+        } else if (dx !== 0 && active && active.matches('input[type="checkbox"]')) {
+          active.checked = !active.checked;
+          active.dispatchEvent(new Event('change', { bubbles: true }));
+          active.dispatchEvent(new Event('input', { bubbles: true }));
+        } else if (dy !== 0) { focusControllerStep(dy > 0 ? 1 : -1) }
+        return;
+      }
+      if (controllerIsEditor()) {
+        const w = editorMap.w, h = editorMap.h;
+        padEditorCursor = [
+          Math.max(0, Math.min(w - 1, padEditorCursor[0] + dx)),
+          Math.max(0, Math.min(h - 1, padEditorCursor[1] + dy))
+        ];
+        const cells = [...grid.querySelectorAll('.tile')];
+        cells.forEach(c => { c.style.outline = ''; c.style.outlineOffset = '' });
+        const cell = cells[padEditorCursor[1] * w + padEditorCursor[0]];
+        if (cell) { cell.style.outline = '3px solid #fff2a6'; cell.style.outlineOffset = '-3px' }
+        return;
+      }
+      if (controllerIsClear()) return;
+      move(dx < 0 ? 'left' : dx > 0 ? 'right' : dy < 0 ? 'up' : 'down');
+    }
+    function controllerConfirm() {
+      if (controllerIsClear()) { controllerSelectNextStage(); return }
+      if (controllerIsEditor()) {
+        const cell = [...grid.querySelectorAll('.tile')][padEditorCursor[1] * editorMap.w + padEditorCursor[0]];
+        if (cell) { cell.click(); return }
+      }
+      const active = document.activeElement;
+      if (active && active !== document.body && active.matches('button,summary,input[type="checkbox"],input[type="radio"]')) {
+        active.click(); return;
+      }
+      if (active && active.matches('select')) { active.focus(); return }
+      if (active && active.matches('input,textarea')) { active.click(); return }
+      if (active && active.id === 'next') { active.click(); return }
+      move('up');
+    }
+    function controllerAction(button) {
+      const editor = document.getElementById('editor');
+      const settings = document.getElementById('settings');
+      if (button === 0) { controllerConfirm(); return }
+      if (button === 1) {
+        if (editor.open) { editor.open = false; return }
+        if (settings.open) { settings.open = false; return }
+        if (document.activeElement && document.activeElement !== document.body) { document.activeElement.blur() }
+        return;
+      }
+      if (button === 2) { document.getElementById('undo')?.click(); return }
+      if (button === 3) { document.getElementById('reset')?.click(); return }
+      if (button === 4) { if (controllerIsEditor()) controllerCycleTool(-1); else focusControllerStep(-1); return }
+      if (button === 5) { if (controllerIsEditor()) controllerCycleTool(1); else focusControllerStep(1); return }
+      if (button === 8) { editor.open = !editor.open; if (editor.open) padEditorCursor = [0, 0]; return }
+      if (button === 9) { settings.open = !settings.open; return }
+    }
+    function controllerPoll() {
+      const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+      const pad = [...pads].find(Boolean);
+      if (pad) {
+        const isPressed = i => !!pad.buttons[i]?.pressed;
+        const justPressed = i => isPressed(i) && !padPrev[i];
+        let dx = 0, dy = 0;
+        if (isPressed(14) || pad.axes[0] < -.55) dx = -1;
+        else if (isPressed(15) || pad.axes[0] > .55) dx = 1;
+        if (isPressed(12) || pad.axes[1] < -.55) dy = -1;
+        else if (isPressed(13) || pad.axes[1] > .55) dy = 1;
+        const now = performance.now();
+        if ((dx || dy) && now - padAxisAt > 155) { controllerMove(dx, dy); padAxisAt = now }
+        [0, 1, 2, 3, 4, 5, 8, 9].forEach(i => { if (justPressed(i)) controllerAction(i) });
+        padPrev = pad.buttons.map(b => b.pressed);
+      } else padPrev = [];
+      requestAnimationFrame(controllerPoll);
+    }
+    window.addEventListener('gamepadconnected', () => { const s = document.getElementById('status'); if (s) s.textContent = '🎮 コントローラー接続中。Aで決定・次のステージ、十字キーで移動できます。' });
+    requestAnimationFrame(controllerPoll);
+
+    // 効果音イベント連動
+    const moveCore = move;
+    move = function (dir) {
+            const beforeP = state.p.slice(), beforeLocked = state.locked, beforeWon = state.won, beforeActive = switchActive();
+            moveCore(dir);
+            if (!same(beforeP, state.p) && !state.dead) sound('move');
+      const afterActive = switchActive();
+      if (!beforeActive && afterActive) sound('switch');
+      if (!beforeWon && state.won) sound('clear');
+    };
+
+    grid.setAttribute('tabindex', '0');
+    grid.setAttribute('aria-label', '盤面。コントローラーの十字キーでマス選択、Aで配置');
+    document.getElementById('editor')?.addEventListener('toggle', () => {
+      if (document.getElementById('editor').open) {
+        padEditorCursor = [Math.min(padEditorCursor[0], editorMap.w - 1), Math.min(padEditorCursor[1], editorMap.h - 1)];
+        grid.focus({ preventScroll: false });
+      }
+    });
+  </script>
+</body>
+
+</html>

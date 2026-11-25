@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fractal Explorer - Mandelbrot & Julia</title>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #eee;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        .ui-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(15, 15, 15, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            width: 340px;
+            max-height: 95vh;
+            backdrop-filter: blur(10px);
+            border: 1px solid #333;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            overflow-y: auto;
+            font-size: 13px;
+            z-index: 100;
+        }
+
+        h3 {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            color: #00d4ff;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        .group {
+            margin-bottom: 12px;
+            border-bottom: 1px solid #222;
+            padding-bottom: 10px;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        .type-selector {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .type-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #444;
+            background: #222;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .type-btn.active {
+            background: #00d4ff;
+            color: #000;
+            border-color: #00d4ff;
+        }
+
+        label {
+            font-size: 11px;
+            color: #888;
+            display: block;
+        }
+
+        input[type="number"] {
+            background: #000;
+            color: #0f0;
+            border: 1px solid #444;
+            padding: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            width: 70px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: #00d4ff;
+        }
+
+        select {
+            width: 100%;
+            background: #222;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .stats {
+            font-size: 10px;
+            color: #555;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+
+        .btn-save {
+            background: #444;
+            color: #fff;
+            border: none;
+            padding: 8px;
+            width: 100%;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="ui-panel">
+        <h3>Fractal Explorer</h3>
+
+        <div class="type-selector">
+            <button id="btn-mandel" class="type-btn" onclick="setType('mandelbrot')">Mandelbrot</button>
+            <button id="btn-julia" class="type-btn active" onclick="setType('julia')">Julia</button>
+        </div>
+
+        <!-- 座標設定 -->
+        <div id="julia-params" class="group">
+            <label>Julia Constant C (Real / Imag)</label>
+            <div class="row">
+                <input type="range" id="cx-range" min="-2" max="2" step="0.0001" value="-0.745">
+                <input type="number" id="cx-num" step="0.0001" value="-0.745">
+            </div>
+            <div class="row">
+                <input type="range" id="cy-range" min="-2" max="2" step="0.0001" value="0.113">
+                <input type="number" id="cy-num" step="0.0001" value="0.113">
+            </div>
+            <p style="font-size: 10px; color: #666;">※Mandelbrotモード中にクリックでCを指定可</p>
+        </div>
+
+        <!-- 計算設定 -->
+        <div class="group">
+            <label>計算の深さ (Max Iterations)</label>
+            <div class="row">
+                <input type="range" id="iter-range" min="10" max="3000" step="10" value="250">
+                <input type="number" id="iter-num" value="250">
+            </div>
+            <label style="margin-top:5px;">描画モード</label>
+            <select id="mode">
+                <option value="standard">Standard (Escape Time)</option>
+                <option value="pseudo3d">Pseudo 3D (Shadows)</option>
+                <option value="dem">Detailed (Distance Estimation)</option>
+            </select>
+        </div>
+
+        <!-- 色彩設定 -->
+        <div class="group">
+            <label>カラーパレット</label>
+            <select id="palette">
+                <option value="neon">Electric Neon</option>
+                <option value="fire">Fire & Gold</option>
+                <option value="ocean">Deep Ocean</option>
+                <option value="magma">Magma</option>
+                <option value="mono">Grayscale</option>
+            </select>
+            <div class="row">
+                <label>色の濃さ</label>
+                <input type="range" id="color-density" min="1" max="100" step="1" value="20">
+            </div>
+        </div>
+
+        <button class="btn-save" onclick="downloadImage()">画像を保存</button>
+
+        <div class="stats">
+            Mode: <span id="val-mode">Julia</span><br>
+            Zoom: <span id="val-zoom">1.0</span><br>
+            Center: <span id="val-pos">0, 0</span>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let zoom = 0.8;
+        let centerX = 0, centerY = 0;
+        let isDragging = false;
+        let lastMouseX, lastMouseY;
+        let fractalType = 'julia'; // 'mandelbrot' or 'julia'
+
+        const palettes = {
+            fire: (t) => [t * 255, t * 160, t * 50],
+            ocean: (t) => [t * 20, t * 120, 255 * Math.sqrt(t)],
+            neon: (t) => [Math.sin(t * 6) * 127 + 128, Math.cos(t * 3) * 127 + 128, Math.sin(t * 9) * 127 + 128],
+            magma: (t) => [t * 255, (1 - t) * 30, (1 - t) * 80],
+            mono: (t) => [t * 255, t * 255, t * 255]
+        };
+
+        function setType(type) {
+            fractalType = type;
+            document.getElementById('btn-mandel').className = 'type-btn' + (type === 'mandelbrot' ? ' active' : '');
+            document.getElementById('btn-julia').className = 'type-btn' + (type === 'julia' ? ' active' : '');
+            document.getElementById('val-mode').innerText = type.charAt(0).toUpperCase() + type.slice(1);
+            // モード切替時に座標をリセット（見失い防止）
+            centerX = (type === 'mandelbrot') ? -0.5 : 0;
+            centerY = 0;
+            zoom = (type === 'mandelbrot') ? 0.7 : 0.8;
+            draw();
+        }
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            draw();
+        }
+
+        function draw() {
+            const cx_const = parseFloat(document.getElementById('cx-num').value);
+            const cy_const = parseFloat(document.getElementById('cy-num').value);
+            const maxIter = parseInt(document.getElementById('iter-num').value);
+            const density = parseFloat(document.getElementById('color-density').value);
+            const mode = document.getElementById('mode').value;
+            const paletteKey = document.getElementById('palette').value;
+            const getColor = palettes[paletteKey];
+
+            const imgData = ctx.createImageData(width, height);
+            const data = imgData.data;
+
+            document.getElementById('val-zoom').innerText = zoom.toExponential(2);
+            document.getElementById('val-pos').innerText = `${centerX.toFixed(4)}, ${centerY.toFixed(4)}`;
+
+            const aspect = width / height;
+
+            for (let x = 0; x < width; x++) {
+                for (let y = 0; y < height; y++) {
+                    // 複素平面上の座標
+                    let zx = (x - width / 2) / (0.5 * zoom * width) * aspect + centerX;
+                    let zy = (y - height / 2) / (0.5 * zoom * height) + centerY;
+
+                    let cx, cy;
+                    if (fractalType === 'mandelbrot') {
+                        cx = zx; cy = zy;
+                        zx = 0; zy = 0;
+                    } else {
+                        cx = cx_const; cy = cy_const;
+                    }
+
+                    let i = 0;
+                    let dzx = 1.0, dzy = 0.0;
+
+                    while (zx * zx + zy * zy < 100 && i < maxIter) {
+                        if (mode === 'dem') {
+                            let n_dzx = 2.0 * (zx * dzx - zy * dzy) + (fractalType === 'mandelbrot' ? 1 : 0);
+                            dzy = 2.0 * (zx * dzy + zy * dzx);
+                            dzx = n_dzx;
+                        }
+                        let tmp = zx * zx - zy * zy + cx;
+                        zy = 2 * zx * zy + cy;
+                        zx = tmp;
+                        i++;
+                    }
+
+                    const pix = (x + y * width) * 4;
+                    let r = 0, g = 0, b = 0;
+
+                    if (i < maxIter) {
+                        let log_zn = Math.log(zx * zx + zy * zy) / 2;
+                        let nu = Math.log(log_zn / Math.log(2)) / Math.log(2);
+                        let smooth_i = i + 1 - nu;
+                        let t = (smooth_i / density) % 1.0;
+
+                        if (mode === 'pseudo3d') {
+                            let angle = Math.atan2(zy, zx);
+                            let shadow = Math.sin(angle * 2) * 60;
+                            [r, g, b] = getColor(t).map(c => Math.max(0, Math.min(255, c + shadow)));
+                        } else if (mode === 'dem') {
+                            let dist = Math.sqrt(zx * zx + zy * zy);
+                            let d = 0.5 * Math.log(dist * dist) * dist / Math.sqrt(dzx * dzx + dzy * dzy);
+                            let edge = Math.exp(-zoom * 0.002 * d * density);
+                            [r, g, b] = getColor(1 - Math.min(1, edge));
+                        } else {
+                            [r, g, b] = getColor(t);
+                        }
+                    }
+
+                    data[pix] = r; data[pix + 1] = g; data[pix + 2] = b; data[pix + 3] = 255;
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+        }
+
+        // UI同期
+        function setupSync(idRange, idNum) {
+            const r = document.getElementById(idRange), n = document.getElementById(idNum);
+            r.addEventListener('input', () => { n.value = r.value; draw(); });
+            n.addEventListener('input', () => { r.value = n.value; draw(); });
+        }
+        setupSync('cx-range', 'cx-num');
+        setupSync('cy-range', 'cy-num');
+        setupSync('iter-range', 'iter-num');
+        document.getElementById('color-density').addEventListener('input', draw);
+        document.getElementById('palette').addEventListener('change', draw);
+        document.getElementById('mode').addEventListener('change', draw);
+
+        // マウスイベント
+        canvas.addEventListener('mousedown', (e) => {
+            if (fractalType === 'mandelbrot') {
+                // マンデルブロ上でクリックした座標をジュリアのCにセット
+                const aspect = width / height;
+                const mx = (e.clientX - width / 2) / (0.5 * zoom * width) * aspect + centerX;
+                const my = (e.clientY - height / 2) / (0.5 * zoom * height) + centerY;
+                document.getElementById('cx-num').value = document.getElementById('cx-range').value = mx.toFixed(4);
+                document.getElementById('cy-num').value = document.getElementById('cy-range').value = my.toFixed(4);
+            }
+            isDragging = true;
+            lastMouseX = e.clientX; lastMouseY = e.clientY;
+        });
+
+        window.addEventListener('mouseup', () => isDragging = false);
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const aspect = width / height;
+            centerX -= (e.clientX - lastMouseX) / (0.5 * zoom * width) * aspect;
+            centerY -= (e.clientY - lastMouseY) / (0.5 * zoom * height);
+            lastMouseX = e.clientX; lastMouseY = e.clientY;
+            draw();
+        });
+
+        window.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const aspect = width / height;
+            const mx = (e.clientX - width / 2) / (0.5 * zoom * width) * aspect + centerX;
+            const my = (e.clientY - height / 2) / (0.5 * zoom * height) + centerY;
+            zoom *= (e.deltaY < 0) ? 1.2 : 0.8;
+            centerX = mx - (e.clientX - width / 2) / (0.5 * zoom * width) * aspect;
+            centerY = my - (e.clientY - height / 2) / (0.5 * zoom * height);
+            draw();
+        }, { passive: false });
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = `fractal_${fractalType}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+    </script>
+</body>
+
+</html>

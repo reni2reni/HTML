@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>世界と自然のイメージ配色パレット（全256色）</title>
+    <style>
+        :root {
+            --bg-color: #f1f3f5;
+            --text-color: #212529;
+            --card-bg: #ffffff;
+            --border-radius: 16px;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 12px;
+            color: #111;
+        }
+
+        .description {
+            color: #495057;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .theme-section {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            border: 1px solid #e9ecef;
+        }
+
+        .theme-title {
+            font-size: 1.6rem;
+            font-weight: bold;
+            margin-top: 0;
+            margin-bottom: 25px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #dee2e6;
+        }
+
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .color-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            transition: all 0.2s ease;
+        }
+
+        .color-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .color-swatch {
+            width: 55px;
+            height: 55px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            flex-shrink: 0;
+        }
+
+        .color-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow: hidden;
+        }
+
+        .color-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .color-code {
+            font-size: 0.8rem;
+            color: #6c757d;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>世界と自然のイメージ配色パレット</h1>
+        <p class="description">8つのテーマを表現した美しい32色×8（全256色）を一画面に集約</p>
+    </header>
+
+    <main class="container" id="palette-container"></main>
+
+    <script>
+        const paletteData = [
+            {
+                theme: "🌴 南の島 (Southern Island)",
+                colors: [
+                    { name: "浅瀬のターコイズ", code: "#00f0ff" }, { name: "モルディブブルー", code: "#00d2ff" },
+                    { name: "コーラルスカイ", code: "#ff9a9e" }, { name: "ハイビスカスレッド", code: "#ff0a54" },
+                    { name: "シトラスマンゴー", code: "#ffb703" }, { name: "プルメリアホワイト", code: "#fffbf2" },
+                    { name: "ココナッツミルク", code: "#fefae0" }, { name: "ファインサンド", code: "#eae2b7" },
+                    { name: "ディープオーシャン", code: "#03045e" }, { name: "マリンブルー", code: "#0077b6" },
+                    { name: "アクアマリンネイビー", code: "#0096c7" }, { name: "シアンラグーン", code: "#00b4d8" },
+                    { name: "ライトオーシャン", code: "#48cae4" }, { name: "ペールスカイ", code: "#90e0ef" },
+                    { name: "クリスタルクリア", code: "#ade8f4" }, { name: "アイスシアン", code: "#caf0f8" },
+                    { name: "パームリーフ", code: "#2d6a4f" }, { name: "ジャングルグリーン", code: "#40916c" },
+                    { name: "ブライトライム", code: "#52b788" }, { name: "ソフトミント", code: "#74c69d" },
+                    { name: "南国サンセット", code: "#ff4d6d" }, { name: "フラミンゴピンク", code: "#ff758f" },
+                    { name: "シェルピンク", code: "#ff8fa3" }, { name: "サマービーチ", code: "#ffb3c1" },
+                    { name: "ゴールデンサン", code: "#fcbf49" }, { name: "ジューシーパイン", code: "#f77f00" },
+                    { name: "パッションフルーツ", code: "#d62828" }, { name: "リーフシャドウ", code: "#1b4332" },
+                    { name: "浅瀬の珊瑚", code: "#f3a2b2" }, { name: "熱帯のスコール", code: "#5c677d" },
+                    { name: "トワイライトパープル", code: "#7209b7" }, { name: "ミッドナイトアイランド", code: "#03071e" }
+                ]
+            },
+            {
+                theme: "🏡 草原の家 (Prairie House)",
+                colors: [
+                    { name: "若草の息吹", code: "#a7c957" }, { name: "深緑の丘", code: "#386641" },
+                    { name: "オリーブの葉", code: "#6a994e" }, { name: "カントリーウッド", code: "#bc6c25" },
+                    { name: "焼きたてブレッド", code: "#dda15e" }, { name: "朝露の草原", code: "#f4f1de" },
+                    { name: "ひだまりのテラス", code: "#fefae0" }, { name: "野良仕事のチノ", code: "#e9c46a" },
+                    { name: "テラコッタの屋根", code: "#e76f51" }, { name: "乾いたレンガ", code: "#f4a261" },
+                    { name: "アンティーク家具", code: "#4a3728" }, { name: "ハーブミント", code: "#c8b6ff" },
+                    { name: "ラベンダー畑", code: "#bbd0ff" }, { name: "澄んだ小川", code: "#bde0fe" },
+                    { name: "忘れな草", code: "#a2d2ff" }, { name: "マリーゴールド", code: "#ffb703" },
+                    { name: "高原のそよ風", code: "#e8f5e9" }, { name: "カモミール", code: "#fff9c4" },
+                    { name: "セージグリーン", code: "#84a59d" }, { name: "アースブラウン", code: "#8c7853" },
+                    { name: "リネンベージュ", code: "#f0eae1" }, { name: "フォレストモス", code: "#283618" },
+                    { name: "ワイルドベリー", code: "#9e2a2b" }, { name: "クローバー", code: "#4f772d" },
+                    { name: "深い針葉樹", code: "#132a13" }, { name: "シープウール", code: "#f5f5f5" },
+                    { name: "煙突の煙", code: "#d6ccc2" }, { name: "麦わら帽子", code: "#eddcd2" },
+                    { name: "夕暮れの地平線", code: "#cb997e" }, { name: "干し草の山", code: "#ddb892" },
+                    { name: "古いクローゼット", code: "#7f5539" }, { name: "真夜中の山小屋", code: "#22223b" }
+                ]
+            },
+            {
+                theme: "🌸 日本 (Traditional Japan)",
+                colors: [
+                    { name: "漆黒 (しっこく)", code: "#0d0d0d" }, { name: "真朱 (まそお)", code: "#c1322a" },
+                    { name: "緋色 (ひいろ)", code: "#d3381c" }, { name: "朱色 (しゅいろ)", code: "#eb6101" },
+                    { name: "金箔 (きんぱく)", code: "#c49a45" }, { name: "桜色 (さくらいろ)", code: "#fef4f4" },
+                    { name: "撫子色 (なでしこいろ)", code: "#eebbcb" }, { name: "藤色 (ふじいろ)", code: "#bbbcde" },
+                    { name: "瑠璃色 (るりいろ)", code: "#2a5caa" }, { name: "藍色 (あいいろ)", code: "#165e83" },
+                    { name: "紺青 (こんじょう)", code: "#192f60" }, { name: "縹色 (はなだいろ)", code: "#2775b6" },
+                    { name: "常磐色 (ときわいろ)", code: "#007b43" }, { name: "鶯色 (うぐいすいろ)", code: "#928c36" },
+                    { name: "抹茶色 (まっちゃいろ)", code: "#c5c56a" }, { name: "山吹色 (やまぶきいろ)", code: "#f8b500" },
+                    { name: "胡粉色 (ごふんいろ)", code: "#fffffc" }, { name: "生成色 (きなりいろ)", code: "#fbf6ef" },
+                    { name: "利休鼠 (りきゅうねず)", code: "#888e7e" }, { name: "葡萄色 (えびいろ)", code: "#6b2c4c" },
+                    { name: "小豆色 (あずきいろ)", code: "#96514d" }, { name: "琥珀色 (こはくいろ)", code: "#bf794e" },
+                    { name: "芥子色 (からしいろ)", code: "#d0af4c" }, { name: "竹大青 (たけだいせい)", code: "#4c6444" },
+                    { name: "千歳緑 (ちとせみどり)", code: "#314a43" }, { name: "浅葱色 (あさぎいろ)", code: "#00a3af" },
+                    { name: "水色 (みずいろ)", code: "#bce2e8" }, { name: "若竹色 (わかたけいろ)", code: "#68be8d" },
+                    { name: "茜色 (あかねいろ)", code: "#b7282e" }, { name: "蘇芳 (すおう)", code: "#783c4d" },
+                    { name: "消炭色 (けしずみいろ)", code: "#434343" }, { name: "銀鼠 (ぎんねず)", code: "#afafb0" }
+                ]
+            },
+            {
+                theme: "🗽 アメリカ (Pop & Classic America)",
+                colors: [
+                    { name: "オールドグローリーレッド", code: "#b22234" }, { name: "オールドグローリーブルー", code: "#3c3b6e" },
+                    { name: "スターホワイト", code: "#ffffff" }, { name: "ドルグリーン", code: "#85bb65" },
+                    { name: "ネオンタイムズスクエア", code: "#ff0055" }, { name: "キャデラックピンク", code: "#ff70a6" },
+                    { name: "カリフォルニアオレンジ", code: "#ff9f1c" }, { name: "ハリウッドゴールド", code: "#ffd166" },
+                    { name: "ルート66アスファルト", code: "#2b2d42" }, { name: "グランドキャニオンアース", code: "#b56576" },
+                    { name: "イエローストーンイエロー", code: "#e9c46a" }, { name: "マカミズーリマッド", code: "#6d597a" },
+                    { name: "ヴィンテージデニム", code: "#457b9d" }, { name: "ウォッシュドインディゴ", code: "#1d3557" },
+                    { name: "バーベキューソース", code: "#6f1d1b" }, { name: "マスタードイエロー", code: "#f9a10f" },
+                    { name: "ポップコーンホワイト", code: "#fcf6bd" }, { name: "ミントソーダ", code: "#d0f4de" },
+                    { name: "ブルックリンレンガ", code: "#a83f39" }, { name: "ダスティインダストリアル", code: "#8d99ae" },
+                    { name: "ラスベガスパープル", code: "#7209b7" }, { name: "サイバーマゼンタ", code: "#f72585" },
+                    { name: "マイアミターコイズ", code: "#4ea8de" }, { name: "エバーグレーズモス", code: "#31572c" },
+                    { name: "オレゴンフォレスト", code: "#132a13" }, { name: "テキサスサンド", code: "#ddb892" },
+                    { name: "ピーナッツバター", code: "#b07d62" }, { name: "コカブラウン", code: "#481d24" },
+                    { name: "コンクリートシティ", code: "#e2eafc" }, { name: "シェールグレー", code: "#6c757d" },
+                    { name: "スペースシャトルブラック", code: "#111111" }, { name: "ネイビーシールズ", code: "#000814" }
+                ]
+            },
+            {
+                theme: "🌲 北欧 (Nordic Serenity)",
+                colors: [
+                    { name: "フィヨルドブルー", code: "#4a6984" }, { name: "オーロラグリーン", code: "#2a9d8f" },
+                    { name: "フォググレー", code: "#d8e2dc" }, { name: "アイスブルー", code: "#e0f2f1" },
+                    { name: "ミッドナイトサン", code: "#f4a261" }, { name: "ノーディックホワイト", code: "#f8f9fa" },
+                    { name: "アッシュウッド", code: "#e5d9c7" }, { name: "パインバーク", code: "#9c8978" },
+                    { name: "ウィンターヘザー", code: "#b5838d" }, { name: "クランベリーレッド", code: "#9e2a2b" },
+                    { name: "プラムディープ", code: "#6d597a" }, { name: "ダスパープル", code: "#b388eb" },
+                    { name: "セージグレー", code: "#8d99ae" }, { name: "スモーキーネイビー", code: "#2b2d42" },
+                    { name: "ダスティミント", code: "#a8dadc" }, { name: "クリアウォーター", code: "#457b9d" },
+                    { name: "ディープフィヨルド", code: "#1d3557" }, { name: "白樺の幹", code: "#f1f5f9" },
+                    { name: "モスグリーン", code: "#52796f" }, { name: "針葉樹林の影", code: "#354f52" },
+                    { name: "ウインターシアン", code: "#006d77" }, { name: "ペールトーンブルー", code: "#83c5be" },
+                    { name: "オーツ麦ミルク", code: "#edf2f4" }, { name: "ジンジャーブレッド", code: "#8338ec" },
+                    { name: "スカンジナビアピンク", code: "#ffb5a7" }, { name: "アプリコットベージュ", code: "#fcd5ce" },
+                    { name: "クラウドベリー", code: "#ffb703" }, { name: "ノルウェーパイン", code: "#264653" },
+                    { name: "アイスフロウ", code: "#f0f8ff" }, { name: "ロックグレー", code: "#4a4e69" },
+                    { name: "トワイライトブルー", code: "#22223b" }, { name: "極夜の黒", code: "#1a1a24" }
+                ]
+            },
+            {
+                theme: "🦁 アフリカ (Vibrant Africa)",
+                colors: [
+                    { name: "サバンナイエロー", code: "#f4a261" }, { name: "赤土のテラコッタ", code: "#e07a5f" },
+                    { name: "マサイレッド", code: "#ba181b" }, { name: "ケニアオリーブ", code: "#3d5a80" },
+                    { name: "サハラサンド", code: "#eed9c4" }, { name: "バオバブブラウン", code: "#6f4e37" },
+                    { name: "エスニックパープル", code: "#5c3d75" }, { name: "ワイルドオーキッド", code: "#af2bbf" },
+                    { name: "サンセットオレンジ", code: "#f77f00" }, { name: "ブライトサفران", code: "#fcbf49" },
+                    { name: "オアシスグリーン", code: "#2a9d8f" }, { name: "ディープティール", code: "#264653" },
+                    { name: "ナイトサファリブラック", code: "#141414" }, { name: "ドライハーブ", code: "#7a7f5c" },
+                    { name: "部族の木彫", code: "#362214" }, { name: "カカオビーンズ", code: "#4e3629" },
+                    { name: "シマウマホワイト", code: "#fdfefe" }, { name: "エボニーブラック", code: "#080808" },
+                    { name: "ワイルドラズベリー", code: "#a10056" }, { name: "フラミンゴレイク", code: "#ff8fa3" },
+                    { name: "コバルトスカイ", code: "#00509d" }, { name: "ターコイズトレジャー", code: "#00b4d8" },
+                    { name: "アンバークレイ", code: "#b5823c" }, { name: "ビビッドマリーゴールド", code: "#ff9f1c" },
+                    { name: "アロエグリーン", code: "#52b788" }, { name: "ブッシュトラッカー", code: "#1b4332" },
+                    { name: "スパイスシナモン", code: "#8b5e3c" }, { name: "黄土クレイ", code: "#bd9b76" },
+                    { name: "カッパーメタリック", code: "#a36646" }, { name: "焼けたサバンナ草", code: "#d4a373" },
+                    { name: "インディゴダイ", code: "#1c2541" }, { name: "サンダーストーム", code: "#3a405a" }
+                ]
+            },
+            {
+                theme: "🏮 中国 (Imperial & Modern China)",
+                colors: [
+                    { name: "中国紅 (チャイナレッド)", code: "#de2910" }, { name: "皇帝黄 (エンペラーイエロー)", code: "#ffde00" },
+                    { name: "翡翠緑 (ジェイドグリーン)", code: "#00a86b" }, { name: "水墨黒 (インクブラック)", code: "#1a1a1a" },
+                    { name: "紫禁城レンガ", code: "#b23b3b" }, { name: "宮廷の朱", code: "#c84b31" },
+                    { name: "清朝の紺碧", code: "#0f4c81" }, { name: "天青色 (てんせいいろ)", code: "#88c1df" },
+                    { name: "青磁の淡緑", code: "#b8d8be" }, { name: "牡丹ピンク", code: "#f472b6" },
+                    { name: "景徳鎮ブルー", code: "#1d4ed8" }, { name: "蓮の花", code: "#fbcfe8" },
+                    { name: "竹林の青竹", code: "#15803d" }, { name: "老茶葉", code: "#1e3a1e" },
+                    { name: "キンモクセイ", code: "#f97316" }, { name: "黄金の龍", code: "#fbbf24" },
+                    { name: "真珠ホワイト", code: "#f8fafc" }, { name: "胡桃ブラウン", code: "#78350f" },
+                    { name: "ライチレッド", code: "#dc2626" }, { name: "伝統の臙脂", code: "#991b1b" },
+                    { name: "上海ネオンマゼンタ", code: "#ec4899" }, { name: "サイバーサイアン", code: "#06b6d4" },
+                    { name: "東洋のターコイズ", code: "#0d9488" }, { name: "深山幽谷の霧", code: "#64748b" },
+                    { name: "漢白玉の白", code: "#f1f5f9" }, { name: "烏龍茶", code: "#451a03" },
+                    { name: "アンバーゴールド", code: "#d97706" }, { name: "プラムブロッサム", code: "#be185d" },
+                    { name: "伝統の絹", code: "#fff7ed" }, { name: "古代の石碑", code: "#334155" },
+                    { name: "紫檀 (したん)", code: "#2e1065" }, { name: "玄武岩の黒", code: "#020617" }
+                ]
+            },
+            {
+                theme: "🕌 インド (Mystical & Spicy India)",
+                colors: [
+                    { name: "サfranオレンジ", code: "#ff9933" }, { name: "インディアングリーン", code: "#128807" },
+                    { name: "インディゴブルー", code: "#000080" }, { name: "ホーリーマゼンタ", code: "#f15bb5" },
+                    { name: "マリーゴールドオレンジ", code: "#f77f00" }, { name: "ターメリックイエロー", code: "#fcbf49" },
+                    { name: "スパイスカルダモン", code: "#90a955" }, { name: "チャイミルク", code: "#eddcd2" },
+                    { name: "タジマハルホワイト", code: "#ffffff" }, { name: "ジャイプールピンク", code: "#ef476f" },
+                    { name: "ヘンナブラウン", code: "#6f1d1b" }, { name: "クミンパウダー", code: "#a98467" },
+                    { name: "ボリウッドシアン", code: "#00b4d8" }, { name: "ロイヤルピーコック", code: "#03045e" },
+                    { name: "エメラルドマハラジャ", code: "#06d6a0" }, { name: "ロータスピンク", code: "#ff8fa3" },
+                    { name: "ガンジスの夕日", code: "#d62828" }, { name: "ディープカリー", code: "#b57614" },
+                    { name: "シナモンスティック", code: "#4a3321" }, { name: "サリパープル", code: "#7209b7" },
+                    { name: "エキゾチックバイオレット", code: "#560bad" }, { name: "ボリウッドゴールド", code: "#ffd166" },
+                    { name: "マンゴーパルプ", code: "#ffb703" }, { name: "ピスタチオグリーン", code: "#99d98c" },
+                    { name: "ガンジスの霧", code: "#e2eafc" }, { name: "インディアンクレイ", code: "#b23b3b" },
+                    { name: "サンダルウッド", code: "#ddb892" }, { name: "クローブブラック", code: "#1c1917" },
+                    { name: "パロットグリーン", code: "#38b000" }, { name: "ジャスミンの蕾", code: "#fffdf0" },
+                    { name: "カシミヤサファイア", code: "#4361ee" }, { name: "神秘の夜空", code: "#0b0c10" }
+                ]
+            }
+        ];
+
+        const container = document.getElementById('palette-container');
+
+        paletteData.forEach(item => {
+            const section = document.createElement('section');
+            section.className = 'theme-section';
+
+            const title = document.createElement('div');
+            title.className = 'theme-title';
+            title.textContent = item.theme;
+            section.appendChild(title);
+
+            const grid = document.createElement('div');
+            grid.className = 'palette-grid';
+
+            item.colors.forEach(color => {
+                const card = document.createElement('div');
+                card.className = 'color-card';
+
+                const swatch = document.createElement('div');
+                swatch.className = 'color-swatch';
+                swatch.style.backgroundColor = color.code;
+
+                const info = document.createElement('div');
+                info.className = 'color-info';
+
+                const name = document.createElement('span');
+                name.className = 'color-name';
+                name.textContent = color.name;
+
+                const code = document.createElement('span');
+                code.className = 'color-code';
+                code.textContent = color.code.toUpperCase();
+
+                info.appendChild(name);
+                info.appendChild(code);
+                card.appendChild(swatch);
+                card.appendChild(info);
+                grid.appendChild(card);
+            });
+
+            section.appendChild(grid);
+            container.appendChild(section);
+        });
+    </script>
+</body>
+
+</html>

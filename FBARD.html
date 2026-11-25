@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird風ゲーム（音付き）</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #gameCanvas {
+            border: 4px solid #fff;
+            background-color: #70c5ce;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // ゲームの状態管理
+        let gameState = "START"; // START, PLAYING, GAMEOVER
+        let score = 0;
+
+        // --- 効果音再生システム (Web Audio API) ---
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!audioCtx) return;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === "flap") {
+                // クリック音：一瞬だけ音が低から高へ上がるピコッという音
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            }
+            else if (type === "score") {
+                // くぐり抜け音：ピキーンと高めの心地よい2音の連続
+                osc.type = "triangle";
+                osc.frequency.setValueAtTime(587.33, now); // D5
+                osc.frequency.setValueAtTime(880, now + 0.08); // A5
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            }
+            else if (type === "gameover") {
+                // ゲームオーバー音：ブーーンと低く落ちていく音
+                osc.type = "sawtooth";
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.linearRampToValueAtTime(80, now + 0.5);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
+            }
+        }
+
+        // 鳥（プレイヤー）の設定
+        const bird = {
+            x: 100, // スコア判定を安定させるため少し右へ調整
+            y: 150,
+            radius: 12,
+            gravity: 0.4,
+            velocity: 0,
+            jump: -6.5,
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = "#fbd121";
+                ctx.fill();
+                ctx.closePath();
+
+                // 目
+                ctx.beginPath();
+                ctx.arc(this.x + 6, this.y - 4, 3, 0, Math.PI * 2);
+                ctx.fillStyle = "#fff";
+                ctx.fill();
+                ctx.closePath();
+                ctx.beginPath();
+                ctx.arc(this.x + 7, this.y - 4, 1, 0, Math.PI * 2);
+                ctx.fillStyle = "#000";
+                ctx.fill();
+                ctx.closePath();
+
+                // くちばし
+                ctx.beginPath();
+                ctx.moveTo(this.x + 10, this.y);
+                ctx.lineTo(this.x + 18, this.y + 2);
+                ctx.lineTo(this.x + 10, this.y + 5);
+                ctx.fillStyle = "#f65c1a";
+                ctx.fill();
+                ctx.closePath();
+            },
+            update() {
+                if (gameState === "PLAYING") {
+                    this.velocity += this.gravity;
+                    this.y += this.velocity;
+                }
+            },
+            flap() {
+                this.velocity = this.jump;
+                playSound("flap");
+            },
+            reset() {
+                this.y = 150;
+                this.velocity = 0;
+            }
+        };
+
+        // 土管（障害物）の設定
+        const pipes = {
+            position: [],
+            gap: 130,
+            width: 60,
+            speed: 2.5,
+            spawnInterval: 90,
+            timer: 0,
+
+            update() {
+                if (gameState !== "PLAYING") return;
+
+                this.timer++;
+                if (this.timer % this.spawnInterval === 0) {
+                    const minHeight = 50;
+                    const maxHeight = canvas.height - this.gap - 100;
+                    const topHeight = Math.floor(Math.random() * (maxHeight - minHeight + 1) + minHeight);
+
+                    this.position.push({
+                        x: canvas.width,
+                        top: topHeight,
+                        passed: false // スコアが1度だけ入るようにフラグを追加
+                    });
+                }
+
+                for (let i = 0; i < this.position.length; i++) {
+                    let p = this.position[i];
+                    p.x -= this.speed;
+
+                    // スコア判定の修正：鳥のX座標を土管の右端が通り過ぎたら加算
+                    if (!p.passed && (p.x + this.width) < bird.x) {
+                        score++;
+                        p.passed = true;
+                        playSound("score"); // くぐり抜け音
+                    }
+
+                    if (p.x + this.width < 0) {
+                        this.position.shift();
+                        i--;
+                    }
+                }
+            },
+            draw() {
+                for (let i = 0; i < this.position.length; i++) {
+                    let p = this.position[i];
+
+                    ctx.fillStyle = "#73bf2e";
+                    ctx.strokeStyle = "#558022";
+                    ctx.lineWidth = 3;
+
+                    // 上の土管
+                    ctx.fillRect(p.x, 0, this.width, p.top);
+                    ctx.strokeRect(p.x, 0, this.width, p.top);
+
+                    // 下の土管
+                    const bottomY = p.top + this.gap;
+                    const bottomHeight = canvas.height - bottomY;
+                    ctx.fillRect(p.x, bottomY, this.width, bottomHeight);
+                    ctx.strokeRect(p.x, bottomY, this.width, bottomHeight);
+                }
+            },
+            reset() {
+                this.position = [];
+                this.timer = 0;
+            }
+        };
+
+        // 衝突判定
+        function checkCollision() {
+            if (gameState !== "PLAYING") return;
+
+            // 画面の上下の壁
+            if (bird.y - bird.radius < 0 || bird.y + bird.radius > canvas.height) {
+                triggerGameOver();
+            }
+
+            // 土管との接触
+            for (let i = 0; i < pipes.position.length; i++) {
+                let p = pipes.position[i];
+
+                if (bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + pipes.width) {
+                    if (bird.y - bird.radius < p.top || bird.y + bird.radius > p.top + pipes.gap) {
+                        triggerGameOver();
+                    }
+                }
+            }
+        }
+
+        function triggerGameOver() {
+            gameState = "GAMEOVER";
+            playSound("gameover"); // ゲームオーバー音
+        }
+
+        // 画面全体の描画
+        function draw() {
+            ctx.fillStyle = "#70c5ce";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            pipes.draw();
+            bird.draw();
+
+            ctx.fillStyle = "#fff";
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 4;
+            ctx.textAlign = "center";
+
+            if (gameState === "PLAYING") {
+                ctx.font = "bold 40px Arial";
+                ctx.fillText(score, canvas.width / 2, 60);
+                ctx.strokeText(score, canvas.width / 2, 60);
+            } else if (gameState === "START") {
+                ctx.font = "bold 28px Arial";
+                ctx.fillText("FLAPPY BIRD風ゲーム", canvas.width / 2, 220);
+                ctx.strokeText("FLAPPY BIRD風ゲーム", canvas.width / 2, 220);
+                ctx.font = "bold 20px Arial";
+                ctx.fillText("クリック or スペースで開始", canvas.width / 2, 300);
+                ctx.strokeText("クリック or スペースで開始", canvas.width / 2, 300);
+            } else if (gameState === "GAMEOVER") {
+                ctx.font = "bold 45px Arial";
+                ctx.fillText("GAME OVER", canvas.width / 2, 220);
+                ctx.strokeText("GAME OVER", canvas.width / 2, 220);
+                ctx.font = "bold 25px Arial";
+                ctx.fillText(`SCORE: ${score}`, canvas.width / 2, 280);
+                ctx.strokeText(`SCORE: ${score}`, canvas.width / 2, 280);
+                ctx.font = "bold 20px Arial";
+                ctx.fillText("クリックでリスタート", canvas.width / 2, 340);
+                ctx.strokeText("クリックでリスタート", canvas.width / 2, 340);
+            }
+        }
+
+        // メインのゲームループ
+        function loop() {
+            bird.update();
+            pipes.update();
+            checkCollision();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        // 操作の入力処理
+        function handleInput() {
+            initAudio(); // 最初のクリック時にオーディオ機能を有効化（ブラウザのセキュリティ対策）
+
+            if (gameState === "START") {
+                gameState = "PLAYING";
+                bird.flap();
+            } else if (gameState === "PLAYING") {
+                bird.flap();
+            } else if (gameState === "GAMEOVER") {
+                score = 0;
+                bird.reset();
+                pipes.reset();
+                gameState = "PLAYING";
+                bird.flap();
+            }
+        }
+
+        // イベントリスナー
+        window.addEventListener("mousedown", (e) => {
+            if (e.button === 0) handleInput();
+        });
+        window.addEventListener("touchstart", (e) => {
+            handleInput();
+            e.preventDefault();
+        }, { passive: false });
+        window.addEventListener("keydown", (e) => {
+            if (e.code === "Space") {
+                handleInput();
+            }
+        });
+
+        // ゲーム開始
+        loop();
+    </script>
+
+</body>
+
+</html>
