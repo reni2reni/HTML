@@ -52,7 +52,10 @@
             box-sizing: border-box;
         }
 
-        .toolbar-primary { min-height: 34px; }
+        .toolbar-primary {
+            min-height: 34px;
+        }
+
         .toolbar-secondary {
             min-height: 34px;
             padding-top: 6px;
@@ -93,7 +96,10 @@
             gap: 6px;
             flex-wrap: wrap;
         }
-        .primary-actions { justify-content: flex-end; }
+
+        .primary-actions {
+            justify-content: flex-end;
+        }
 
         button {
             background: #182247;
@@ -113,7 +119,10 @@
             border-color: #00d2ff;
             color: #fff;
         }
-        button:not(.sky-edge-btn):active { transform: scale(0.96); }
+
+        button:not(.sky-edge-btn):active {
+            transform: scale(0.96);
+        }
 
         .location-speed-group {
             display: flex;
@@ -162,15 +171,17 @@
             font-size: 0.78rem;
             line-height: 1.45;
         }
-        .clock-row span { white-space: normal; }
 
-        /* ホーム設定ポップアップ */
-        /* ホーム設定ポップアップ */
+        .clock-row span {
+            white-space: normal;
+        }
+
+        /* ホーム設定ポップアップ（横幅拡大対応） */
         .home-settings {
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, 16%);
+            transform: translate(-50%, 10%);
             z-index: 220;
             display: flex;
             align-items: center;
@@ -190,7 +201,7 @@
         #homeRegionMap {
             flex-basis: 100%;
             width: 100%;
-            height: 500px;
+            height: 440px;
             margin-top: 4px;
             border-radius: 6px;
             border: 1px solid #2d4d7a;
@@ -198,19 +209,24 @@
             background: #071326;
         }
 
-        .home-settings[hidden] { display: none !important; }
+        .home-settings[hidden] {
+            display: none !important;
+        }
+
         .home-settings strong {
             color: #b9d8ff;
-            font-size: 0.82rem;
+            font-size: 0.84rem;
             margin-right: 3px;
         }
+
         .home-settings label {
             display: inline-flex;
             align-items: center;
             gap: 5px;
             color: #cbd8ef;
-            font-size: 0.78rem;
+            font-size: 0.80rem;
         }
+
         .home-settings input,
         .home-settings select {
             box-sizing: border-box;
@@ -224,18 +240,34 @@
             font: inherit;
             color-scheme: dark;
         }
-        #homeName { width: 120px; }
-        #homeLat { width: 100px; }
-        #homeLon { width: 115px; } /* 経度欄を拡大（-179.9999等も余裕で表示） */
-        #homeTimeZone { width: 160px; max-width: 38vw; }
-        #btnSaveHome { padding: 6px 14px; }
+
+        #homeName {
+            width: 120px;
+        }
+
+        #homeLat {
+            width: 100px;
+        }
+
+        #homeLon {
+            width: 115px;
+        }
+
+        #homeTimeZone {
+            width: 160px;
+            max-width: 38vw;
+        }
+
+        #btnSaveHome {
+            padding: 6px 14px;
+        }
 
         /* カスタム地域設定ポップアップ */
         .custom-region-settings {
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, 16%);
+            transform: translate(-50%, 10%);
             z-index: 225;
             display: flex;
             align-items: center;
@@ -251,22 +283,28 @@
             background: rgba(8, 14, 28, 0.98);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
         }
+
         #customRegionMap {
             flex-basis: 100%;
             width: 100%;
-            height: 500px;
+            height: 440px;
             margin-top: 4px;
             border-radius: 6px;
             border: 1px solid #2d4d7a;
             overflow: hidden;
             background: #071326;
         }
-        .custom-region-settings[hidden] { display: none !important; }
+
+        .custom-region-settings[hidden] {
+            display: none !important;
+        }
+
         .custom-region-settings strong {
             color: #b9e4ff;
             font-size: 0.84rem;
             margin-right: 3px;
         }
+
         .custom-region-settings label {
             display: inline-flex;
             align-items: center;
@@ -274,6 +312,7 @@
             color: #cbd8ef;
             font-size: 0.80rem;
         }
+
         .custom-region-settings input {
             box-sizing: border-box;
             min-width: 0;
@@ -286,45 +325,121 @@
             font: inherit;
             color-scheme: dark;
         }
-        #customRegionName { width: 160px; }
-        #customRegionLat { width: 100px; }
-        #customRegionLon { width: 115px; } /* 経度欄を拡大 */
-        #btnSaveCustomRegion { padding: 6px 13px; }
+
+        #customRegionName {
+            width: 160px;
+        }
+
+        #customRegionLat {
+            width: 100px;
+        }
+
+        #customRegionLon {
+            width: 115px;
+        }
+
+        #btnSaveCustomRegion {
+            padding: 6px 14px;
+        }
+
         .custom-region-status {
             color: #8fd8ff;
             font-size: 0.76rem;
         }
 
         @media (max-width: 980px) {
-            .toolbar-primary { align-items: flex-start; }
-            .primary-actions { justify-content: flex-start; }
-            .toolbar-row { flex-wrap: wrap; }
-            .toolbar-secondary { align-items: flex-start; }
-        }
-        @media (max-width: 640px) {
-            .sky-edge-btn { top: 152px; padding: 9px 11px; font-size: 0.85rem; }
-            .control-panel { padding: 7px 8px; gap: 6px; }
-            .toolbar-row { gap: 7px; }
-            .date-home-group { width: 100%; }
-            #dateInput { min-width: 0; flex: 1 1 190px; }
-            .primary-actions { gap: 4px; }
-            .primary-actions button { padding: 5px 7px; font-size: 0.78rem; }
-            .toolbar-secondary { flex-direction: column; }
-            .clock-row { flex-direction: column; gap: 2px; }
-            .location-speed-group { width: 100%; justify-content: space-between; flex-wrap: wrap; }
-            #citySelect { width: min(100%, 340px); min-width: 170px; flex: 1 1 190px; }
-            .home-settings { left: 8px; max-width: calc(100vw - 16px); gap: 7px; }
-            .home-settings strong {
-            flex-basis: 100%;
-            color: #b9d8ff;
-            font-size: 0.82rem;
-            margin-right: 3px;
-        }
-            #homeTimeZone { width: 165px; }
-            .custom-region-settings { top: calc(100% + 22px); left: 8px; width: calc(100vw - 16px); max-width: calc(100vw - 16px); }
-            #customRegionMap { height: 170px; }
+            .toolbar-primary {
+                align-items: flex-start;
+            }
+
+            .primary-actions {
+                justify-content: flex-start;
+            }
+
+            .toolbar-row {
+                flex-wrap: wrap;
+            }
+
+            .toolbar-secondary {
+                align-items: flex-start;
+            }
         }
 
+        @media (max-width: 640px) {
+            .sky-edge-btn {
+                top: 152px;
+                padding: 9px 11px;
+                font-size: 0.85rem;
+            }
+
+            .control-panel {
+                padding: 7px 8px;
+                gap: 6px;
+            }
+
+            .toolbar-row {
+                gap: 7px;
+            }
+
+            .date-home-group {
+                width: 100%;
+            }
+
+            #dateInput {
+                min-width: 0;
+                flex: 1 1 190px;
+            }
+
+            .primary-actions {
+                gap: 4px;
+            }
+
+            .primary-actions button {
+                padding: 5px 7px;
+                font-size: 0.78rem;
+            }
+
+            .toolbar-secondary {
+                flex-direction: column;
+            }
+
+            .clock-row {
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .location-speed-group {
+                width: 100%;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+
+            #citySelect {
+                width: min(100%, 340px);
+                min-width: 170px;
+                flex: 1 1 190px;
+            }
+
+            .home-settings {
+                left: 8px;
+                transform: translateY(-50%);
+                width: calc(100vw - 16px);
+                max-width: calc(100vw - 16px);
+                gap: 7px;
+            }
+
+            .custom-region-settings {
+                left: 8px;
+                transform: translateY(-50%);
+                width: calc(100vw - 16px);
+                max-width: calc(100vw - 16px);
+            }
+
+            #homeRegionMap,
+            #customRegionMap {
+                height: 260px;
+            }
+        }
 
         .sky-edge-btn {
             position: fixed;
@@ -345,32 +460,24 @@
             backdrop-filter: blur(6px);
             transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
         }
+
         .sky-edge-btn:hover {
             background: #243e75;
             border-color: #00e5ff;
             color: #ffffff;
         }
+
         .sky-edge-btn:active {
             background: #2e5299;
             transform: none;
         }
+
         #btnSkyEdgeLeft {
             left: 12px;
         }
+
         #btnSkyEdgeRight {
             right: 12px;
-        }
-        .sky-status-label {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 10px;
-            border-radius: 6px;
-            background: rgba(20, 46, 88, 0.85);
-            border: 1px solid #3c69a8;
-            color: #9be4ff;
-            font-size: 0.85rem;
-            font-weight: bold;
-            white-space: nowrap;
         }
 
         #skyCanvas {
@@ -382,18 +489,20 @@
             z-index: 50;
             display: block;
         }
+
         .custom-region-actions {
             margin-left: auto;
             display: inline-flex;
             align-items: center;
             gap: 8px;
         }
-        #btnSaveCustomRegion { padding: 6px 13px; }
+
         #btnCloseCustomRegion {
             padding: 6px 12px;
             background: #232c4d;
             border-color: #4a6394;
         }
+
         #btnCloseCustomRegion:hover {
             background: #354375;
             border-color: #7cc4ff;
@@ -416,8 +525,10 @@
         <div class="toolbar-row toolbar-primary">
             <div class="date-home-group">
                 <input type="datetime-local" id="dateInput" step="1" title="クリックして日時を直接変更">
-                <button id="btnHomeSettings" type="button" aria-expanded="false" aria-controls="homeSettingsPanel">🏠 ホーム設定</button>
-                <button id="btnCustomRegion" type="button" aria-expanded="false" aria-controls="customRegionPanel">📍 カスタム地域</button>
+                <button id="btnHomeSettings" type="button" aria-expanded="false" aria-controls="homeSettingsPanel">🏠
+                    ホーム設定</button>
+                <button id="btnCustomRegion" type="button" aria-expanded="false" aria-controls="customRegionPanel">📍
+                    カスタム地域</button>
             </div>
 
             <div class="button-group primary-actions">
@@ -428,124 +539,128 @@
                 <button id="btnPlayPause">再生</button>
                 <button id="btnNextHour">1時 ▶</button>
                 <button id="btnNextDay">1日 ▶</button>-
-                <button id="btnToggleConst" style="background: #182247; border: 1px solid #6644aa; color: #d0b0ff; font-weight: bold;">✨
-                    星座: OFF</button>
-                <button id="btnToggleLabels" type="button" style="background: #182247; border: 1px solid #3c78b8; color: #b8dcff; font-weight: bold;">🏷️ 名称: ON</button>-
+                <button id="btnToggleConst"
+                    style="background: #182247; border: 1px solid #6644aa; color: #d0b0ff; font-weight: bold;">✨ 星座:
+                    OFF</button>
+                <button id="btnToggleLabels" type="button"
+                    style="background: #182247; border: 1px solid #3c78b8; color: #b8dcff; font-weight: bold;">🏷️ 名称:
+                    ON</button>
+                <button id="btnToggleWeather" type="button"
+                    style="background: #182247; border: 1px solid #367d8f; color: #8fe5ff; font-weight: bold;">☁️ 天気:
+                    ON</button>-
                 <button id="btnLanguage" type="button" title="Language">🌐 English</button>
-                
             </div>
         </div>
 
         <div class="toolbar-row toolbar-secondary">
             <div class="panel-extra-row clock-row" id="clockRow">
                 <span id="localTimeDisplay" style="font-size:20px">表示地域の時間: --</span>
-            <select id="citySelect" aria-label="観測場所">
-                <option value="home" id="homeCityOption" disabled>🏠 ホーム（先に設定）</option>
-                <optgroup label="日本・47都道府県（県庁所在地）">
-                    <option value="hokkaido">北海道｜札幌</option>
-                    <option value="aomori">青森県｜青森</option>
-                    <option value="iwate">岩手県｜盛岡</option>
-                    <option value="miyagi">宮城県｜仙台</option>
-                    <option value="akita">秋田県｜秋田</option>
-                    <option value="yamagata">山形県｜山形</option>
-                    <option value="fukushima">福島県｜福島</option>
-                    <option value="ibaraki">茨城県｜水戸</option>
-                    <option value="tochigi">栃木県｜宇都宮</option>
-                    <option value="gunma">群馬県｜前橋</option>
-                    <option value="saitama">埼玉県｜さいたま</option>
-                    <option value="chiba">千葉県｜千葉</option>
-                    <option value="tokyo" selected>東京都｜東京</option>
-                    <option value="kanagawa">神奈川県｜横浜</option>
-                    <option value="niigata">新潟県｜新潟</option>
-                    <option value="toyama">富山県｜富山</option>
-                    <option value="ishikawa">石川県｜金沢</option>
-                    <option value="fukui">福井県｜福井</option>
-                    <option value="yamanashi">山梨県｜甲府</option>
-                    <option value="nagano">長野県｜長野</option>
-                    <option value="gifu">岐阜県｜岐阜</option>
-                    <option value="shizuoka">静岡県｜静岡</option>
-                    <option value="nagoya">愛知県｜名古屋</option>
-                    <option value="mie">三重県｜津</option>
-                    <option value="shiga">滋賀県｜大津</option>
-                    <option value="kyoto">京都府｜京都</option>
-                    <option value="osaka">大阪府｜大阪</option>
-                    <option value="hyogo">兵庫県｜神戸</option>
-                    <option value="nara">奈良県｜奈良</option>
-                    <option value="wakayama">和歌山県｜和歌山</option>
-                    <option value="tottori">鳥取県｜鳥取</option>
-                    <option value="shimane">島根県｜松江</option>
-                    <option value="okayama">岡山県｜岡山</option>
-                    <option value="hiroshima">広島県｜広島</option>
-                    <option value="yamaguchi">山口県｜山口</option>
-                    <option value="tokushima">徳島県｜徳島</option>
-                    <option value="kagawa">香川県｜高松</option>
-                    <option value="ehime">愛媛県｜松山</option>
-                    <option value="kochi">高知県｜高知</option>
-                    <option value="fukuoka">福岡県｜福岡</option>
-                    <option value="saga">佐賀県｜佐賀</option>
-                    <option value="nagasaki">長崎県｜長崎</option>
-                    <option value="kumamoto">熊本県｜熊本</option>
-                    <option value="oita">大分県｜大分</option>
-                    <option value="miyazaki">宮崎県｜宮崎</option>
-                    <option value="kagoshima">鹿児島県｜鹿児島</option>
-                    <option value="okinawa">沖縄県｜那覇</option>
-                </optgroup>
-                <optgroup label="海外の主な首都（国名｜都市名）">
-                    <option value="seoul">韓国｜ソウル</option>
-                    <option value="beijing">中国｜北京</option>
-                    <option value="taipei">台湾｜台北</option>
-                    <option value="ulaanbaatar">モンゴル｜ウランバートル</option>
-                    <option value="bangkok">タイ｜バンコク</option>
-                    <option value="hanoi">ベトナム｜ハノイ</option>
-                    <option value="manila">フィリピン｜マニラ</option>
-                    <option value="singapore">シンガポール｜シンガポール</option>
-                    <option value="kuala_lumpur">マレーシア｜クアラルンプール</option>
-                    <option value="jakarta">インドネシア｜ジャカルタ</option>
-                    <option value="new_delhi">インド｜ニューデリー</option>
-                    <option value="dhaka">バングラデシュ｜ダッカ</option>
-                    <option value="kathmandu">ネパール｜カトマンズ</option>
-                    <option value="abu_dhabi">アラブ首長国連邦｜アブダビ</option>
-                    <option value="riyadh">サウジアラビア｜リヤド</option>
-                    <option value="cairo">エジプト｜カイロ</option>
-                    <option value="nairobi">ケニア｜ナイロビ</option>
-                    <option value="pretoria">南アフリカ｜プレトリア</option>
-                    <option value="london">イギリス｜ロンドン</option>
-                    <option value="paris">フランス｜パリ</option>
-                    <option value="berlin">ドイツ｜ベルリン</option>
-                    <option value="rome">イタリア｜ローマ</option>
-                    <option value="madrid">スペイン｜マドリード</option>
-                    <option value="lisbon">ポルトガル｜リスボン</option>
-                    <option value="amsterdam">オランダ｜アムステルダム</option>
-                    <option value="brussels">ベルギー｜ブリュッセル</option>
-                    <option value="vienna">オーストリア｜ウィーン</option>
-                    <option value="warsaw">ポーランド｜ワルシャワ</option>
-                    <option value="athens">ギリシャ｜アテネ</option>
-                    <option value="moscow">ロシア｜モスクワ</option>
-                    <option value="helsinki">フィンランド｜ヘルシンキ</option>
-                    <option value="stockholm">スウェーデン｜ストックホルム</option>
-                    <option value="oslo">ノルウェー｜オスロ</option>
-                    <option value="reykjavik">アイスランド｜レイキャビク</option>
-                    <option value="ottawa">カナダ｜オタワ</option>
-                    <option value="washington">アメリカ合衆国｜ワシントンD.C.</option>
-                    <option value="los_angeles">アメリカ合衆国（西海岸）｜ロサンゼルス</option>
-                    <option value="honolulu">アメリカ合衆国（ハワイ州）｜ホノルル</option>
-                    <option value="mexico_city">メキシコ｜メキシコシティ</option>
-                    <option value="brasilia">ブラジル｜ブラジリア</option>
-                    <option value="buenos_aires">アルゼンチン｜ブエノスアイレス</option>
-                    <option value="canberra">オーストラリア｜キャンベラ</option>
-                    <option value="wellington">ニュージーランド｜ウェリントン</option>
-                    <option value="papeete">パペーテ（タヒチ）</option>
-                    <option value="apia">アピア（サモア）</option>
-                    <option value="suva">スバ（フィジー）</option>
-                    <option value="easter_island">イースター島</option>
-                    <option value="north_pole">北極点</option>
-                    <option value="south_pole">南極点</option>
-                    <option value="equator_zero">赤道上（ギニア湾・大西洋）</option>
-                </optgroup>
-            </select>
+                <select id="citySelect" aria-label="観測場所">
+                    <option value="home" id="homeCityOption" disabled>🏠 ホーム（先に設定）</option>
+                    <optgroup label="日本・47都道府県（県庁所在地）">
+                        <option value="hokkaido">北海道｜札幌</option>
+                        <option value="aomori">青森県｜青森</option>
+                        <option value="iwate">岩手県｜盛岡</option>
+                        <option value="miyagi">宮城県｜仙台</option>
+                        <option value="akita">秋田県｜秋田</option>
+                        <option value="yamagata">山形県｜山形</option>
+                        <option value="fukushima">福島県｜福島</option>
+                        <option value="ibaraki">茨城県｜水戸</option>
+                        <option value="tochigi">栃木県｜宇都宮</option>
+                        <option value="gunma">群馬県｜前橋</option>
+                        <option value="saitama">埼玉県｜さいたま</option>
+                        <option value="chiba">千葉県｜千葉</option>
+                        <option value="tokyo" selected>東京都｜東京</option>
+                        <option value="kanagawa">神奈川県｜横浜</option>
+                        <option value="niigata">新潟県｜新潟</option>
+                        <option value="toyama">富山県｜富山</option>
+                        <option value="ishikawa">石川県｜金沢</option>
+                        <option value="fukui">福井県｜福井</option>
+                        <option value="yamanashi">山梨県｜甲府</option>
+                        <option value="nagano">長野県｜長野</option>
+                        <option value="gifu">岐阜県｜岐阜</option>
+                        <option value="shizuoka">静岡県｜静岡</option>
+                        <option value="nagoya">愛知県｜名古屋</option>
+                        <option value="mie">三重県｜津</option>
+                        <option value="shiga">滋賀県｜大津</option>
+                        <option value="kyoto">京都府｜京都</option>
+                        <option value="osaka">大阪府｜大阪</option>
+                        <option value="hyogo">兵庫県｜神戸</option>
+                        <option value="nara">奈良県｜奈良</option>
+                        <option value="wakayama">和歌山県｜和歌山</option>
+                        <option value="tottori">鳥取県｜鳥取</option>
+                        <option value="shimane">島根県｜松江</option>
+                        <option value="okayama">岡山県｜岡山</option>
+                        <option value="hiroshima">広島県｜広島</option>
+                        <option value="yamaguchi">山口県｜山口</option>
+                        <option value="tokushima">徳島県｜徳島</option>
+                        <option value="kagawa">香川県｜高松</option>
+                        <option value="ehime">愛媛県｜松山</option>
+                        <option value="kochi">高知県｜高知</option>
+                        <option value="fukuoka">福岡県｜福岡</option>
+                        <option value="saga">佐賀県｜佐賀</option>
+                        <option value="nagasaki">長崎県｜長崎</option>
+                        <option value="kumamoto">熊本県｜熊本</option>
+                        <option value="oita">大分県｜大分</option>
+                        <option value="miyazaki">宮崎県｜宮崎</option>
+                        <option value="kagoshima">鹿児島県｜鹿児島</option>
+                        <option value="okinawa">沖縄県｜那覇</option>
+                    </optgroup>
+                    <optgroup label="海外の主な首都（国名｜都市名）">
+                        <option value="seoul">韓国｜ソウル</option>
+                        <option value="beijing">中国｜北京</option>
+                        <option value="taipei">台湾｜台北</option>
+                        <option value="ulaanbaatar">モンゴル｜ウランバートル</option>
+                        <option value="bangkok">タイ｜バンコク</option>
+                        <option value="hanoi">ベトナム｜ハノイ</option>
+                        <option value="manila">フィリピン｜マニラ</option>
+                        <option value="singapore">シンガポール｜シンガポール</option>
+                        <option value="kuala_lumpur">マレーシア｜クアラルンプール</option>
+                        <option value="jakarta">インドネシア｜ジャカルタ</option>
+                        <option value="new_delhi">インド｜ニューデリー</option>
+                        <option value="dhaka">バングラデシュ｜ダッカ</option>
+                        <option value="kathmandu">ネパール｜カトマンズ</option>
+                        <option value="abu_dhabi">アラブ首長国連邦｜アブダビ</option>
+                        <option value="riyadh">サウジアラビア｜リヤド</option>
+                        <option value="cairo">エジプト｜カイロ</option>
+                        <option value="nairobi">ケニア｜ナイロビ</option>
+                        <option value="pretoria">南アフリカ｜プレトリア</option>
+                        <option value="london">イギリス｜ロンドン</option>
+                        <option value="paris">フランス｜パリ</option>
+                        <option value="berlin">ドイツ｜ベルリン</option>
+                        <option value="rome">イタリア｜ローマ</option>
+                        <option value="madrid">スペイン｜マドリード</option>
+                        <option value="lisbon">ポルトガル｜リスボン</option>
+                        <option value="amsterdam">オランダ｜アムステルダム</option>
+                        <option value="brussels">ベルギー｜ブリュッセル</option>
+                        <option value="vienna">オーストリア｜ウィーン</option>
+                        <option value="warsaw">ポーランド｜ワルシャワ</option>
+                        <option value="athens">ギリシャ｜アテネ</option>
+                        <option value="moscow">ロシア｜モスクワ</option>
+                        <option value="helsinki">フィンランド｜ヘルシンキ</option>
+                        <option value="stockholm">スウェーデン｜ストックホルム</option>
+                        <option value="oslo">ノルウェー｜オスロ</option>
+                        <option value="reykjavik">アイスランド｜レイキャビク</option>
+                        <option value="ottawa">カナダ｜オタワ</option>
+                        <option value="washington">アメリカ合衆国｜ワシントンD.C.</option>
+                        <option value="los_angeles">アメリカ合衆国（西海岸）｜ロサンゼルス</option>
+                        <option value="honolulu">アメリカ合衆国（ハワイ州）｜ホノルル</option>
+                        <option value="mexico_city">メキシコ｜メキシコシティ</option>
+                        <option value="brasilia">ブラジル｜ブラジリア</option>
+                        <option value="buenos_aires">アルゼンチン｜ブエノスアイレス</option>
+                        <option value="canberra">オーストラリア｜キャンベラ</option>
+                        <option value="wellington">ニュージーランド｜ウェリントン</option>
+                        <option value="papeete">パペーテ（タヒチ）</option>
+                        <option value="apia">アピア（サモア）</option>
+                        <option value="suva">スバ（フィジー）</option>
+                        <option value="easter_island">イースター島</option>
+                        <option value="north_pole">北極点</option>
+                        <option value="south_pole">南極点</option>
+                        <option value="equator_zero">赤道上（ギニア湾・大西洋）</option>
+                    </optgroup>
+                </select>
             </div>
             <div class="location-speed-group">
-            
                 <div class="speed-control">
                     <span id="speedLabel">速度:</span>
                     <input type="range" id="speedSlider" min="0.1" max="24" step="0.1" value="1.0">
@@ -558,7 +673,8 @@
         <div class="panel-extra-row custom-region-settings" id="customRegionPanel" hidden>
             <strong id="customRegionHeading">📍 カスタム地域</strong>
             <label><span id="customRegionNameLabel">名称</span>
-                <input id="customRegionName" type="text" maxlength="60" placeholder="例：種子島 / Tanegashima" autocomplete="off">
+                <input id="customRegionName" type="text" maxlength="60" placeholder="例：種子島 / Tanegashima"
+                    autocomplete="off">
             </label>
             <label><span id="customRegionLatLabel">緯度</span>
                 <input id="customRegionLat" type="number" min="-90" max="90" step="0.0001" placeholder="30.7325">
@@ -574,7 +690,7 @@
             <div id="customRegionMap" aria-label="世界地図クリックで観測位置を試す"></div>
         </div>
 
-                <!-- ホーム設定はボタンで開くポップアップ。保存後は自動で閉じる。 -->
+        <!-- ホーム設定ポップアップ -->
         <div class="panel-extra-row home-settings" id="homeSettingsPanel" hidden>
             <strong id="homeSettingsHeading">🏠 ホーム設定</strong>
             <label><span id="homeNameLabel">名前</span>
@@ -591,9 +707,7 @@
             </label>
             <button id="btnSaveHome" type="button">保存</button>
             <div id="homeRegionMap" aria-label="世界地図クリックでホーム緯度・経度を選択"></div>
-            </div>
         </div>
-
     </div>
 
     <script>
@@ -640,21 +754,17 @@
             neptune: { a: 30.0699227, e: 0.00860619, I: 1.77004347, L: -55.1200296, L_dot: 218.45945325, lp: 44.96476227, lp_dot: 0.76799153, node: 131.78405708, node_dot: 1.10220397 }
         };
 
-        // 内惑星エリアの間隔を拡張する滑らかな連続スケーリング（火星の近点〜遠点も段差なし）
         function scaleDistance(rAU, semiMajorAU) {
             const baseAU = (typeof semiMajorAU === 'number' && semiMajorAU > 0) ? semiMajorAU : rAU;
-            // 基準半長軸 a の滑らかなマッピング（r=1.6付近でも完全連続・微分連続）
             const mapBase = (au) => {
                 if (au <= 1.8) {
                     return 46 + (au - 0.387) * 95;
                 } else {
-                    // au=1.8 で値 180.235、傾き 95 を接続して折れ・段差をゼロにする
                     const dx = au - 1.8;
                     return 180.235 + 42 * (Math.pow(1 + dx * 2.26, 0.56) - 1) / 0.56 / 2.26 * 2.26;
                 }
             };
             const baseDist = mapBase(baseAU);
-            // 離心率による動径差 (r - a) を視覚的に判別しやすい倍率で反映（真円化を防止）
             const eccBoost = baseAU <= 2.0 ? 155 : 55;
             return Math.max(24, baseDist + (rAU - baseAU) * eccBoost);
         }
@@ -704,7 +814,6 @@
             };
         }
 
-        // 惑星データ（公転半径・自転周期[時間]・赤道傾斜角[度]・順行/逆行・衛星軌道要素）
         const planetsConfig = [
             { id: 'mercury', name: '水星', radius: 2.0, color: 0xaaaaaa, rotPeriodHours: 1407.6, tiltDeg: 0.03 },
             { id: 'venus', name: '金星', radius: 3.5, color: 0xe3bb76, rotPeriodHours: -5832.5, tiltDeg: 177.36 },
@@ -792,7 +901,6 @@
             const yEcl = r * (Math.sin(node) * Math.cos(u) + Math.cos(node) * Math.sin(u) * Math.cos(inc));
             const zEcl = r * (Math.sin(u) * Math.sin(inc));
 
-            // 衛星の軌道線・メッシュを惑星の tiltGroup 配下に置く場合は赤道傾斜角を二重適用しない
             const parentTilt = moonData.attachToTiltGroup ? 0 : (moonData.parentTiltRad || 0);
             const yTilted = yEcl * Math.cos(parentTilt) - zEcl * Math.sin(parentTilt);
             const zTilted = yEcl * Math.sin(parentTilt) + zEcl * Math.cos(parentTilt);
@@ -867,7 +975,6 @@
                 });
             }
 
-            // 3D 軌道トレース（getPlanetHelioPosition と同じ黄道傾斜角・昇交点・近日点引数・スケーリングを使用）
             const orbitPts = [];
             const elem = orbitalElements[p.id];
             const rad = Math.PI / 180;
@@ -881,7 +988,6 @@
             planetMeshes[p.id] = { pivot, tiltGroup, mesh, orbitLine, config: p, moons: moonList, elem: elem };
         });
 
-        // 高精度月黄経
         function getMoonGeocentricEclipticLon(dDays, T) {
             const rad = Math.PI / 180;
             const Lp = (218.3164477 + 481267.88123421 * T) % 360;
@@ -900,7 +1006,7 @@
         }
 
         // ==========================================
-        // 2.5 天文潮の概算（場所・日時・月・太陽を考慮）
+        // 2.5 天文潮の概算
         // ==========================================
         const TIDE_LUNAR_AMPLITUDE_M = 0.36;
         const TIDE_SOLAR_AMPLITUDE_M = 0.16;
@@ -943,34 +1049,8 @@
             return tideHeightFromAltitudes(sunHoriz.alt, moonHoriz.alt, dDays, T, earthPos.r);
         }
 
-        function getAnnualTideRange(date) {
-            const year = date.getFullYear();
-            const cacheKey = `${year}|${currentCity.lat.toFixed(4)}|${currentCity.lon.toFixed(4)}`;
-            if (annualTideRangeCache.has(cacheKey)) return annualTideRangeCache.get(cacheKey);
-
-            const start = new Date(year, 0, 1, 0, 0, 0, 0).getTime();
-            const end = new Date(year + 1, 0, 1, 0, 0, 0, 0).getTime();
-            const oneHour = 60 * 60 * 1000;
-            let min = Infinity;
-            let max = -Infinity;
-
-            for (let time = start; time < end; time += oneHour) {
-                const height = getAstronomicalTideHeight(new Date(time));
-                if (height < min) min = height;
-                if (height > max) max = height;
-            }
-
-            const range = { min, max };
-            annualTideRangeCache.set(cacheKey, range);
-            if (annualTideRangeCache.size > 16) {
-                const oldestKey = annualTideRangeCache.keys().next().value;
-                annualTideRangeCache.delete(oldestKey);
-            }
-            return range;
-        }
-
         // ==========================================
-        // 2.6 実際の港湾潮汐データ取得
+        // 2.6 港湾潮汐データ取得
         // ==========================================
         const TIDE_API = 'https://api.openwaters.io/tides';
         const TIDE_MAX_DISTANCE_KM = 50;
@@ -990,224 +1070,207 @@
             const rad = Math.PI / 180;
             const dLat = (lat2 - lat1) * rad;
             const dLon = (lon2 - lon1) * rad;
-
-            const a =
-                Math.sin(dLat / 2) ** 2 +
-                Math.cos(lat1 * rad) *
-                Math.cos(lat2 * rad) *
-                Math.sin(dLon / 2) ** 2;
-
+            const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLon / 2) ** 2;
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         }
 
         function tideStationIsNear(data) {
             const s = data?.station;
             if (!s) return false;
-
             const lat = Number(s.latitude ?? s.lat);
             const lon = Number(s.longitude ?? s.lon ?? s.lng);
-
-            if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-                return false;
-            }
-
-            return tideDistanceKm(
-                currentCity.lat,
-                currentCity.lon,
-                lat,
-                lon
-            ) <= TIDE_MAX_DISTANCE_KM;
+            if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
+            return tideDistanceKm(currentCity.lat, currentCity.lon, lat, lon) <= TIDE_MAX_DISTANCE_KM;
         }
 
         async function fetchTideJson(url) {
             const response = await fetch(url);
-
-            if (!response.ok) {
-                throw new Error(`Tide API error: ${response.status}`);
-            }
-
+            if (!response.ok) throw new Error(`Tide API error: ${response.status}`);
             return response.json();
         }
 
         function ensureActualTideData(date) {
             const location = tideLocationKey();
-
-            const blockStart =
-                Math.floor(date.getTime() / TIDE_BLOCK_MS) * TIDE_BLOCK_MS;
-
+            const blockStart = Math.floor(date.getTime() / TIDE_BLOCK_MS) * TIDE_BLOCK_MS;
             const timelineKey = `${location}|${blockStart}`;
 
-            if (
-                !tideTimelineCache.has(timelineKey) &&
-                !tidePending.has(timelineKey) &&
-                Date.now() >= (tideRetryAfter.get(timelineKey) || 0)
-            ) {
+            if (!tideTimelineCache.has(timelineKey) && !tidePending.has(timelineKey) && Date.now() >= (tideRetryAfter.get(timelineKey) || 0)) {
                 tidePending.add(timelineKey);
-
                 const start = new Date(blockStart);
                 const end = new Date(blockStart + TIDE_BLOCK_MS);
-
-                const params = new URLSearchParams({
-                    latitude: currentCity.lat,
-                    longitude: currentCity.lon,
-                    start: start.toISOString(),
-                    end: end.toISOString(),
-                    units: 'meters'
-                });
+                const params = new URLSearchParams({ latitude: currentCity.lat, longitude: currentCity.lon, start: start.toISOString(), end: end.toISOString(), units: 'meters' });
 
                 fetchTideJson(`${TIDE_API}/timeline?${params}`)
                     .then(data => {
                         if (!tideStationIsNear(data)) {
-                            tideTimelineCache.set(timelineKey, {
-                                unavailable: true
-                            });
+                            tideTimelineCache.set(timelineKey, { unavailable: true });
                             return;
                         }
-
-                        const points = (data.timeline || [])
-                            .map(p => ({
-                                time: new Date(p.time).getTime(),
-                                level: Number(p.level)
-                            }))
-                            .filter(p =>
-                                Number.isFinite(p.time) &&
-                                Number.isFinite(p.level)
-                            )
-                            .sort((a, b) => a.time - b.time);
-
+                        const points = (data.timeline || []).map(p => ({ time: new Date(p.time).getTime(), level: Number(p.level) }))
+                            .filter(p => Number.isFinite(p.time) && Number.isFinite(p.level)).sort((a, b) => a.time - b.time);
                         if (points.length < 2) {
-                            tideTimelineCache.set(timelineKey, {
-                                unavailable: true
-                            });
+                            tideTimelineCache.set(timelineKey, { unavailable: true });
                             return;
                         }
-
-                        tideTimelineCache.set(timelineKey, {
-                            points,
-                            station: data.station.name
-                        });
-
-                        while (tideTimelineCache.size > 12) {
-                            tideTimelineCache.delete(
-                                tideTimelineCache.keys().next().value
-                            );
-                        }
+                        tideTimelineCache.set(timelineKey, { points, station: data.station.name });
+                        while (tideTimelineCache.size > 12) tideTimelineCache.delete(tideTimelineCache.keys().next().value);
                     })
-                    .catch(() => {
-                        tideRetryAfter.set(
-                            timelineKey,
-                            Date.now() + 120000
-                        );
-                    })
-                    .finally(() => {
-                        tidePending.delete(timelineKey);
-                        if (isSkyMode) renderTokyoSky(simDate);
-                    });
+                    .catch(() => { tideRetryAfter.set(timelineKey, Date.now() + 120000); })
+                    .finally(() => { tidePending.delete(timelineKey); if (isSkyMode) renderTokyoSky(simDate); });
             }
 
             const year = date.getFullYear();
             const annualKey = `${location}|${year}`;
-
-            if (
-                !tideAnnualCache.has(annualKey) &&
-                !tidePending.has(annualKey) &&
-                Date.now() >= (tideRetryAfter.get(annualKey) || 0)
-            ) {
+            if (!tideAnnualCache.has(annualKey) && !tidePending.has(annualKey) && Date.now() >= (tideRetryAfter.get(annualKey) || 0)) {
                 tidePending.add(annualKey);
-
-                const params = new URLSearchParams({
-                    latitude: currentCity.lat,
-                    longitude: currentCity.lon,
-                    start: new Date(Date.UTC(year, 0, 1)).toISOString(),
-                    end: new Date(Date.UTC(year + 1, 0, 1)).toISOString(),
-                    units: 'meters'
-                });
+                const params = new URLSearchParams({ latitude: currentCity.lat, longitude: currentCity.lon, start: new Date(Date.UTC(year, 0, 1)).toISOString(), end: new Date(Date.UTC(year + 1, 0, 1)).toISOString(), units: 'meters' });
 
                 fetchTideJson(`${TIDE_API}/extremes?${params}`)
                     .then(data => {
                         if (!tideStationIsNear(data)) {
-                            tideAnnualCache.set(annualKey, {
-                                unavailable: true
-                            });
+                            tideAnnualCache.set(annualKey, { unavailable: true });
                             return;
                         }
-
-                        const levels = (data.extremes || [])
-                            .map(p => Number(p.level))
-                            .filter(Number.isFinite);
-
+                        const levels = (data.extremes || []).map(p => Number(p.level)).filter(Number.isFinite);
                         if (!levels.length) {
-                            tideAnnualCache.set(annualKey, {
-                                unavailable: true
-                            });
+                            tideAnnualCache.set(annualKey, { unavailable: true });
                             return;
                         }
-
-                        tideAnnualCache.set(annualKey, {
-                            min: Math.min(...levels),
-                            max: Math.max(...levels)
-                        });
-
-                        while (tideAnnualCache.size > 8) {
-                            tideAnnualCache.delete(
-                                tideAnnualCache.keys().next().value
-                            );
-                        }
+                        tideAnnualCache.set(annualKey, { min: Math.min(...levels), max: Math.max(...levels) });
+                        while (tideAnnualCache.size > 8) tideAnnualCache.delete(tideAnnualCache.keys().next().value);
                     })
-                    .catch(() => {
-                        tideRetryAfter.set(
-                            annualKey,
-                            Date.now() + 120000
-                        );
-                    })
-                    .finally(() => {
-                        tidePending.delete(annualKey);
-                        if (isSkyMode) renderTokyoSky(simDate);
-                    });
+                    .catch(() => { tideRetryAfter.set(annualKey, Date.now() + 120000); })
+                    .finally(() => { tidePending.delete(annualKey); if (isSkyMode) renderTokyoSky(simDate); });
             }
         }
 
         function getActualTideAt(date) {
-            const blockStart =
-                Math.floor(date.getTime() / TIDE_BLOCK_MS) * TIDE_BLOCK_MS;
-
+            const blockStart = Math.floor(date.getTime() / TIDE_BLOCK_MS) * TIDE_BLOCK_MS;
             const key = `${tideLocationKey()}|${blockStart}`;
             const entry = tideTimelineCache.get(key);
-
             if (!entry || entry.unavailable) return null;
-
             const points = entry.points;
             const time = date.getTime();
-
-            let low = 0;
-            let high = points.length - 1;
-
+            let low = 0, high = points.length - 1;
             while (low <= high) {
                 const mid = Math.floor((low + high) / 2);
-
                 if (points[mid].time < time) low = mid + 1;
                 else high = mid - 1;
             }
-
-            const a = points[high];
-            const b = points[low];
-
+            const a = points[high], b = points[low];
             if (!a || !b) return null;
-
-            const ratio =
-                (time - a.time) / (b.time - a.time);
-
+            const ratio = (time - a.time) / (b.time - a.time);
             return a.level + (b.level - a.level) * ratio;
         }
 
         function getActualAnnualTideRange(date) {
             const key = `${tideLocationKey()}|${date.getFullYear()}`;
             const result = tideAnnualCache.get(key);
-
             if (!result || result.unavailable) return null;
-
             return result;
         }
+
+        // ==========================================
+        // 2.7 Open-Meteo 天気・雲量・降水データ取得
+        // ==========================================
+        let showWeather = true;
+        const weatherCache = new Map();
+        let weatherPending = false;
+        let weatherFetchedAt = 0;
+        let weatherAvailable = false;
+        const WEATHER_FADE_HOURS = 6; // 現在天気しかないため、未来6時間で徐々に非表示
+        let currentWeather = {
+            weatherCode: 0,
+            cloudCover: 0,
+            isRaining: false,
+            isSnowing: false,
+            icon: '☀️',
+            textJa: '快晴',
+            textEn: 'Clear',
+            temperature: null
+        };
+
+        function parseWeatherCode(code, cloudCover) {
+            let icon = '☀️', textJa = '快晴', textEn = 'Clear';
+            let isRaining = false, isSnowing = false;
+
+            if ((code >= 71 && code <= 77) || code === 85 || code === 86) {
+                icon = '❄️'; textJa = '雪'; textEn = 'Snow';
+                isSnowing = true;
+            } else if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82) || code >= 95) {
+                icon = '🌧️'; textJa = '雨'; textEn = 'Rain';
+                isRaining = true;
+            } else if (code >= 45 && code <= 48) {
+                icon = '🌫️'; textJa = '霧'; textEn = 'Fog';
+            } else if (code === 3 || cloudCover >= 80) {
+                icon = '☁️'; textJa = '曇り'; textEn = 'Overcast';
+            } else if (code === 2 || cloudCover >= 40) {
+                icon = '⛅'; textJa = '晴れ時々曇り'; textEn = 'Partly Cloudy';
+            } else if (code === 1 || cloudCover >= 15) {
+                icon = '🌤️'; textJa = 'おおむね晴れ'; textEn = 'Mostly Clear';
+            }
+            return { weatherCode: code, cloudCover, isRaining, isSnowing, icon, textJa, textEn, temperature: null };
+        }
+
+        function ensureWeatherData() {
+            const key = `${currentCity.lat.toFixed(2)},${currentCity.lon.toFixed(2)}`;
+            const cached = weatherCache.get(key);
+            if (cached && (Date.now() - cached.fetchedAt < 15 * 60 * 1000)) {
+                currentWeather = cached.data;
+                weatherFetchedAt = cached.fetchedAt;
+                weatherAvailable = true;
+                return;
+            }
+            if (weatherPending) return;
+            weatherPending = true;
+
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentCity.lat.toFixed(4)}&longitude=${currentCity.lon.toFixed(4)}&current=weather_code,cloud_cover,temperature_2m&timezone=auto`;
+            fetch(url)
+                .then(r => r.ok ? r.json() : null)
+                .then(data => {
+                    if (data && data.current && data.current.weather_code !== undefined) {
+                        const code = Number(data.current.weather_code) || 0;
+                        const cover = Number(data.current.cloud_cover) || 0;
+                        const parsed = parseWeatherCode(code, cover);
+                        parsed.temperature = Number.isFinite(Number(data.current.temperature_2m))
+                            ? Number(data.current.temperature_2m) : null;
+                        currentWeather = parsed;
+                        weatherAvailable = true;
+                        weatherFetchedAt = Date.now();
+                        weatherCache.set(key, { data: parsed, fetchedAt: weatherFetchedAt });
+                        if (isSkyMode) renderTokyoSky(simDate);
+                    } else {
+                        weatherAvailable = false;
+                        if (isSkyMode) renderTokyoSky(simDate);
+                    }
+                })
+                .catch(() => { weatherAvailable = false; if (isSkyMode) renderTokyoSky(simDate); })
+                .finally(() => { weatherPending = false; });
+        }
+
+        // 取得できているのは現在の天気のみ。シミュレーション時刻が未来へ進むほど
+        // 6時間かけてエフェクトと表示をフェードし、以降は不明（--）として扱う。
+        function getWeatherOpacity(date) {
+            if (!showWeather || !weatherAvailable || !weatherFetchedAt) return 0;
+            const futureHours = Math.max(0, (date.getTime() - weatherFetchedAt) / 3600000);
+            return Math.max(0, Math.min(1, 1 - futureHours / WEATHER_FADE_HOURS));
+        }
+
+        // 雨・雪のパーティクル
+        const rainParticles = Array.from({ length: 100 }, () => ({
+            x: Math.random(),
+            y: Math.random(),
+            len: 20 + Math.random() * 30,
+            speed: 0.01 + Math.random() * 0.008
+        }));
+        const snowParticles = Array.from({ length: 100 }, () => ({
+            x: Math.random(),
+            y: Math.random(),
+            r: 3 + Math.random() * 2.0,
+            speedY: 0.0018 + Math.random() * 0.003,
+            swing: Math.random() * Math.PI * 2,
+            swingSpeed: 0.02 + Math.random() * 0.03
+        }));
 
         // ==========================================
         // 3. 都市データ & 状態管理
@@ -1308,162 +1371,141 @@
             apia: { name: 'アピア（サモア）', lat: -13.8333, lon: -171.7667, timeZone: 'Pacific/Apia' },
             suva: { name: 'スバ（フィジー）', lat: -18.1416, lon: 178.4419, timeZone: 'Pacific/Fiji' },
             easter_island: { name: 'イースター島', lat: -27.1127, lon: -109.3497, timeZone: 'Pacific/Easter' },
-            north_pole: {
-                name: '北極点',
-                lat: 90.001,
-                lon: 0.0
-            },
-            south_pole: {
-                name: '南極点',
-                lat: -90.001,
-                lon: 0.0
-            },
-            equator_zero: {
-                name: '赤道上（ギニア湾・大西洋）',
-                lat: 0.0,
-                lon: 0.0
-            }
+            north_pole: { name: '北極点', lat: 90.001, lon: 0.0 },
+            south_pole: { name: '南極点', lat: -90.001, lon: 0.0 },
+            equator_zero: { name: '赤道上（ギニア湾・大西洋）', lat: 0.0, lon: 0.0 }
         };
 
-        // ==========================================
-        // 3.5 Global UI / Home location / time zones
-        // ==========================================
         const CITY_TIME_ZONES = {
-            hokkaido:'Asia/Tokyo', aomori:'Asia/Tokyo', iwate:'Asia/Tokyo', miyagi:'Asia/Tokyo', akita:'Asia/Tokyo',
-            yamagata:'Asia/Tokyo', fukushima:'Asia/Tokyo', ibaraki:'Asia/Tokyo', tochigi:'Asia/Tokyo', gunma:'Asia/Tokyo',
-            saitama:'Asia/Tokyo', chiba:'Asia/Tokyo', tokyo:'Asia/Tokyo', kanagawa:'Asia/Tokyo', niigata:'Asia/Tokyo',
-            toyama:'Asia/Tokyo', ishikawa:'Asia/Tokyo', fukui:'Asia/Tokyo', yamanashi:'Asia/Tokyo', nagano:'Asia/Tokyo',
-            gifu:'Asia/Tokyo', shizuoka:'Asia/Tokyo', nagoya:'Asia/Tokyo', mie:'Asia/Tokyo', shiga:'Asia/Tokyo',
-            kyoto:'Asia/Tokyo', osaka:'Asia/Tokyo', hyogo:'Asia/Tokyo', nara:'Asia/Tokyo', wakayama:'Asia/Tokyo',
-            tottori:'Asia/Tokyo', shimane:'Asia/Tokyo', okayama:'Asia/Tokyo', hiroshima:'Asia/Tokyo', yamaguchi:'Asia/Tokyo',
-            tokushima:'Asia/Tokyo', kagawa:'Asia/Tokyo', ehime:'Asia/Tokyo', kochi:'Asia/Tokyo', fukuoka:'Asia/Tokyo',
-            saga:'Asia/Tokyo', nagasaki:'Asia/Tokyo', kumamoto:'Asia/Tokyo', oita:'Asia/Tokyo', miyazaki:'Asia/Tokyo',
-            kagoshima:'Asia/Tokyo', okinawa:'Asia/Tokyo',
-            seoul:'Asia/Seoul', beijing:'Asia/Shanghai', taipei:'Asia/Taipei', ulaanbaatar:'Asia/Ulaanbaatar',
-            bangkok:'Asia/Bangkok', hanoi:'Asia/Ho_Chi_Minh', manila:'Asia/Manila', singapore:'Asia/Singapore',
-            kuala_lumpur:'Asia/Kuala_Lumpur', jakarta:'Asia/Jakarta', new_delhi:'Asia/Kolkata', dhaka:'Asia/Dhaka',
-            kathmandu:'Asia/Kathmandu', abu_dhabi:'Asia/Dubai', riyadh:'Asia/Riyadh', cairo:'Africa/Cairo',
-            nairobi:'Africa/Nairobi', pretoria:'Africa/Johannesburg', london:'Europe/London', paris:'Europe/Paris',
-            berlin:'Europe/Berlin', rome:'Europe/Rome', madrid:'Europe/Madrid', lisbon:'Europe/Lisbon',
-            amsterdam:'Europe/Amsterdam', brussels:'Europe/Brussels', vienna:'Europe/Vienna', warsaw:'Europe/Warsaw',
-            athens:'Europe/Athens', moscow:'Europe/Moscow', helsinki:'Europe/Helsinki', stockholm:'Europe/Stockholm',
-            oslo:'Europe/Oslo', reykjavik:'Atlantic/Reykjavik', ottawa:'America/Toronto', washington:'America/New_York',
-            los_angeles:'America/Los_Angeles', honolulu:'Pacific/Honolulu', mexico_city:'America/Mexico_City',
-            brasilia:'America/Sao_Paulo', buenos_aires:'America/Argentina/Buenos_Aires', canberra:'Australia/Sydney',
-            wellington:'Pacific/Auckland',
-            north_pole: 'Etc/UTC',
-            south_pole: 'Etc/UTC',
-            equator_zero: 'Africa/Abidjan'
+            hokkaido: 'Asia/Tokyo', aomori: 'Asia/Tokyo', iwate: 'Asia/Tokyo', miyagi: 'Asia/Tokyo', akita: 'Asia/Tokyo',
+            yamagata: 'Asia/Tokyo', fukushima: 'Asia/Tokyo', ibaraki: 'Asia/Tokyo', tochigi: 'Asia/Tokyo', gunma: 'Asia/Tokyo',
+            saitama: 'Asia/Tokyo', chiba: 'Asia/Tokyo', tokyo: 'Asia/Tokyo', kanagawa: 'Asia/Tokyo', niigata: 'Asia/Tokyo',
+            toyama: 'Asia/Tokyo', ishikawa: 'Asia/Tokyo', fukui: 'Asia/Tokyo', yamanashi: 'Asia/Tokyo', nagano: 'Asia/Tokyo',
+            gifu: 'Asia/Tokyo', shizuoka: 'Asia/Tokyo', nagoya: 'Asia/Tokyo', mie: 'Asia/Tokyo', shiga: 'Asia/Tokyo',
+            kyoto: 'Asia/Tokyo', osaka: 'Asia/Tokyo', hyogo: 'Asia/Tokyo', nara: 'Asia/Tokyo', wakayama: 'Asia/Tokyo',
+            tottori: 'Asia/Tokyo', shimane: 'Asia/Tokyo', okayama: 'Asia/Tokyo', hiroshima: 'Asia/Tokyo', yamaguchi: 'Asia/Tokyo',
+            tokushima: 'Asia/Tokyo', kagawa: 'Asia/Tokyo', ehime: 'Asia/Tokyo', kochi: 'Asia/Tokyo', fukuoka: 'Asia/Tokyo',
+            saga: 'Asia/Tokyo', nagasaki: 'Asia/Tokyo', kumamoto: 'Asia/Tokyo', oita: 'Asia/Tokyo', miyazaki: 'Asia/Tokyo',
+            kagoshima: 'Asia/Tokyo', okinawa: 'Asia/Tokyo',
+            seoul: 'Asia/Seoul', beijing: 'Asia/Shanghai', taipei: 'Asia/Taipei', ulaanbaatar: 'Asia/Ulaanbaatar',
+            bangkok: 'Asia/Bangkok', hanoi: 'Asia/Ho_Chi_Minh', manila: 'Asia/Manila', singapore: 'Asia/Singapore',
+            kuala_lumpur: 'Asia/Kuala_Lumpur', jakarta: 'Asia/Jakarta', new_delhi: 'Asia/Kolkata', dhaka: 'Asia/Dhaka',
+            kathmandu: 'Asia/Kathmandu', abu_dhabi: 'Asia/Dubai', riyadh: 'Asia/Riyadh', cairo: 'Africa/Cairo',
+            nairobi: 'Africa/Nairobi', pretoria: 'Africa/Johannesburg', london: 'Europe/London', paris: 'Europe/Paris',
+            berlin: 'Europe/Berlin', rome: 'Europe/Rome', madrid: 'Europe/Madrid', lisbon: 'Europe/Lisbon',
+            amsterdam: 'Europe/Amsterdam', brussels: 'Europe/Brussels', vienna: 'Europe/Vienna', warsaw: 'Europe/Warsaw',
+            athens: 'Europe/Athens', moscow: 'Europe/Moscow', helsinki: 'Europe/Helsinki', stockholm: 'Europe/Stockholm',
+            oslo: 'Europe/Oslo', reykjavik: 'Atlantic/Reykjavik', ottawa: 'America/Toronto', washington: 'America/New_York',
+            los_angeles: 'America/Los_Angeles', honolulu: 'Pacific/Honolulu', mexico_city: 'America/Mexico_City',
+            brasilia: 'America/Sao_Paulo', buenos_aires: 'America/Argentina/Buenos_Aires', canberra: 'Australia/Sydney',
+            wellington: 'Pacific/Auckland', north_pole: 'Etc/UTC', south_pole: 'Etc/UTC', equator_zero: 'Africa/Abidjan'
         };
         Object.entries(CITY_TIME_ZONES).forEach(([key, zone]) => {
             if (CITIES[key]) CITIES[key].timeZone = zone;
         });
 
         const CITY_NAMES_EN = {
-            hokkaido:'Hokkaido — Sapporo', aomori:'Aomori Prefecture — Aomori', iwate:'Iwate Prefecture — Morioka',
-            miyagi:'Miyagi Prefecture — Sendai', akita:'Akita Prefecture — Akita', yamagata:'Yamagata Prefecture — Yamagata',
-            fukushima:'Fukushima Prefecture — Fukushima', ibaraki:'Ibaraki Prefecture — Mito', tochigi:'Tochigi Prefecture — Utsunomiya',
-            gunma:'Gunma Prefecture — Maebashi', saitama:'Saitama Prefecture — Saitama', chiba:'Chiba Prefecture — Chiba',
-            tokyo:'Tokyo Metropolis — Tokyo', kanagawa:'Kanagawa Prefecture — Yokohama', niigata:'Niigata Prefecture — Niigata',
-            toyama:'Toyama Prefecture — Toyama', ishikawa:'Ishikawa Prefecture — Kanazawa', fukui:'Fukui Prefecture — Fukui',
-            yamanashi:'Yamanashi Prefecture — Kofu', nagano:'Nagano Prefecture — Nagano', gifu:'Gifu Prefecture — Gifu',
-            shizuoka:'Shizuoka Prefecture — Shizuoka', nagoya:'Aichi Prefecture — Nagoya', mie:'Mie Prefecture — Tsu',
-            shiga:'Shiga Prefecture — Otsu', kyoto:'Kyoto Prefecture — Kyoto', osaka:'Osaka Prefecture — Osaka',
-            hyogo:'Hyogo Prefecture — Kobe', nara:'Nara Prefecture — Nara', wakayama:'Wakayama Prefecture — Wakayama',
-            tottori:'Tottori Prefecture — Tottori', shimane:'Shimane Prefecture — Matsue', okayama:'Okayama Prefecture — Okayama',
-            hiroshima:'Hiroshima Prefecture — Hiroshima', yamaguchi:'Yamaguchi Prefecture — Yamaguchi',
-            tokushima:'Tokushima Prefecture — Tokushima', kagawa:'Kagawa Prefecture — Takamatsu', ehime:'Ehime Prefecture — Matsuyama',
-            kochi:'Kochi Prefecture — Kochi', fukuoka:'Fukuoka Prefecture — Fukuoka', saga:'Saga Prefecture — Saga',
-            nagasaki:'Nagasaki Prefecture — Nagasaki', kumamoto:'Kumamoto Prefecture — Kumamoto', oita:'Oita Prefecture — Oita',
-            miyazaki:'Miyazaki Prefecture — Miyazaki', kagoshima:'Kagoshima Prefecture — Kagoshima', okinawa:'Okinawa Prefecture — Naha',
-            seoul:'South Korea — Seoul', beijing:'China — Beijing', taipei:'Taiwan — Taipei', ulaanbaatar:'Mongolia — Ulaanbaatar',
-            bangkok:'Thailand — Bangkok', hanoi:'Vietnam — Hanoi', manila:'Philippines — Manila', singapore:'Singapore — Singapore',
-            kuala_lumpur:'Malaysia — Kuala Lumpur', jakarta:'Indonesia — Jakarta', new_delhi:'India — New Delhi',
-            dhaka:'Bangladesh — Dhaka', kathmandu:'Nepal — Kathmandu', abu_dhabi:'United Arab Emirates — Abu Dhabi',
-            riyadh:'Saudi Arabia — Riyadh', cairo:'Egypt — Cairo', nairobi:'Kenya — Nairobi', pretoria:'South Africa — Pretoria',
-            london:'United Kingdom — London', paris:'France — Paris', berlin:'Germany — Berlin', rome:'Italy — Rome',
-            madrid:'Spain — Madrid', lisbon:'Portugal — Lisbon', amsterdam:'Netherlands — Amsterdam', brussels:'Belgium — Brussels',
-            vienna:'Austria — Vienna', warsaw:'Poland — Warsaw', athens:'Greece — Athens', moscow:'Russia — Moscow',
-            helsinki:'Finland — Helsinki', stockholm:'Sweden — Stockholm', oslo:'Norway — Oslo', reykjavik:'Iceland — Reykjavik',
-            ottawa:'Canada — Ottawa', washington:'United States — Washington, D.C.', los_angeles:'United States (West Coast) — Los Angeles',
-            honolulu:'United States (Hawaii) — Honolulu', mexico_city:'Mexico — Mexico City', brasilia:'Brazil — Brasilia',
-            papeete: 'Papeete (Tahiti)',
-            apia: 'Apia (Samoa)',
-            suva: 'Suva (Fiji)',
-            easter_island: 'Easter Island',
-            buenos_aires:'Argentina — Buenos Aires', canberra:'Australia — Canberra', wellington:'New Zealand — Wellington',
-            north_pole: 'North Pole',
-            south_pole: 'South Pole',
-            equator_zero: 'Equator — Gulf of Guinea, Atlantic Ocean'
+            hokkaido: 'Hokkaido — Sapporo', aomori: 'Aomori Prefecture — Aomori', iwate: 'Iwate Prefecture — Morioka',
+            miyagi: 'Miyagi Prefecture — Sendai', akita: 'Akita Prefecture — Akita', yamagata: 'Yamagata Prefecture — Yamagata',
+            fukushima: 'Fukushima Prefecture — Fukushima', ibaraki: 'Ibaraki Prefecture — Mito', tochigi: 'Tochigi Prefecture — Utsunomiya',
+            gunma: 'Gunma Prefecture — Maebashi', saitama: 'Saitama Prefecture — Saitama', chiba: 'Chiba Prefecture — Chiba',
+            tokyo: 'Tokyo Metropolis — Tokyo', kanagawa: 'Kanagawa Prefecture — Yokohama', niigata: 'Niigata Prefecture — Niigata',
+            toyama: 'Toyama Prefecture — Toyama', ishikawa: 'Ishikawa Prefecture — Kanazawa', fukui: 'Fukui Prefecture — Fukui',
+            yamanashi: 'Yamanashi Prefecture — Kofu', nagano: 'Nagano Prefecture — Nagano', gifu: 'Gifu Prefecture — Gifu',
+            shizuoka: 'Shizuoka Prefecture — Shizuoka', nagoya: 'Aichi Prefecture — Nagoya', mie: 'Mie Prefecture — Tsu',
+            shiga: 'Shiga Prefecture — Otsu', kyoto: 'Kyoto Prefecture — Kyoto', osaka: 'Osaka Prefecture — Osaka',
+            hyogo: 'Hyogo Prefecture — Kobe', nara: 'Nara Prefecture — Nara', wakayama: 'Wakayama Prefecture — Wakayama',
+            tottori: 'Tottori Prefecture — Tottori', shimane: 'Shimane Prefecture — Matsue', okayama: 'Okayama Prefecture — Okayama',
+            hiroshima: 'Hiroshima Prefecture — Hiroshima', yamaguchi: 'Yamaguchi Prefecture — Yamaguchi',
+            tokushima: 'Tokushima Prefecture — Tokushima', kagawa: 'Kagawa Prefecture — Takamatsu', ehime: 'Ehime Prefecture — Matsuyama',
+            kochi: 'Kochi Prefecture — Kochi', fukuoka: 'Fukuoka Prefecture — Fukuoka', saga: 'Saga Prefecture — Saga',
+            nagasaki: 'Nagasaki Prefecture — Nagasaki', kumamoto: 'Kumamoto Prefecture — Kumamoto', oita: 'Oita Prefecture — Oita',
+            miyazaki: 'Miyazaki Prefecture — Miyazaki', kagoshima: 'Kagoshima Prefecture — Kagoshima', okinawa: 'Okinawa Prefecture — Naha',
+            seoul: 'South Korea — Seoul', beijing: 'China — Beijing', taipei: 'Taiwan — Taipei', ulaanbaatar: 'Mongolia — Ulaanbaatar',
+            bangkok: 'Thailand — Bangkok', hanoi: 'Vietnam — Hanoi', manila: 'Philippines — Manila', singapore: 'Singapore — Singapore',
+            kuala_lumpur: 'Malaysia — Kuala Lumpur', jakarta: 'Indonesia — Jakarta', new_delhi: 'India — New Delhi',
+            dhaka: 'Bangladesh — Dhaka', kathmandu: 'Nepal — Kathmandu', abu_dhabi: 'United Arab Emirates — Abu Dhabi',
+            riyadh: 'Saudi Arabia — Riyadh', cairo: 'Egypt — Cairo', nairobi: 'Kenya — Nairobi', pretoria: 'South Africa — Pretoria',
+            london: 'United Kingdom — London', paris: 'France — Paris', berlin: 'Germany — Berlin', rome: 'Italy — Rome',
+            madrid: 'Spain — Madrid', lisbon: 'Portugal — Lisbon', amsterdam: 'Netherlands — Amsterdam', brussels: 'Belgium — Brussels',
+            vienna: 'Austria — Vienna', warsaw: 'Poland — Warsaw', athens: 'Greece — Athens', moscow: 'Russia — Moscow',
+            helsinki: 'Finland — Helsinki', stockholm: 'Sweden — Stockholm', oslo: 'Norway — Oslo', reykjavik: 'Iceland — Reykjavik',
+            ottawa: 'Canada — Ottawa', washington: 'United States — Washington, D.C.', los_angeles: 'United States (West Coast) — Los Angeles',
+            honolulu: 'United States (Hawaii) — Honolulu', mexico_city: 'Mexico — Mexico City', brasilia: 'Brazil — Brasilia',
+            papeete: 'Papeete (Tahiti)', apia: 'Apia (Samoa)', suva: 'Suva (Fiji)', easter_island: 'Easter Island',
+            buenos_aires: 'Argentina — Buenos Aires', canberra: 'Australia — Canberra', wellington: 'New Zealand — Wellington',
+            north_pole: 'North Pole', south_pole: 'South Pole', equator_zero: 'Equator — Gulf of Guinea, Atlantic Ocean'
         };
 
         const CONSTELLATION_NAMES_EN = {
-            'オリオン座':'Orion', 'カシオペヤ座':'Cassiopeia', '北斗七星':'Big Dipper',
-            'こぐま座 (北極星)':'Ursa Minor (Polaris)', '夏の大三角':'Summer Triangle', 'さそり座':'Scorpius',
-            'しし座':'Leo', 'おうし座 (すばる)':'Taurus (Pleiades)', 'ぎょしゃ座 (カペラ)':'Auriga (Capella)',
-            'ケフェウス座':'Cepheus', 'おおいぬ座':'Canis Major', 'みなみじゅうじ座':'Crux',
-            'すばる (M45)':'Pleiades (M45)', 'アンドロメダ星雲 (M31)':'Andromeda Galaxy (M31)'
+            'オリオン座': 'Orion', 'カシオペヤ座': 'Cassiopeia', '北斗七星': 'Big Dipper',
+            'こぐま座 (北極星)': 'Ursa Minor (Polaris)', '夏の大三角': 'Summer Triangle', 'さそり座': 'Scorpius',
+            'しし座': 'Leo', 'おうし座 (すばる)': 'Taurus (Pleiades)', 'ぎょしゃ座 (カペラ)': 'Auriga (Capella)',
+            'ケフェウス座': 'Cepheus', 'おおいぬ座': 'Canis Major', 'みなみじゅうじ座': 'Crux',
+            'すばる (M45)': 'Pleiades (M45)', 'アンドロメダ星雲 (M31)': 'Andromeda Galaxy (M31)'
         };
         const CELESTIAL_NAMES_EN = {
-            '太陽':'Sun', '月':'Moon', '水星':'Mercury', '金星':'Venus', '地球':'Earth',
-            '火星':'Mars', '木星':'Jupiter', '土星':'Saturn', '天王星':'Uranus', '海王星':'Neptune'
+            '太陽': 'Sun', '月': 'Moon', '水星': 'Mercury', '金星': 'Venus', '地球': 'Earth',
+            '火星': 'Mars', '木星': 'Jupiter', '土星': 'Saturn', '天王星': 'Uranus', '海王星': 'Neptune'
         };
 
         const I18N = {
             ja: {
-                pageTitle:'太陽系 3D ＆ プラネタリウム・シミュレーター', prevDay:'◀ 1日', prevHour:'◀ 1時', now:'現在', play:'再生', stop:'停止',
-                nextHour:'1時 ▶', nextDay:'1日 ▶', east:'東の空', south:'南の空', west:'西の空', north:'北の空', zenith:'真上', zenithTop:'天頂（真上）', backFromZenith:'{dir}表示', space:'🪐 宇宙 3D', spaceMode:'宇宙 3D', backToSky:'星空（{dir}）',
-                location:'観測場所', japanGroup:'日本・47都道府県（県庁所在地）', worldGroup:'海外の主な首都（国名｜都市名）',
-                constellationOn:'✨ 星座: ON', constellationOff:'✨ 星座: OFF',
-                labelsOn:'🏷️ 名称: ON', labelsOff:'🏷️ 名称: OFF', speed:'速度:', speedUnit:'h/秒',
-                homeSettings:'🏠 ホーム設定', homeName:'名前', homeLat:'緯度', homeLon:'経度', homeTimeZone:'ホーム時間帯', save:'保存',
-                homeNamePlaceholder:'例：自宅', homeOptionUnset:'🏠 ホーム（先に設定）', homeTime:'ホーム時間', localTime:'表示地域の時間',
-                observed:'観測地', tideEstimate:'天文潮（概算）', current:'現在', annualMax:'年間最大', annualMin:'年間最小',
-                homeValidation:'ホーム名を入力し、緯度（-90〜90）と経度（-180〜180）を正しく入力してください。',
-                saved:'ホーム地点を保存しました。', notSet:'未設定', northLabel:'北', northeast:'北東', eastLabel:'東', southeast:'南東',
-                southLabel:'南', southwest:'南西', westLabel:'西', northwest:'北西', tideStation: '港湾調和潮予測',
-                customRegionBtn:'📍 カスタム地域', customRegionHeading:'📍 カスタム地域',
-                customRegionName:'名称', customRegionNamePlaceholder:'例：種子島 / Tanegashima',
-                customRegionAdd:'登録', customRegionTranslating:'自動翻訳中...',
-                customRegionAdded:'カスタム地域を追加しました',
-                customRegionValidation:'地域名を入力し、緯度（-90〜90）と経度（-180〜180）を正しく入力してください。'
+                pageTitle: '太陽系 3D ＆ プラネタリウム・シミュレーター', prevDay: '◀ 1日', prevHour: '◀ 1時', now: '現在', play: '再生', stop: '停止',
+                nextHour: '1時 ▶', nextDay: '1日 ▶', east: '東の空', south: '南の空', west: '西の空', north: '北の空', zenith: '真上', zenithTop: '天頂（真上）', backFromZenith: '{dir}表示', space: '🪐 宇宙 3D', spaceMode: '宇宙 3D', backToSky: '星空（{dir}）',
+                location: '観測場所', japanGroup: '日本・47都道府県（県庁所在地）', worldGroup: '海外の主な首都（国名｜都市名）',
+                constellationOn: '✨ 星座: ON', constellationOff: '✨ 星座: OFF',
+                labelsOn: '🏷️ 名称: ON', labelsOff: '🏷️ 名称: OFF',
+                weatherOn: '☁️ 天気: ON', weatherOff: '☁️ 天気: OFF', speed: '速度:', speedUnit: 'h/秒',
+                homeSettings: '🏠 ホーム設定', homeName: '名前', homeLat: '緯度', homeLon: '経度', homeTimeZone: 'ホーム時間帯', save: '保存',
+                homeNamePlaceholder: '例：自宅', homeOptionUnset: '🏠 ホーム（先に設定）', homeTime: 'ホーム時間', localTime: '表示地域の時間',
+                observed: '観測地', tideEstimate: '天文潮（概算）', current: '現在', annualMax: '年間最大', annualMin: '年間最小',
+                homeValidation: 'ホーム名を入力し、緯度（-90〜90）と経度（-180〜180）を正しく入力してください。',
+                saved: 'ホーム地点を保存しました。', notSet: '未設定', northLabel: '北', northeast: '北東', eastLabel: '東', southeast: '南東',
+                southLabel: '南', southwest: '南西', westLabel: '西', northwest: '北西', tideStation: '港湾調和潮予測',
+                customRegionBtn: '📍 カスタム地域', customRegionHeading: '📍 カスタム地域',
+                customRegionName: '名称', customRegionNamePlaceholder: '例：種子島 / Tanegashima',
+                customRegionAdd: '登録', customRegionTranslating: '自動翻訳中...',
+                customRegionAdded: 'カスタム地域を追加しました',
+                customRegionValidation: '地域名を入力し、緯度（-90〜90）と経度（-180〜180）を正しく入力してください。'
             },
             en: {
-                pageTitle:'Solar System 3D & Planetarium Simulator', prevDay:'◀ 1 d', prevHour:'◀ 1 h', now:'Now', play:'Play', stop:'Pause',
-                nextHour:'1 h ▶', nextDay:'1 d ▶', east:'East Sky', south:'South Sky', west:'West Sky', north:'North Sky', zenith:'Zenith', zenithTop:'Zenith (Overhead)', backFromZenith:'Show {dir}', space:'🪐 3D Space', spaceMode:'3D Space', backToSky:'Sky ({dir})',
-                location:'Observation location', japanGroup:'Japan · 47 prefectural capitals', worldGroup:'World capitals (country · city)',
-                constellationOn:'✨ Constellations: ON', constellationOff:'✨ Constellations: OFF',
-                labelsOn:'🏷️ Labels: ON', labelsOff:'🏷️ Labels: OFF', speed:'Speed:', speedUnit:'h/sec',
-                homeSettings:'🏠 Home settings', homeName:'Name', homeLat:'Latitude', homeLon:'Longitude', homeTimeZone:'Home time zone', save:'Save',
-                homeNamePlaceholder:'e.g. My Home', homeOptionUnset:'🏠 Home (set up first)', homeTime:'Home time', localTime:'Selected location time',
-                observed:'Location', tideEstimate:'Astronomical tide (estimate)', current:'Now', annualMax:'Annual max', annualMin:'Annual min',
-                homeValidation:'Enter a home name and valid coordinates (latitude -90 to 90, longitude -180 to 180).',
-                saved:'Home location saved.', notSet:'Not set', northLabel:'N', northeast:'NE', eastLabel:'E', southeast:'SE',
-                southLabel:'S', southwest:'SW', westLabel:'W', northwest:'NW', tideStation: 'Harmonic station prediction',
-                customRegionBtn:'📍 Custom Region', customRegionHeading:'📍 Add Custom Region',
-                customRegionName:'Name', customRegionNamePlaceholder:'e.g. Tanegashima / 種子島',
-                customRegionAdd:'Add', customRegionTranslating:'Auto-translating...',
-                customRegionAdded:'Custom region added',
-                customRegionValidation:'Enter a region name and valid coordinates (latitude -90 to 90, longitude -180 to 180).'
+                pageTitle: 'Solar System 3D & Planetarium Simulator', prevDay: '◀ 1 d', prevHour: '◀ 1 h', now: 'Now', play: 'Play', stop: 'Pause',
+                nextHour: '1 h ▶', nextDay: '1 d ▶', east: 'East Sky', south: 'South Sky', west: 'West Sky', north: 'North Sky', zenith: 'Zenith', zenithTop: 'Zenith (Overhead)', backFromZenith: 'Show {dir}', space: '🪐 3D Space', spaceMode: '3D Space', backToSky: 'Sky ({dir})',
+                location: 'Observation location', japanGroup: 'Japan · 47 prefectural capitals', worldGroup: 'World capitals (country · city)',
+                constellationOn: '✨ Constellations: ON', constellationOff: '✨ Constellations: OFF',
+                labelsOn: '🏷️ Labels: ON', labelsOff: '🏷️ Labels: OFF',
+                weatherOn: '☁️ Weather: ON', weatherOff: '☁️ Weather: OFF', speed: 'Speed:', speedUnit: 'h/sec',
+                homeSettings: '🏠 Home settings', homeName: 'Name', homeLat: 'Latitude', homeLon: 'Longitude', homeTimeZone: 'Home time zone', save: 'Save',
+                homeNamePlaceholder: 'e.g. My Home', homeOptionUnset: '🏠 Home (set up first)', homeTime: 'Home time', localTime: 'Selected location time',
+                observed: 'Location', tideEstimate: 'Astronomical tide (estimate)', current: 'Now', annualMax: 'Annual max', annualMin: 'Annual min',
+                homeValidation: 'Enter a home name and valid coordinates (latitude -90 to 90, longitude -180 to 180).',
+                saved: 'Home location saved.', notSet: 'Not set', northLabel: 'N', northeast: 'NE', eastLabel: 'E', southeast: 'SE',
+                southLabel: 'S', southwest: 'SW', westLabel: 'W', northwest: 'NW', tideStation: 'Harmonic station prediction',
+                customRegionBtn: '📍 Custom Region', customRegionHeading: '📍 Add Custom Region',
+                customRegionName: 'Name', customRegionNamePlaceholder: 'e.g. Tanegashima / 種子島',
+                customRegionAdd: 'Add', customRegionTranslating: 'Auto-translating...',
+                customRegionAdded: 'Custom region added',
+                customRegionValidation: 'Enter a region name and valid coordinates (latitude -90 to 90, longitude -180 to 180).'
             }
         };
 
         const TIME_ZONE_OPTIONS = [
-            ['Pacific/Honolulu','ホノルル','Honolulu'], ['America/Anchorage','アンカレッジ','Anchorage'],
-            ['America/Los_Angeles','ロサンゼルス','Los Angeles'], ['America/Phoenix','フェニックス','Phoenix'],
-            ['America/Denver','デンバー','Denver'], ['America/Chicago','シカゴ','Chicago'],
-            ['America/New_York','ニューヨーク','New York'], ['America/Toronto','トロント','Toronto'],
-            ['America/Vancouver','バンクーバー','Vancouver'], ['America/Mexico_City','メキシコシティ','Mexico City'],
-            ['America/Sao_Paulo','サンパウロ','Sao Paulo'], ['America/Argentina/Buenos_Aires','ブエノスアイレス','Buenos Aires'],
-            ['UTC','協定世界時','UTC'], ['Europe/Reykjavik','レイキャビク','Reykjavik'],
-            ['Europe/London','ロンドン','London'], ['Europe/Paris','パリ','Paris'], ['Europe/Berlin','ベルリン','Berlin'],
-            ['Europe/Helsinki','ヘルシンキ','Helsinki'], ['Europe/Moscow','モスクワ','Moscow'],
-            ['Africa/Cairo','カイロ','Cairo'], ['Africa/Johannesburg','ヨハネスブルグ','Johannesburg'],
-            ['Africa/Nairobi','ナイロビ','Nairobi'], ['Asia/Dubai','ドバイ','Dubai'], ['Asia/Kolkata','コルカタ','Kolkata'],
-            ['Asia/Kathmandu','カトマンズ','Kathmandu'], ['Asia/Dhaka','ダッカ','Dhaka'], ['Asia/Bangkok','バンコク','Bangkok'],
-            ['Asia/Jakarta','ジャカルタ','Jakarta'], ['Asia/Singapore','シンガポール','Singapore'],
-            ['Asia/Shanghai','上海','Shanghai'], ['Asia/Seoul','ソウル','Seoul'], ['Asia/Tokyo','東京','Tokyo'],
-            ['Australia/Sydney','シドニー','Sydney'], ['Pacific/Auckland','オークランド','Auckland']
+            ['Pacific/Honolulu', 'ホノルル', 'Honolulu'], ['America/Anchorage', 'アンカレッジ', 'Anchorage'],
+            ['America/Los_Angeles', 'ロサンゼルス', 'Los Angeles'], ['America/Phoenix', 'フェニックス', 'Phoenix'],
+            ['America/Denver', 'デンバー', 'Denver'], ['America/Chicago', 'シカゴ', 'Chicago'],
+            ['America/New_York', 'ニューヨーク', 'New York'], ['America/Toronto', 'トロント', 'Toronto'],
+            ['America/Vancouver', 'バンクーバー', 'Vancouver'], ['America/Mexico_City', 'メキシコシティ', 'Mexico City'],
+            ['America/Sao_Paulo', 'サンパウロ', 'Sao Paulo'], ['America/Argentina/Buenos_Aires', 'ブエノスアイレス', 'Buenos Aires'],
+            ['UTC', '協定世界時', 'UTC'], ['Europe/Reykjavik', 'レイキャビク', 'Reykjavik'],
+            ['Europe/London', 'ロンドン', 'London'], ['Europe/Paris', 'パリ', 'Paris'], ['Europe/Berlin', 'ベルリン', 'Berlin'],
+            ['Europe/Helsinki', 'ヘルシンキ', 'Helsinki'], ['Europe/Moscow', 'モスクワ', 'Moscow'],
+            ['Africa/Cairo', 'カイロ', 'Cairo'], ['Africa/Johannesburg', 'ヨハネスブルグ', 'Johannesburg'],
+            ['Africa/Nairobi', 'ナイロビ', 'Nairobi'], ['Asia/Dubai', 'ドバイ', 'Dubai'], ['Asia/Kolkata', 'コルカタ', 'Kolkata'],
+            ['Asia/Kathmandu', 'カトマンズ', 'Kathmandu'], ['Asia/Dhaka', 'ダッカ', 'Dhaka'], ['Asia/Bangkok', 'バンコク', 'Bangkok'],
+            ['Asia/Jakarta', 'ジャカルタ', 'Jakarta'], ['Asia/Singapore', 'シンガポール', 'Singapore'],
+            ['Asia/Shanghai', '上海', 'Shanghai'], ['Asia/Seoul', 'ソウル', 'Seoul'], ['Asia/Tokyo', '東京', 'Tokyo'],
+            ['Australia/Sydney', 'シドニー', 'Sydney'], ['Pacific/Auckland', 'オークランド', 'Auckland']
         ];
 
         function getBrowserTimeZone() {
@@ -1481,13 +1523,13 @@
                 let timeZone = value.timeZone || localStorage.getItem('solarHomeTimeZone') || getBrowserTimeZone();
                 try { new Intl.DateTimeFormat('en-US', { timeZone }).format(new Date()); }
                 catch (_) { timeZone = getBrowserTimeZone(); }
-                return { name:value.name.trim(), lat, lon, timeZone };
+                return { name: value.name.trim(), lat, lon, timeZone };
             } catch (_) { return null; }
         }
         let homeSettings = loadHomeSettings();
         let currentLang = localStorage.getItem('solarLanguage') === 'en' ? 'en' : 'ja';
         if (homeSettings) {
-            CITIES.home = { name:homeSettings.name, lat:homeSettings.lat, lon:homeSettings.lon, timeZone:homeSettings.timeZone };
+            CITIES.home = { name: homeSettings.name, lat: homeSettings.lat, lon: homeSettings.lon, timeZone: homeSettings.timeZone };
         }
 
         const CUSTOM_REGIONS_STORAGE_KEY = 'solarCustomRegionsV1';
@@ -1512,7 +1554,7 @@
             } catch (_) { return []; }
         }
         function saveCustomRegions(list) {
-            try { localStorage.setItem(CUSTOM_REGIONS_STORAGE_KEY, JSON.stringify(list)); } catch (_) {}
+            try { localStorage.setItem(CUSTOM_REGIONS_STORAGE_KEY, JSON.stringify(list)); } catch (_) { }
         }
         function hasJapaneseChars(str) {
             return /[\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\uFF00-\uFFEF]/.test(str);
@@ -1543,11 +1585,9 @@
                         translated = candidate;
                     }
                 }
-            } catch (_) {}
+            } catch (_) { }
             if (!translated) translated = trimmed;
-            if (isJa) {
-                return { nameJa: trimmed, nameEn: translated };
-            }
+            if (isJa) return { nameJa: trimmed, nameEn: translated };
             return { nameJa: translated, nameEn: trimmed };
         }
         function formatCustomRegionLabel(item) {
@@ -1583,45 +1623,45 @@
         registerCustomRegionsInSelect();
 
         function deleteCustomRegionByKey(targetKey) {
-                if (!targetKey || !targetKey.startsWith('custom_')) return;
-                const targetItem = customRegions.find(r => r.key === targetKey);
-                if (!targetItem) return;
+            if (!targetKey || !targetKey.startsWith('custom_')) return;
+            const targetItem = customRegions.find(r => r.key === targetKey);
+            if (!targetItem) return;
 
-                const label = targetItem.nameJa || targetItem.nameEn || targetKey;
-                const msg = currentLang === 'en'
-                    ? `Delete custom region "${label}"?`
-                    : `カスタム地域「${label}」を削除しますか？`;
-                if (!confirm(msg)) return;
+            const label = targetItem.nameJa || targetItem.nameEn || targetKey;
+            const msg = currentLang === 'en'
+                ? `Delete custom region "${label}"?`
+                : `カスタム地域「${label}」を削除しますか？`;
+            if (!confirm(msg)) return;
 
-                customRegions = customRegions.filter(r => r.key !== targetKey);
-                saveCustomRegions(customRegions);
-                delete CITIES[targetKey];
-                delete CITY_NAMES_EN[targetKey];
+            customRegions = customRegions.filter(r => r.key !== targetKey);
+            saveCustomRegions(customRegions);
+            delete CITIES[targetKey];
+            delete CITY_NAMES_EN[targetKey];
 
-                if (currentCityKey === targetKey) {
-                    currentCityKey = 'tokyo';
-                    currentCity = CITIES.tokyo;
-                    localStorage.setItem('selectedSolarCity', currentCityKey);
-                    updateObserverMarker();
-                    updateSimulation(simDate);
-                }
-
-                registerCustomRegionsInSelect();
-                citySelect.value = currentCityKey;
-                updateLanguageUI();
+            if (currentCityKey === targetKey) {
+                currentCityKey = 'tokyo';
+                currentCity = CITIES.tokyo;
+                localStorage.setItem('selectedSolarCity', currentCityKey);
+                updateObserverMarker();
+                updateSimulation(simDate);
             }
 
-            citySelect.addEventListener('contextmenu', (e) => {
-                const opt = e.target && e.target.closest ? e.target.closest('option') : null;
-                const candidateKey = (opt && opt.dataset && opt.dataset.customRegion === '1')
-                    ? opt.value
-                    : (citySelect.selectedOptions[0] && citySelect.selectedOptions[0].dataset.customRegion === '1'
-                        ? citySelect.value
-                        : '');
-                if (!candidateKey) return;
-                e.preventDefault();
-                deleteCustomRegionByKey(candidateKey);
-            });
+            registerCustomRegionsInSelect();
+            citySelect.value = currentCityKey;
+            updateLanguageUI();
+        }
+
+        citySelect.addEventListener('contextmenu', (e) => {
+            const opt = e.target && e.target.closest ? e.target.closest('option') : null;
+            const candidateKey = (opt && opt.dataset && opt.dataset.customRegion === '1')
+                ? opt.value
+                : (citySelect.selectedOptions[0] && citySelect.selectedOptions[0].dataset.customRegion === '1'
+                    ? citySelect.value
+                    : '');
+            if (!candidateKey) return;
+            e.preventDefault();
+            deleteCustomRegionByKey(candidateKey);
+        });
 
         const storedCityKey = localStorage.getItem('selectedSolarCity') || 'tokyo';
         const savedCityKey = Object.prototype.hasOwnProperty.call(CITIES, storedCityKey) ? storedCityKey : 'tokyo';
@@ -1644,13 +1684,13 @@
         }
         updateObserverMarker();
 
-        let viewMode = 'south'; // 'space' | 'east' | 'south' | 'west' | 'north' | 'zenith'
-        let lastSkyDirection = 'south'; // 'east' | 'south' | 'west' | 'north' | 'zenith'
-        let skyReturnDirection = 'south'; // 真上から戻るときの方向（'east' | 'south' | 'west' | 'north'）
-        let zenithTopAz = 180; // 真上表示時に画面「上」位置に来る方位角（0=北, 90=東, 180=南, 270=西）
-        let zenithZoom = 1.0; // 真上表示の拡大縮小率
-        let zenithPanX = 0; // 真上表示の位置移動X(px)
-        let zenithPanY = 0; // 真上表示の位置移動Y(px)
+        let viewMode = 'south';
+        let lastSkyDirection = 'south';
+        let skyReturnDirection = 'south';
+        let zenithTopAz = 180;
+        let zenithZoom = 1.0;
+        let zenithPanX = 0;
+        let zenithPanY = 0;
         let isSkyMode = false;
         let showConstellations = true;
         let showLabels = true;
@@ -1664,6 +1704,7 @@
         const skyCtx = skyCanvas.getContext('2d');
         const btnToggleConst = document.getElementById('btnToggleConst');
         const btnToggleLabels = document.getElementById('btnToggleLabels');
+        const btnToggleWeather = document.getElementById('btnToggleWeather');
         const dateInput = document.getElementById('dateInput');
         const homeTimeZoneSelect = document.getElementById('homeTimeZone');
         const homeNameInput = document.getElementById('homeName');
@@ -1678,24 +1719,19 @@
         const customRegionLonInput = document.getElementById('customRegionLon');
         const btnSaveCustomRegion = document.getElementById('btnSaveCustomRegion');
         const btnCloseCustomRegion = document.getElementById('btnCloseCustomRegion');
-        btnCloseCustomRegion.addEventListener('click', () => {
-                setCustomRegionOpen(false);
-            });
+        btnCloseCustomRegion.addEventListener('click', () => { setCustomRegionOpen(false); });
         const customRegionStatus = document.getElementById('customRegionStatus');
 
-        const viewButtons = {
-            space: document.getElementById('btnViewSpace')
-        };
+        const viewButtons = { space: document.getElementById('btnViewSpace') };
         const skyDirectionLabel = document.getElementById('skyDirectionLabel');
         const btnSkyEdgeLeft = document.getElementById('btnSkyEdgeLeft');
         const btnSkyEdgeRight = document.getElementById('btnSkyEdgeRight');
 
-        // 画面左端（反時計回り・方位角-90°）と右端（時計回り・方位角+90°）に隣接する方角
         const ADJACENT_SKY = {
-            north: { left: 'west',  right: 'east'  },
-            east:  { left: 'north', right: 'south' },
-            south: { left: 'east',  right: 'west'  },
-            west:  { left: 'south', right: 'north' }
+            north: { left: 'west', right: 'east' },
+            east: { left: 'north', right: 'south' },
+            south: { left: 'east', right: 'west' },
+            west: { left: 'south', right: 'north' }
         };
 
         function setCustomRegionOpen(open) {
@@ -1704,31 +1740,25 @@
             if (open) {
                 setHomeSettingsOpen(false);
                 customRegionStatus.textContent = '';
+                ensureCustomRegionMap();
                 customRegionNameInput.focus();
+                setTimeout(() => { if (customRegionMap) customRegionMap.invalidateSize(); }, 30);
             }
         }
 
         function setHomeSettingsOpen(open) {
-                homeSettingsPanel.hidden = !open;
-                btnHomeSettings.setAttribute('aria-expanded', open ? 'true' : 'false');
-                if (open) {
-                    setCustomRegionOpen(false);
-                    ensureHomeRegionMap();
-                    homeNameInput.focus();
-                    setTimeout(() => {
-                        if (homeRegionMap) {
-                            homeRegionMap.invalidateSize();
-                        }
-                    }, 30);
-                }
+            homeSettingsPanel.hidden = !open;
+            btnHomeSettings.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (open) {
+                setCustomRegionOpen(false);
+                ensureHomeRegionMap();
+                homeNameInput.focus();
+                setTimeout(() => { if (homeRegionMap) homeRegionMap.invalidateSize(); }, 30);
             }
+        }
 
-        btnHomeSettings.addEventListener('click', () => {
-            setHomeSettingsOpen(homeSettingsPanel.hidden);
-        });
-        btnCustomRegion.addEventListener('click', () => {
-            setCustomRegionOpen(customRegionPanel.hidden);
-        });
+        btnHomeSettings.addEventListener('click', () => { setHomeSettingsOpen(homeSettingsPanel.hidden); });
+        btnCustomRegion.addEventListener('click', () => { setCustomRegionOpen(customRegionPanel.hidden); });
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
                 if (!homeSettingsPanel.hidden) setHomeSettingsOpen(false);
@@ -1744,292 +1774,236 @@
             }
         });
 
-    customRegionLatInput.addEventListener('input', () => {
-        syncCustomRegionMapMarker(Number(customRegionLatInput.value), Number(customRegionLonInput.value));
-    });
-    customRegionLonInput.addEventListener('input', () => {
-        syncCustomRegionMapMarker(Number(customRegionLatInput.value), Number(customRegionLonInput.value));
-    });
-    
-
         btnSaveCustomRegion.addEventListener('click', async () => {
-                const rawName = customRegionNameInput.value.trim();
-                const lat = Number(customRegionLatInput.value);
-                const lon = Number(customRegionLonInput.value);
-                if (!rawName || customRegionLatInput.value.trim() === '' || customRegionLonInput.value.trim() === '' ||
-                    !Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 180) {
-                    alert(tr('customRegionValidation'));
-                    return;
-                }
-                btnSaveCustomRegion.disabled = true;
-                customRegionStatus.textContent = tr('customRegionTranslating');
-                const names = await translateBilingualRegionName(rawName);
-                const key = `custom_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-                const entry = {
-                    key,
-                    nameJa: names.nameJa,
-                    nameEn: names.nameEn,
-                    lat,
-                    lon,
-                    timeZone: estimateTimeZoneByLon(lat, lon)
-                };
-                customRegions = [entry, ...customRegions];
-                saveCustomRegions(customRegions);
-                registerCustomRegionsInSelect();
+            const rawName = customRegionNameInput.value.trim();
+            const lat = Number(customRegionLatInput.value);
+            const lon = Number(customRegionLonInput.value);
+            if (!rawName || customRegionLatInput.value.trim() === '' || customRegionLonInput.value.trim() === '' ||
+                !Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 180) {
+                alert(tr('customRegionValidation'));
+                return;
+            }
+            btnSaveCustomRegion.disabled = true;
+            customRegionStatus.textContent = tr('customRegionTranslating');
+            const names = await translateBilingualRegionName(rawName);
+            const key = `custom_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+            const entry = { key, nameJa: names.nameJa, nameEn: names.nameEn, lat, lon, timeZone: estimateTimeZoneByLon(lat, lon) };
+            customRegions = [entry, ...customRegions];
+            saveCustomRegions(customRegions);
+            registerCustomRegionsInSelect();
 
-                currentCityKey = key;
-                currentCity = CITIES[key];
-                citySelect.value = key;
-                localStorage.setItem('selectedSolarCity', key);
+            currentCityKey = key;
+            currentCity = CITIES[key];
+            citySelect.value = key;
+            localStorage.setItem('selectedSolarCity', key);
 
-                customRegionNameInput.value = '';
-                customRegionLatInput.value = '';
-                customRegionLonInput.value = '';
-                customRegionStatus.textContent = '';
-                btnSaveCustomRegion.disabled = false;
-                updateLanguageUI();
-                updateObserverMarker();
-                updateSimulation(simDate);
-                setCustomRegionOpen(false);
-                alert(`${tr('customRegionAdded')}: ${names.nameJa} / ${names.nameEn}`);
-            });
+            customRegionNameInput.value = '';
+            customRegionLatInput.value = '';
+            customRegionLonInput.value = '';
+            customRegionStatus.textContent = '';
+            btnSaveCustomRegion.disabled = false;
+            updateLanguageUI();
+            updateObserverMarker();
+            ensureWeatherData();
+            updateSimulation(simDate);
+            setCustomRegionOpen(false);
+            alert(`${tr('customRegionAdded')}: ${names.nameJa} / ${names.nameEn}`);
+        });
 
         const TEMP_CUSTOM_KEY = 'temp_custom';
-            let tempCustomRegion = null;
-            let customRegionMap = null;
-            let customRegionMarker = null;
+        let tempCustomRegion = null;
+        let customRegionMap = null;
+        let customRegionMarker = null;
 
-            function syncCustomRegionMapMarker(lat, lon, panMap = true) {
-                if (!customRegionMap || typeof L === 'undefined') return;
-                if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 180) return;
+        function syncCustomRegionMapMarker(lat, lon, panMap = true) {
+            if (!customRegionMap || typeof L === 'undefined') return;
+            if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 180) return;
 
-                if (!customRegionMarker) {
-                    customRegionMarker = L.circleMarker([lat, lon], {
-                        radius: 7,
-                        color: '#00ffff',
-                        weight: 2,
-                        fillColor: '#ff2244',
-                        fillOpacity: 0.95
-                    }).addTo(customRegionMap);
-                } else {
-                    customRegionMarker.setLatLng([lat, lon]);
-                }
-                if (typeof customRegionMarker.bringToFront === 'function') {
-                    customRegionMarker.bringToFront();
-                }
-                if (panMap) {
-                    customRegionMap.setView([lat, lon], Math.max(customRegionMap.getZoom(), 2));
-                }
+            if (!customRegionMarker) {
+                customRegionMarker = L.circleMarker([lat, lon], {
+                    radius: 7, color: '#00ffff', weight: 2, fillColor: '#ff2244', fillOpacity: 0.95
+                }).addTo(customRegionMap);
+            } else {
+                customRegionMarker.setLatLng([lat, lon]);
             }
+            if (typeof customRegionMarker.bringToFront === 'function') customRegionMarker.bringToFront();
+            if (panMap) customRegionMap.setView([lat, lon], Math.max(customRegionMap.getZoom(), 2));
+        }
 
-            function applyTempObservationLocation(lat, lon, panMap = false) {
-                if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 180) return;
+        function applyTempObservationLocation(lat, lon, panMap = false) {
+            if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 180) return;
 
-                const rLat = Number(lat.toFixed(4));
-                const rLon = Number(lon.toFixed(4));
-                tempCustomRegion = {
-                    lat: rLat,
-                    lon: rLon,
-                    timeZone: estimateTimeZoneByLon(rLat, rLon)
-                };
+            const rLat = Number(lat.toFixed(4));
+            const rLon = Number(lon.toFixed(4));
+            tempCustomRegion = { lat: rLat, lon: rLon, timeZone: estimateTimeZoneByLon(rLat, rLon) };
 
-                CITIES[TEMP_CUSTOM_KEY] = {
-                    name: 'カスタム',
-                    lat: rLat,
-                    lon: rLon,
-                    timeZone: tempCustomRegion.timeZone
-                };
-                CITY_NAMES_EN[TEMP_CUSTOM_KEY] = 'Custom';
+            CITIES[TEMP_CUSTOM_KEY] = { name: 'カスタム', lat: rLat, lon: rLon, timeZone: tempCustomRegion.timeZone };
+            CITY_NAMES_EN[TEMP_CUSTOM_KEY] = 'Custom';
 
-                let tempOpt = citySelect.querySelector(`option[value="${TEMP_CUSTOM_KEY}"]`);
-                if (!tempOpt) {
-                    tempOpt = document.createElement('option');
-                    tempOpt.value = TEMP_CUSTOM_KEY;
-                    tempOpt.dataset.tempCustom = '1';
-                    const firstFixedOpt = citySelect.querySelector('option:not([data-custom-region="1"])');
-                    citySelect.insertBefore(tempOpt, firstFixedOpt || citySelect.firstChild);
-                }
-                tempOpt.textContent = currentLang === 'en' ? 'Custom' : 'カスタム';
-
-                currentCityKey = TEMP_CUSTOM_KEY;
-                currentCity = CITIES[TEMP_CUSTOM_KEY];
-                citySelect.value = TEMP_CUSTOM_KEY;
-
-                syncCustomRegionMapMarker(rLat, rLon, panMap);
-                updateObserverMarker();
-                updateSimulation(simDate);
+            let tempOpt = citySelect.querySelector(`option[value="${TEMP_CUSTOM_KEY}"]`);
+            if (!tempOpt) {
+                tempOpt = document.createElement('option');
+                tempOpt.value = TEMP_CUSTOM_KEY;
+                tempOpt.dataset.tempCustom = '1';
+                const firstFixedOpt = citySelect.querySelector('option:not([data-custom-region="1"])');
+                citySelect.insertBefore(tempOpt, firstFixedOpt || citySelect.firstChild);
             }
+            tempOpt.textContent = currentLang === 'en' ? 'Custom' : 'カスタム';
 
-            function ensureCustomRegionMap() {
-                const mapEl = document.getElementById('customRegionMap');
-                if (!mapEl || typeof L === 'undefined') return;
+            currentCityKey = TEMP_CUSTOM_KEY;
+            currentCity = CITIES[TEMP_CUSTOM_KEY];
+            citySelect.value = TEMP_CUSTOM_KEY;
 
-                if (!customRegionMap) {
-                    customRegionMap = L.map(mapEl, {
-                        worldCopyJump: true,
-                        minZoom: 1,
-                        maxZoom: 8
-                    }).setView([20, 0], 1);
+            syncCustomRegionMapMarker(rLat, rLon, panMap);
+            updateObserverMarker();
+            ensureWeatherData();
+            updateSimulation(simDate);
+        }
 
-                    const GridLayer = L.GridLayer.extend({
-                        createTile: function () {
-                            const tile = document.createElement('canvas');
-                            const size = this.getTileSize();
-                            tile.width = size.x;
-                            tile.height = size.y;
-                            const ctx = tile.getContext('2d');
-                            ctx.fillStyle = '#09182e';
-                            ctx.fillRect(0, 0, size.x, size.y);
-                            ctx.strokeStyle = 'rgba(95, 165, 240, 0.22)';
-                            ctx.lineWidth = 1;
-                            ctx.strokeRect(0.5, 0.5, size.x - 1, size.y - 1);
-                            return tile;
-                        }
+        // アンラップ付きTopoJSONデコーダー共通関数（日付変更線の横断ジャンプ・反転を完全に防止）
+        function decodeTopoToUnwrappedPolys(topo, decodeArc) {
+            const ringToLatLngs = (ring) => {
+                const rawCoords = [];
+                ring.forEach(arcIdx => {
+                    decodeArc(arcIdx).forEach(([lon, lat]) => {
+                        rawCoords.push([lat, lon]);
                     });
-                    new GridLayer().addTo(customRegionMap);
+                });
+                if (rawCoords.length === 0) return [];
 
-                    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
-                        .then(r => r.ok ? r.json() : null)
-                        .then(topo => {
-                            if (!topo || !topo.objects || !topo.objects.countries || !customRegionMap) return;
-                            const arcs = topo.arcs || [];
-                            const tf = topo.transform || { scale: [1, 1], translate: [0, 0] };
-                            const decodeArc = (idx) => {
-                                const rev = idx < 0;
-                                const arc = arcs[rev ? ~idx : idx];
-                                let x = 0, y = 0;
-                                const pts = arc.map(([dx, dy]) => {
-                                    x += dx;
-                                    y += dy;
-                                    return [x * tf.scale[0] + tf.translate[0], y * tf.scale[1] + tf.translate[1]];
-                                });
-                                return rev ? pts.reverse() : pts;
-                            };
-                            const ringToLatLngs = (ring) => {
-                                const rawCoords = [];
-                                ring.forEach(arcIdx => {
-                                    decodeArc(arcIdx).forEach(([lon, lat]) => {
-                                        rawCoords.push([lat, lon]);
-                                    });
-                                });
-                                if (rawCoords.length === 0) return [];
+                const unwrapped = [rawCoords[0]];
+                let prevLon = rawCoords[0][1];
+                let offset = 0;
+                for (let i = 1; i < rawCoords.length; i++) {
+                    const lat = rawCoords[i][0];
+                    let lon = rawCoords[i][1] + offset;
+                    const diff = lon - prevLon;
+                    if (diff > 180) {
+                        offset -= 360;
+                        lon -= 360;
+                    } else if (diff < -180) {
+                        offset += 360;
+                        lon += 360;
+                    }
+                    unwrapped.push([lat, lon]);
+                    prevLon = lon;
+                }
 
-                                const unwrapped = [rawCoords[0]];
-                                let prevLon = rawCoords[0][1];
-                                let offset = 0;
-                                for (let i = 1; i < rawCoords.length; i++) {
-                                    const lat = rawCoords[i][0];
-                                    let lon = rawCoords[i][1] + offset;
-                                    const diff = lon - prevLon;
-                                    if (diff > 180) {
-                                        offset -= 360;
-                                        lon -= 360;
-                                    } else if (diff < -180) {
-                                        offset += 360;
-                                        lon += 360;
-                                    }
-                                    unwrapped.push([lat, lon]);
-                                    prevLon = lon;
-                                }
+                let sumLon = 0;
+                for (let i = 0; i < unwrapped.length; i++) sumLon += unwrapped[i][1];
+                const avgLon = sumLon / unwrapped.length;
+                if (avgLon > 180) {
+                    const shift = -360 * Math.round(avgLon / 360);
+                    for (let i = 0; i < unwrapped.length; i++) unwrapped[i][1] += shift;
+                } else if (avgLon < -180) {
+                    const shift = 360 * Math.round(-avgLon / 360);
+                    for (let i = 0; i < unwrapped.length; i++) unwrapped[i][1] += shift;
+                }
 
-                                let sumLon = 0;
-                                for (let i = 0; i < unwrapped.length; i++) sumLon += unwrapped[i][1];
-                                const avgLon = sumLon / unwrapped.length;
-                                if (avgLon > 180) {
-                                    const shift = -360 * Math.round(avgLon / 360);
-                                    for (let i = 0; i < unwrapped.length; i++) unwrapped[i][1] += shift;
-                                } else if (avgLon < -180) {
-                                    const shift = 360 * Math.round(-avgLon / 360);
-                                    for (let i = 0; i < unwrapped.length; i++) unwrapped[i][1] += shift;
-                                }
+                return unwrapped;
+            };
 
-                                return unwrapped;
-                            };
+            const polys = [];
+            topo.objects.countries.geometries.forEach(g => {
+                if (g.type === 'Polygon') {
+                    polys.push(g.arcs.map(ringToLatLngs));
+                } else if (g.type === 'MultiPolygon') {
+                    g.arcs.forEach(p => polys.push(p.map(ringToLatLngs)));
+                }
+            });
+            return polys;
+        }
 
-                            const polys = [];
-                            topo.objects.countries.geometries.forEach(g => {
-                                if (g.type === 'Polygon') {
-                                    polys.push(g.arcs.map(ringToLatLngs));
-                                } else if (g.type === 'MultiPolygon') {
-                                    g.arcs.forEach(p => polys.push(p.map(ringToLatLngs)));
-                                }
+        function ensureCustomRegionMap() {
+            const mapEl = document.getElementById('customRegionMap');
+            if (!mapEl || typeof L === 'undefined') return;
+
+            if (!customRegionMap) {
+                customRegionMap = L.map(mapEl, { worldCopyJump: true, minZoom: 1, maxZoom: 8 }).setView([20, 0], 1);
+                const GridLayer = L.GridLayer.extend({
+                    createTile: function () {
+                        const tile = document.createElement('canvas');
+                        const size = this.getTileSize();
+                        tile.width = size.x;
+                        tile.height = size.y;
+                        const ctx = tile.getContext('2d');
+                        ctx.fillStyle = '#09182e';
+                        ctx.fillRect(0, 0, size.x, size.y);
+                        ctx.strokeStyle = 'rgba(95, 165, 240, 0.22)';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(0.5, 0.5, size.x - 1, size.y - 1);
+                        return tile;
+                    }
+                });
+                new GridLayer().addTo(customRegionMap);
+
+                fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+                    .then(r => r.ok ? r.json() : null)
+                    .then(topo => {
+                        if (!topo || !topo.objects || !topo.objects.countries || !customRegionMap) return;
+                        const arcs = topo.arcs || [];
+                        const tf = topo.transform || { scale: [1, 1], translate: [0, 0] };
+                        const decodeArc = (idx) => {
+                            const rev = idx < 0;
+                            const arc = arcs[rev ? ~idx : idx];
+                            let x = 0, y = 0;
+                            const pts = arc.map(([dx, dy]) => {
+                                x += dx; y += dy;
+                                return [x * tf.scale[0] + tf.translate[0], y * tf.scale[1] + tf.translate[1]];
                             });
-                            L.polygon(polys, {
-                                color: '#5ca8e6',
-                                weight: 0.8,
-                                fillColor: '#1d4675',
-                                fillOpacity: 0.72,
-                                interactive: false
-                            }).addTo(customRegionMap);
-                            if (customRegionMarker && typeof customRegionMarker.bringToFront === 'function') {
-                                customRegionMarker.bringToFront();
-                            }
-                        })
-                        .catch(() => { });
+                            return rev ? pts.reverse() : pts;
+                        };
 
-                    customRegionMap.on('click', (e) => {
-                        const lat = Number(e.latlng.lat.toFixed(4));
-                        let lon = Number(e.latlng.lng.toFixed(4));
-                        if (lon > 180) lon = ((lon + 180) % 360 + 360) % 360 - 180;
-                        if (lon < -180) lon = -(((-lon + 180) % 360 + 360) % 360 - 180);
-                        lon = Number(lon.toFixed(4));
-                        customRegionLatInput.value = lat;
-                        customRegionLonInput.value = lon;
-                        applyTempObservationLocation(lat, lon, false);
-                    });
-                }
+                        const polys = decodeTopoToUnwrappedPolys(topo, decodeArc);
+                        L.polygon(polys, { color: '#5ca8e6', weight: 0.8, fillColor: '#1d4675', fillOpacity: 0.72, interactive: false }).addTo(customRegionMap);
+                        if (customRegionMarker && typeof customRegionMarker.bringToFront === 'function') customRegionMarker.bringToFront();
+                    })
+                    .catch(() => { });
 
-                setTimeout(() => {
-                    if (!customRegionMap) return;
-                    customRegionMap.invalidateSize();
-                    const lat = Number(customRegionLatInput.value);
-                    const lon = Number(customRegionLonInput.value);
-                    if (customRegionLatInput.value.trim() !== '' && customRegionLonInput.value.trim() !== '') {
-                        syncCustomRegionMapMarker(lat, lon, false);
-                    }
-                }, 40);
+                customRegionMap.on('click', (e) => {
+                    const lat = Number(e.latlng.lat.toFixed(4));
+                    let lon = Number(e.latlng.lng.toFixed(4));
+                    if (lon > 180) lon = ((lon + 180) % 360 + 360) % 360 - 180;
+                    if (lon < -180) lon = -(((-lon + 180) % 360 + 360) % 360 - 180);
+                    lon = Number(lon.toFixed(4));
+                    customRegionLatInput.value = lat;
+                    customRegionLonInput.value = lon;
+                    applyTempObservationLocation(lat, lon, false);
+                });
             }
 
-            customRegionLatInput.addEventListener('input', () => {
-                if (customRegionLatInput.value.trim() === '' || customRegionLonInput.value.trim() === '') return;
-                applyTempObservationLocation(Number(customRegionLatInput.value), Number(customRegionLonInput.value), false);
-            });
-            customRegionLonInput.addEventListener('input', () => {
-                if (customRegionLatInput.value.trim() === '' || customRegionLonInput.value.trim() === '') return;
-                applyTempObservationLocation(Number(customRegionLatInput.value), Number(customRegionLonInput.value), false);
-            });
-
-            function setCustomRegionOpen(open) {
-                    customRegionPanel.hidden = !open;
-                    btnCustomRegion.setAttribute('aria-expanded', open ? 'true' : 'false');
-                    if (open) {
-                        setHomeSettingsOpen(false);
-                        customRegionStatus.textContent = '';
-                        ensureCustomRegionMap();
-                        customRegionNameInput.focus();
-
-                        // パネル表示後に地図サイズを再計算（ポイント）
-                        setTimeout(() => {
-                            if (customRegionMap) {
-                                customRegionMap.invalidateSize();
-                            }
-                        }, 30);
-                    }
+            setTimeout(() => {
+                if (!customRegionMap) return;
+                customRegionMap.invalidateSize();
+                const lat = Number(customRegionLatInput.value);
+                const lon = Number(customRegionLonInput.value);
+                if (customRegionLatInput.value.trim() !== '' && customRegionLonInput.value.trim() !== '') {
+                    syncCustomRegionMapMarker(lat, lon, false);
                 }
+            }, 40);
+        }
+
+        customRegionLatInput.addEventListener('input', () => {
+            if (customRegionLatInput.value.trim() === '' || customRegionLonInput.value.trim() === '') return;
+            applyTempObservationLocation(Number(customRegionLatInput.value), Number(customRegionLonInput.value), false);
+        });
+        customRegionLonInput.addEventListener('input', () => {
+            if (customRegionLatInput.value.trim() === '' || customRegionLonInput.value.trim() === '') return;
+            applyTempObservationLocation(Number(customRegionLatInput.value), Number(customRegionLonInput.value), false);
+        });
 
         function tr(key) { return (I18N[currentLang] && I18N[currentLang][key]) || I18N.ja[key] || key; }
         function getCurrentCityDisplayName() {
             if (currentCityKey === 'home') return homeSettings ? homeSettings.name : tr('notSet');
             return currentLang === 'en' ? (CITY_NAMES_EN[currentCityKey] || currentCity.name) : currentCity.name;
         }
+
         function updateViewButtonsUI() {
             const spaceBtn = viewButtons.space;
             if (spaceBtn) {
                 const isSpaceActive = (viewMode === 'space');
                 if (isSpaceActive) {
-                    const activeDirKey = ADJACENT_SKY[lastSkyDirection]
-                        ? lastSkyDirection
-                        : (ADJACENT_SKY[viewMode] ? viewMode : 'south');
+                    const activeDirKey = ADJACENT_SKY[lastSkyDirection] ? lastSkyDirection : (ADJACENT_SKY[viewMode] ? viewMode : 'south');
                     spaceBtn.textContent = tr('backToSky').replace('{dir}', tr(activeDirKey));
                 } else {
                     spaceBtn.textContent = tr('space');
@@ -2038,20 +2012,6 @@
                 spaceBtn.style.color = isSpaceActive ? '#fff' : '#e0e6ed';
                 spaceBtn.style.fontWeight = isSpaceActive ? 'bold' : '500';
                 spaceBtn.style.borderColor = isSpaceActive ? '#00ffff' : '#334e80';
-            }
-            if (skyDirectionLabel) {
-                if (isSkyMode) {
-                    skyDirectionLabel.textContent = tr(viewMode);
-                    skyDirectionLabel.style.background = 'rgba(20, 46, 88, 0.85)';
-                    skyDirectionLabel.style.borderColor = '#3c69a8';
-                    skyDirectionLabel.style.color = '#9be4ff';
-                } else {
-                    const dirName = tr(lastSkyDirection || 'south');
-                    skyDirectionLabel.textContent = tr('backToSky').replace('{dir}', dirName);
-                    skyDirectionLabel.style.background = '#1b5e9e';
-                    skyDirectionLabel.style.borderColor = '#00e5ff';
-                    skyDirectionLabel.style.color = '#ffffff';
-                }
             }
             if (isSkyMode && ADJACENT_SKY[viewMode]) {
                 const adj = ADJACENT_SKY[viewMode];
@@ -2075,6 +2035,7 @@
                 btnSkyEdgeRight.style.display = 'none';
             }
         }
+
         function setViewMode(mode) {
             if (mode === 'space') {
                 if (isSkyMode && (ADJACENT_SKY[viewMode] || viewMode === 'zenith')) {
@@ -2087,11 +2048,8 @@
                 renderSpaceLabels3D();
             } else {
                 if (mode === 'zenith') {
-                    if (ADJACENT_SKY[viewMode]) {
-                        skyReturnDirection = viewMode;
-                    } else if (ADJACENT_SKY[lastSkyDirection]) {
-                        skyReturnDirection = lastSkyDirection;
-                    }
+                    if (ADJACENT_SKY[viewMode]) skyReturnDirection = viewMode;
+                    else if (ADJACENT_SKY[lastSkyDirection]) skyReturnDirection = lastSkyDirection;
                 } else if (ADJACENT_SKY[mode]) {
                     skyReturnDirection = mode;
                 }
@@ -2104,12 +2062,14 @@
             }
             updateViewButtonsUI();
         }
+
         function updateHomeOptionLabel() {
             homeCityOption.textContent = homeSettings
                 ? `🏠 ${currentLang === 'en' ? 'Home' : 'ホーム'} — ${homeSettings.name}`
                 : tr('homeOptionUnset');
             homeCityOption.disabled = !homeSettings;
         }
+
         function formatClock(date, timeZone) {
             try {
                 return new Intl.DateTimeFormat(currentLang === 'ja' ? 'ja-JP' : 'en-US', {
@@ -2118,95 +2078,77 @@
                 }).format(date);
             } catch (_) { return date.toISOString(); }
         }
+
         function refreshClockDisplay(date) {
-            const displayDate = (date instanceof Date && !isNaN(date.getTime()))
-                ? date
-                : new Date();
-
-            const homeZone =
-                homeTimeZoneSelect.value ||
-                (homeSettings && homeSettings.timeZone) ||
-                getBrowserTimeZone();
-
-            const regionZone =
-                (currentCity && currentCity.timeZone) ||
-                (currentCityKey === 'home' && homeSettings
-                    ? homeSettings.timeZone
-                    : getBrowserTimeZone());
-
-            const homeText =
-                `${tr('homeTime')}: ${formatClock(displayDate, homeZone)} (${homeZone})`;
-
-            const localText = formatClock(displayDate, regionZone);
-
-            const homeDisplay = document.getElementById('homeTimeDisplay');
+            const displayDate = (date instanceof Date && !isNaN(date.getTime())) ? date : new Date();
+            const regionZone = (currentCity && currentCity.timeZone) || (currentCityKey === 'home' && homeSettings ? homeSettings.timeZone : getBrowserTimeZone());
             const localDisplay = document.getElementById('localTimeDisplay');
-
-            if (homeDisplay) {
-                homeDisplay.textContent = homeText;
-            }
-
-            if (localDisplay) {
-                localDisplay.textContent = localText;
-            }
+            if (localDisplay) localDisplay.textContent = formatClock(displayDate, regionZone);
         }
+
         function updateLanguageUI() {
-                document.documentElement.lang = currentLang;
-                document.title = tr('pageTitle');
-                const textById = {
-                    btnPrevDay: 'prevDay', btnPrevHour: 'prevHour', btnNow: 'now', btnNextHour: 'nextHour', btnNextDay: 'nextDay',
-                    homeSettingsHeading: 'homeSettings', btnHomeSettings: 'homeSettings', homeNameLabel: 'homeName', homeLatLabel: 'homeLat', homeLonLabel: 'homeLon',
-                    homeTimeZoneLabel: 'homeTimeZone', btnSaveHome: 'save', speedLabel: 'speed',
-                    btnCustomRegion: 'customRegionBtn', customRegionHeading: 'customRegionHeading',
-                    customRegionNameLabel: 'customRegionName', customRegionLatLabel: 'homeLat', customRegionLonLabel: 'homeLon',
-                    btnSaveCustomRegion: 'customRegionAdd'
-                };
-                Object.entries(textById).forEach(([id, key]) => { const el = document.getElementById(id); if (el) el.textContent = tr(key); });
-                if (btnCloseCustomRegion) {
-                    btnCloseCustomRegion.textContent = currentLang === 'en' ? 'Close' : '閉じる';
-                    btnCloseCustomRegion.setAttribute('aria-label', currentLang === 'en' ? 'Close' : '閉じる');
-                }
-                document.getElementById('btnLanguage').textContent = currentLang === 'ja' ? '🌐 English' : '🌐 日本語';
-                document.getElementById('btnLanguage').title = currentLang === 'ja' ? 'Switch interface language to English' : '表示言語を日本語に切り替え';
-                homeTimeZoneSelect.setAttribute('aria-label', tr('homeTimeZone'));
-                document.getElementById('btnPlayPause').textContent = isPlaying ? tr('stop') : tr('play');
-                updateViewButtonsUI();
-                document.getElementById('btnToggleConst').textContent = showConstellations ? tr('constellationOn') : tr('constellationOff');
-                if (btnToggleLabels) {
-                    btnToggleLabels.textContent = showLabels ? tr('labelsOn') : tr('labelsOff');
-                    btnToggleLabels.style.background = showLabels ? '#1e4678' : '#182247';
-                    btnToggleLabels.style.color = showLabels ? '#ffffff' : '#9ec4e8';
-                }
-                updateSpaceLabelsVisibility();
-                document.getElementById('speedVal').textContent = `${stepHours.toFixed(1)} ${tr('speedUnit')}`;
-                dateInput.title = currentLang === 'ja' ? 'クリックして日時を直接変更' : 'Click to change date and time';
-                citySelect.setAttribute('aria-label', tr('location'));
-                const groups = citySelect.querySelectorAll('optgroup');
-                if (groups[0]) groups[0].label = tr('japanGroup');
-                if (groups[1]) groups[1].label = tr('worldGroup');
-                Array.from(citySelect.options).forEach(option => {
-                    if (option.value === 'home') return;
-                    if (option.dataset.tempCustom === '1') {
-                        option.textContent = currentLang === 'en' ? 'Custom' : 'カスタム';
-                        return;
-                    }
-                    if (option.dataset.customRegion === '1') {
-                        const item = customRegions.find(r => r.key === option.value);
-                        if (item) option.textContent = formatCustomRegionLabel(item);
-                        return;
-                    }
-                    if (!option.dataset.jaLabel) option.dataset.jaLabel = option.textContent.trim();
-                    option.textContent = currentLang === 'en' ? (CITY_NAMES_EN[option.value] || option.dataset.jaLabel) : option.dataset.jaLabel;
-                });
-                customRegionNameInput.placeholder = tr('customRegionNamePlaceholder');
-                Array.from(homeTimeZoneSelect.options).forEach(option => {
-                    option.textContent = currentLang === 'en' ? option.dataset.enLabel : option.dataset.jaLabel;
-                });
-                homeNameInput.placeholder = tr('homeNamePlaceholder');
-                updateHomeOptionLabel();
-                refreshClockDisplay(simDate);
-                if (isSkyMode) renderTokyoSky(simDate);
+            document.documentElement.lang = currentLang;
+            document.title = tr('pageTitle');
+            const textById = {
+                btnPrevDay: 'prevDay', btnPrevHour: 'prevHour', btnNow: 'now', btnNextHour: 'nextHour', btnNextDay: 'nextDay',
+                homeSettingsHeading: 'homeSettings', btnHomeSettings: 'homeSettings', homeNameLabel: 'homeName', homeLatLabel: 'homeLat', homeLonLabel: 'homeLon',
+                homeTimeZoneLabel: 'homeTimeZone', btnSaveHome: 'save', speedLabel: 'speed',
+                btnCustomRegion: 'customRegionBtn', customRegionHeading: 'customRegionHeading',
+                customRegionNameLabel: 'customRegionName', customRegionLatLabel: 'homeLat', customRegionLonLabel: 'homeLon',
+                btnSaveCustomRegion: 'customRegionAdd'
+            };
+            Object.entries(textById).forEach(([id, key]) => { const el = document.getElementById(id); if (el) el.textContent = tr(key); });
+            if (btnCloseCustomRegion) {
+                btnCloseCustomRegion.textContent = currentLang === 'en' ? 'Close' : '閉じる';
+                btnCloseCustomRegion.setAttribute('aria-label', currentLang === 'en' ? 'Close' : '閉じる');
             }
+            document.getElementById('btnLanguage').textContent = currentLang === 'ja' ? '🌐 English' : '🌐 日本語';
+            document.getElementById('btnLanguage').title = currentLang === 'ja' ? 'Switch interface language to English' : '表示言語を日本語に切り替え';
+            homeTimeZoneSelect.setAttribute('aria-label', tr('homeTimeZone'));
+            document.getElementById('btnPlayPause').textContent = isPlaying ? tr('stop') : tr('play');
+            updateViewButtonsUI();
+            document.getElementById('btnToggleConst').textContent = showConstellations ? tr('constellationOn') : tr('constellationOff');
+            if (btnToggleLabels) {
+                btnToggleLabels.textContent = showLabels ? tr('labelsOn') : tr('labelsOff');
+                btnToggleLabels.style.background = showLabels ? '#1e4678' : '#182247';
+                btnToggleLabels.style.color = showLabels ? '#ffffff' : '#9ec4e8';
+            }
+            if (btnToggleWeather) {
+                btnToggleWeather.textContent = showWeather ? tr('weatherOn') : tr('weatherOff');
+                btnToggleWeather.style.background = showWeather ? '#164a5c' : '#182247';
+                btnToggleWeather.style.color = showWeather ? '#a8f0ff' : '#689bb5';
+            }
+            updateSpaceLabelsVisibility();
+            document.getElementById('speedVal').textContent = `${stepHours.toFixed(1)} ${tr('speedUnit')}`;
+            dateInput.title = currentLang === 'ja' ? 'クリックして日時を直接変更' : 'Click to change date and time';
+            citySelect.setAttribute('aria-label', tr('location'));
+            const groups = citySelect.querySelectorAll('optgroup');
+            if (groups[0]) groups[0].label = tr('japanGroup');
+            if (groups[1]) groups[1].label = tr('worldGroup');
+            Array.from(citySelect.options).forEach(option => {
+                if (option.value === 'home') return;
+                if (option.dataset.tempCustom === '1') {
+                    option.textContent = currentLang === 'en' ? 'Custom' : 'カスタム';
+                    return;
+                }
+                if (option.dataset.customRegion === '1') {
+                    const item = customRegions.find(r => r.key === option.value);
+                    if (item) option.textContent = formatCustomRegionLabel(item);
+                    return;
+                }
+                if (!option.dataset.jaLabel) option.dataset.jaLabel = option.textContent.trim();
+                option.textContent = currentLang === 'en' ? (CITY_NAMES_EN[option.value] || option.dataset.jaLabel) : option.dataset.jaLabel;
+            });
+            customRegionNameInput.placeholder = tr('customRegionNamePlaceholder');
+            Array.from(homeTimeZoneSelect.options).forEach(option => {
+                option.textContent = currentLang === 'en' ? option.dataset.enLabel : option.dataset.jaLabel;
+            });
+            homeNameInput.placeholder = tr('homeNamePlaceholder');
+            updateHomeOptionLabel();
+            refreshClockDisplay(simDate);
+            if (isSkyMode) renderTokyoSky(simDate);
+        }
+
         function populateHomeTimeZones() {
             homeTimeZoneSelect.innerHTML = '';
             TIME_ZONE_OPTIONS.forEach(([zone, ja, en]) => {
@@ -2236,6 +2178,7 @@
                 refreshClockDisplay(simDate);
             });
         }
+
         function saveHomeLocation() {
             const name = homeNameInput.value.trim();
             const lat = Number(homeLatInput.value);
@@ -2245,10 +2188,10 @@
                 alert(tr('homeValidation'));
                 return;
             }
-            homeSettings = { name, lat, lon, timeZone:homeTimeZoneSelect.value || getBrowserTimeZone() };
+            homeSettings = { name, lat, lon, timeZone: homeTimeZoneSelect.value || getBrowserTimeZone() };
             localStorage.setItem('solarHomeSettings', JSON.stringify(homeSettings));
             localStorage.setItem('solarHomeTimeZone', homeSettings.timeZone);
-            CITIES.home = { name, lat, lon, timeZone:homeSettings.timeZone };
+            CITIES.home = { name, lat, lon, timeZone: homeSettings.timeZone };
             homeCityOption.disabled = false;
             currentCityKey = 'home';
             currentCity = CITIES.home;
@@ -2256,6 +2199,7 @@
             localStorage.setItem('selectedSolarCity', 'home');
             updateLanguageUI();
             updateObserverMarker();
+            ensureWeatherData();
             updateSimulation(simDate);
             setHomeSettingsOpen(false);
             alert(tr('saved'));
@@ -2271,178 +2215,107 @@
         setHomeSettingsOpen(false);
 
         let homeRegionMap = null;
-            let homeRegionMarker = null;
+        let homeRegionMarker = null;
 
-            function syncHomeRegionMapMarker(lat, lon, panMap = true) {
-                if (!homeRegionMap || typeof L === 'undefined') return;
-                if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 180) return;
+        function syncHomeRegionMapMarker(lat, lon, panMap = true) {
+            if (!homeRegionMap || typeof L === 'undefined') return;
+            if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 180) return;
 
-                if (!homeRegionMarker) {
-                    homeRegionMarker = L.circleMarker([lat, lon], {
-                        radius: 7,
-                        color: '#00ffff',
-                        weight: 2,
-                        fillColor: '#ff2244',
-                        fillOpacity: 0.95
-                    }).addTo(homeRegionMap);
-                } else {
-                    homeRegionMarker.setLatLng([lat, lon]);
-                }
-                if (typeof homeRegionMarker.bringToFront === 'function') {
-                    homeRegionMarker.bringToFront();
-                }
-                if (panMap) {
-                    homeRegionMap.setView([lat, lon], Math.max(homeRegionMap.getZoom(), 2));
-                }
+            if (!homeRegionMarker) {
+                homeRegionMarker = L.circleMarker([lat, lon], {
+                    radius: 7, color: '#00ffff', weight: 2, fillColor: '#ff2244', fillOpacity: 0.95
+                }).addTo(homeRegionMap);
+            } else {
+                homeRegionMarker.setLatLng([lat, lon]);
             }
+            if (typeof homeRegionMarker.bringToFront === 'function') homeRegionMarker.bringToFront();
+            if (panMap) homeRegionMap.setView([lat, lon], Math.max(homeRegionMap.getZoom(), 2));
+        }
 
-            function ensureHomeRegionMap() {
-                const mapEl = document.getElementById('homeRegionMap');
-                if (!mapEl || typeof L === 'undefined') return;
+        function ensureHomeRegionMap() {
+            const mapEl = document.getElementById('homeRegionMap');
+            if (!mapEl || typeof L === 'undefined') return;
 
-                if (!homeRegionMap) {
-                    homeRegionMap = L.map(mapEl, {
-                        worldCopyJump: true,
-                        minZoom: 1,
-                        maxZoom: 8
-                    }).setView([20, 0], 1);
-
-                    const GridLayer = L.GridLayer.extend({
-                        createTile: function () {
-                            const tile = document.createElement('canvas');
-                            const size = this.getTileSize();
-                            tile.width = size.x;
-                            tile.height = size.y;
-                            const ctx = tile.getContext('2d');
-                            ctx.fillStyle = '#09182e';
-                            ctx.fillRect(0, 0, size.x, size.y);
-                            ctx.strokeStyle = 'rgba(95, 165, 240, 0.22)';
-                            ctx.lineWidth = 1;
-                            ctx.strokeRect(0.5, 0.5, size.x - 1, size.y - 1);
-                            return tile;
-                        }
-                    });
-                    new GridLayer().addTo(homeRegionMap);
-
-                    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
-                        .then(r => r.ok ? r.json() : null)
-                        .then(topo => {
-                            if (!topo || !topo.objects || !topo.objects.countries || !homeRegionMap) return;
-                            const arcs = topo.arcs || [];
-                            const tf = topo.transform || { scale: [1, 1], translate: [0, 0] };
-                            const decodeArc = (idx) => {
-                                const rev = idx < 0;
-                                const arc = arcs[rev ? ~idx : idx];
-                                let x = 0, y = 0;
-                                const pts = arc.map(([dx, dy]) => {
-                                    x += dx;
-                                    y += dy;
-                                    return [x * tf.scale[0] + tf.translate[0], y * tf.scale[1] + tf.translate[1]];
-                                });
-                                return rev ? pts.reverse() : pts;
-                            };
-                            const ringToLatLngs = (ring) => {
-                                const rawCoords = [];
-                                ring.forEach(arcIdx => {
-                                    decodeArc(arcIdx).forEach(([lon, lat]) => {
-                                        rawCoords.push([lat, lon]);
-                                    });
-                                });
-                                if (rawCoords.length === 0) return [];
-
-                                // 前の点との経度差が180度を超えたら+360/-360して逆走を防ぐ
-                                const unwrapped = [rawCoords[0]];
-                                let prevLon = rawCoords[0][1];
-                                let offset = 0;
-                                for (let i = 1; i < rawCoords.length; i++) {
-                                    const lat = rawCoords[i][0];
-                                    let lon = rawCoords[i][1] + offset;
-                                    const diff = lon - prevLon;
-                                    if (diff > 180) {
-                                        offset -= 360;
-                                        lon -= 360;
-                                    } else if (diff < -180) {
-                                        offset += 360;
-                                        lon += 360;
-                                    }
-                                    unwrapped.push([lat, lon]);
-                                    prevLon = lon;
-                                }
-
-                                // 陸地全体が画面中央の範囲（-180〜+180）に収まるよう平均経度で微調整
-                                let sumLon = 0;
-                                for (let i = 0; i < unwrapped.length; i++) sumLon += unwrapped[i][1];
-                                const avgLon = sumLon / unwrapped.length;
-                                if (avgLon > 180) {
-                                    const shift = -360 * Math.round(avgLon / 360);
-                                    for (let i = 0; i < unwrapped.length; i++) unwrapped[i][1] += shift;
-                                } else if (avgLon < -180) {
-                                    const shift = 360 * Math.round(-avgLon / 360);
-                                    for (let i = 0; i < unwrapped.length; i++) unwrapped[i][1] += shift;
-                                }
-
-                                return unwrapped;
-                            };
-
-                            const polys = [];
-                            topo.objects.countries.geometries.forEach(g => {
-                                if (g.type === 'Polygon') {
-                                    polys.push(g.arcs.map(ringToLatLngs));
-                                } else if (g.type === 'MultiPolygon') {
-                                    g.arcs.forEach(p => polys.push(p.map(ringToLatLngs)));
-                                }
-                            });
-                            L.polygon(polys, {
-                                color: '#5ca8e6',
-                                weight: 0.8,
-                                fillColor: '#1d4675',
-                                fillOpacity: 0.72,
-                                interactive: false
-                            }).addTo(homeRegionMap);
-                            if (homeRegionMarker && typeof homeRegionMarker.bringToFront === 'function') {
-                                homeRegionMarker.bringToFront();
-                            }
-                        })
-                        .catch(() => { });
-
-                    homeRegionMap.on('click', (e) => {
-                        const lat = Number(e.latlng.lat.toFixed(4));
-                        let lon = Number(e.latlng.lng.toFixed(4));
-                        if (lon > 180) lon = ((lon + 180) % 360 + 360) % 360 - 180;
-                        if (lon < -180) lon = -(((-lon + 180) % 360 + 360) % 360 - 180);
-                        lon = Number(lon.toFixed(4));
-
-                        homeLatInput.value = lat;
-                        homeLonInput.value = lon;
-
-                        const estTz = estimateTimeZoneByLon(lat, lon);
-                        if ([...homeTimeZoneSelect.options].some(o => o.value === estTz)) {
-                            homeTimeZoneSelect.value = estTz;
-                        }
-                        syncHomeRegionMapMarker(lat, lon, false);
-                    });
-                }
-
-                setTimeout(() => {
-                    if (!homeRegionMap) return;
-                    homeRegionMap.invalidateSize();
-                    const lat = Number(homeLatInput.value);
-                    const lon = Number(homeLonInput.value);
-                    if (homeLatInput.value.trim() !== '' && homeLonInput.value.trim() !== '') {
-                        syncHomeRegionMapMarker(lat, lon, true);
+            if (!homeRegionMap) {
+                homeRegionMap = L.map(mapEl, { worldCopyJump: true, minZoom: 1, maxZoom: 8 }).setView([20, 0], 1);
+                const GridLayer = L.GridLayer.extend({
+                    createTile: function () {
+                        const tile = document.createElement('canvas');
+                        const size = this.getTileSize();
+                        tile.width = size.x;
+                        tile.height = size.y;
+                        const ctx = tile.getContext('2d');
+                        ctx.fillStyle = '#09182e';
+                        ctx.fillRect(0, 0, size.x, size.y);
+                        ctx.strokeStyle = 'rgba(95, 165, 240, 0.22)';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(0.5, 0.5, size.x - 1, size.y - 1);
+                        return tile;
                     }
-                }, 40);
+                });
+                new GridLayer().addTo(homeRegionMap);
+
+                fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+                    .then(r => r.ok ? r.json() : null)
+                    .then(topo => {
+                        if (!topo || !topo.objects || !topo.objects.countries || !homeRegionMap) return;
+                        const arcs = topo.arcs || [];
+                        const tf = topo.transform || { scale: [1, 1], translate: [0, 0] };
+                        const decodeArc = (idx) => {
+                            const rev = idx < 0;
+                            const arc = arcs[rev ? ~idx : idx];
+                            let x = 0, y = 0;
+                            const pts = arc.map(([dx, dy]) => {
+                                x += dx; y += dy;
+                                return [x * tf.scale[0] + tf.translate[0], y * tf.scale[1] + tf.translate[1]];
+                            });
+                            return rev ? pts.reverse() : pts;
+                        };
+
+                        const polys = decodeTopoToUnwrappedPolys(topo, decodeArc);
+                        L.polygon(polys, { color: '#5ca8e6', weight: 0.8, fillColor: '#1d4675', fillOpacity: 0.72, interactive: false }).addTo(homeRegionMap);
+                        if (homeRegionMarker && typeof homeRegionMarker.bringToFront === 'function') homeRegionMarker.bringToFront();
+                    })
+                    .catch(() => { });
+
+                homeRegionMap.on('click', (e) => {
+                    const lat = Number(e.latlng.lat.toFixed(4));
+                    let lon = Number(e.latlng.lng.toFixed(4));
+                    if (lon > 180) lon = ((lon + 180) % 360 + 360) % 360 - 180;
+                    if (lon < -180) lon = -(((-lon + 180) % 360 + 360) % 360 - 180);
+                    lon = Number(lon.toFixed(4));
+
+                    homeLatInput.value = lat;
+                    homeLonInput.value = lon;
+
+                    const estTz = estimateTimeZoneByLon(lat, lon);
+                    if ([...homeTimeZoneSelect.options].some(o => o.value === estTz)) {
+                        homeTimeZoneSelect.value = estTz;
+                    }
+                    syncHomeRegionMapMarker(lat, lon, false);
+                });
             }
 
-            homeLatInput.addEventListener('input', () => {
-                if (homeLatInput.value.trim() === '' || homeLonInput.value.trim() === '') return;
-                syncHomeRegionMapMarker(Number(homeLatInput.value), Number(homeLonInput.value), false);
-            });
+            setTimeout(() => {
+                if (!homeRegionMap) return;
+                homeRegionMap.invalidateSize();
+                const lat = Number(homeLatInput.value);
+                const lon = Number(homeLonInput.value);
+                if (homeLatInput.value.trim() !== '' && homeLonInput.value.trim() !== '') {
+                    syncHomeRegionMapMarker(lat, lon, true);
+                }
+            }, 40);
+        }
 
-            homeLonInput.addEventListener('input', () => {
-                if (homeLatInput.value.trim() === '' || homeLonInput.value.trim() === '') return;
-                syncHomeRegionMapMarker(Number(homeLatInput.value), Number(homeLonInput.value), false);
-            });
+        homeLatInput.addEventListener('input', () => {
+            if (homeLatInput.value.trim() === '' || homeLonInput.value.trim() === '') return;
+            syncHomeRegionMapMarker(Number(homeLatInput.value), Number(homeLonInput.value), false);
+        });
+
+        homeLonInput.addEventListener('input', () => {
+            if (homeLatInput.value.trim() === '' || homeLonInput.value.trim() === '') return;
+            syncHomeRegionMapMarker(Number(homeLatInput.value), Number(homeLonInput.value), false);
+        });
 
         function resizeSkyCanvas() {
             skyCanvas.width = window.innerWidth;
@@ -2454,22 +2327,15 @@
 
         function getAzimuthAtLocation(phi, dec, H, alt) {
             const east = -Math.cos(dec) * Math.sin(H);
-            const north =
-                Math.sin(dec) * Math.cos(phi) -
-                Math.cos(dec) * Math.cos(H) * Math.sin(phi);
-
-            if (Math.hypot(east, north) < 1e-12) {
-                return 0;
-            }
-
+            const north = Math.sin(dec) * Math.cos(phi) - Math.cos(dec) * Math.cos(H) * Math.sin(phi);
+            if (Math.hypot(east, north) < 1e-12) return 0;
             let az = Math.atan2(east, north);
             if (az < 0) az += 2 * Math.PI;
-
             return az;
         }
 
         // ==========================================
-        // 4. 地平座標変換 & 月の満ち欠け描画
+        // 4. 地平座標変換 & 月の満ち欠け
         // ==========================================
         function toHorizontal(geoX, geoY, geoZ, dDays) {
             const eps = 23.4392911 * (Math.PI / 180);
@@ -2511,7 +2377,6 @@
             return { alt: alt * (180 / Math.PI), az: az * (180 / Math.PI) };
         }
 
-        // 3D空間での太陽位置・観測者位置・月位置から、実際の光の当たり具合と欠けの向きを計算して描画
         function getMoonGeocentricVector3D(dDays, T) {
             const moonData = (planetsConfig.find(p => p.isEarth)?.moons || []).find(m => m.name === '月');
             const rad = Math.PI / 180;
@@ -2521,7 +2386,6 @@
             const node = nodeDeg * rad;
             const u = angleRad - node;
             const distKm = 384400;
-            // 黄道座標系 (xEcl, yEcl, zEcl)
             const xEcl = distKm * (Math.cos(node) * Math.cos(u) - Math.sin(node) * Math.sin(u) * Math.cos(inc));
             const yEcl = distKm * (Math.sin(node) * Math.cos(u) + Math.cos(node) * Math.sin(u) * Math.cos(inc));
             const zEcl = distKm * (Math.sin(u) * Math.sin(inc));
@@ -2529,19 +2393,16 @@
         }
 
         function getObserverGeocentricVector3D(dDays) {
-            // 地心黄道座標系での観測者位置（地球半径 6378 km）
             const eps = 23.4392911 * (Math.PI / 180);
             const phi = currentCity.lat * (Math.PI / 180);
             const gmstDeg = (280.46061837 + 360.98564736629 * dDays) % 360;
             const lmstRad = ((gmstDeg + currentCity.lon) % 360) * (Math.PI / 180);
             const rEarthKm = 6378;
 
-            // 赤道座標 (Xeq, Yeq, Zeq)
             const eqX = rEarthKm * Math.cos(phi) * Math.cos(lmstRad);
             const eqY = rEarthKm * Math.cos(phi) * Math.sin(lmstRad);
             const eqZ = rEarthKm * Math.sin(phi);
 
-            // 赤道座標 → 黄道座標（eps の逆回転）
             const xEcl = eqX;
             const yEcl = eqY * Math.cos(eps) + eqZ * Math.sin(eps);
             const zEcl = -eqY * Math.sin(eps) + eqZ * Math.cos(eps);
@@ -2551,65 +2412,34 @@
         function drawMoonPhase3D(ctx, cx, cy, r, dDays, T, ePos, skyBgColor) {
             const vecSub = (a, b) => ({ x: a.x - b.x, y: a.y - b.y, z: a.z - b.z });
             const dot = (a, b) => a.x * b.x + a.y * b.y + a.z * b.z;
-            const cross = (a, b) => ({
-                x: a.y * b.z - a.z * b.y,
-                y: a.z * b.x - a.x * b.z,
-                z: a.x * b.y - a.y * b.x
-            });
+            const cross = (a, b) => ({ x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x });
             const len = (a) => Math.hypot(a.x, a.y, a.z);
-            const norm = (a) => {
-                const l = len(a) || 1;
-                return { x: a.x / l, y: a.y / l, z: a.z / l };
-            };
+            const norm = (a) => { const l = len(a) || 1; return { x: a.x / l, y: a.y / l, z: a.z / l }; };
 
-            // 太陽位置（黄道座標・km単位換算: 1 AU = 149597870.7 km）
             const AU_TO_KM = 149597870.7;
-            const sunGeoKm = {
-                x: -ePos.x * AU_TO_KM,
-                y: -ePos.y * AU_TO_KM,
-                z: -ePos.z * AU_TO_KM
-            };
+            const sunGeoKm = { x: -ePos.x * AU_TO_KM, y: -ePos.y * AU_TO_KM, z: -ePos.z * AU_TO_KM };
             const moonGeoKm = getMoonGeocentricVector3D(dDays, T);
             const obsGeoKm = getObserverGeocentricVector3D(dDays);
 
-            // 観測者から見た月への視線ベクトル（カメラが月を見る方向）
             const viewDir = norm(vecSub(moonGeoKm, obsGeoKm));
-            // 月から太陽へ向かう光線ベクトル（太陽光の入射方向の逆＝光が当たってくる方向）
             const toSunDir = norm(vecSub(sunGeoKm, moonGeoKm));
 
-            // スクリーン上の「上方向（北極/天頂側）」を3D基準ベクトルから構築
-            // 黄道北極 (0, 0, 1) を視線方向に直交化
             let screenUp3D = { x: 0, y: 0, z: 1 };
             const upDotView = dot(screenUp3D, viewDir);
-            screenUp3D = {
-                x: screenUp3D.x - upDotView * viewDir.x,
-                y: screenUp3D.y - upDotView * viewDir.y,
-                z: screenUp3D.z - upDotView * viewDir.z
-            };
-            if (len(screenUp3D) < 1e-6) {
-                screenUp3D = { x: 0, y: 1, z: 0 };
-            }
+            screenUp3D = { x: screenUp3D.x - upDotView * viewDir.x, y: screenUp3D.y - upDotView * viewDir.y, z: screenUp3D.z - upDotView * viewDir.z };
+            if (len(screenUp3D) < 1e-6) screenUp3D = { x: 0, y: 1, z: 0 };
             screenUp3D = norm(screenUp3D);
-
-            // Canvasの座標系は y が下向きなので、3Dの screenUp3D に対して screenDown3D = -screenUp3D を基準にする
-            // 視線方向 viewDir に対して右方向 screenRight3D = cross(viewDir, screenUp3D)
             const screenRight3D = norm(cross(viewDir, screenUp3D));
 
-            // toSunDir を月面円盤（viewDirに垂直な平面）に射影
             const sunInDisk = {
                 x: toSunDir.x - dot(toSunDir, viewDir) * viewDir.x,
                 y: toSunDir.y - dot(toSunDir, viewDir) * viewDir.y,
                 z: toSunDir.z - dot(toSunDir, viewDir) * viewDir.z
             };
 
-            // 太陽光の視線に対する前後成分（cosPhase = dot(toSunDir, viewDir) だと月→太陽なので、観測者→月の反対が太陽側なら満月）
-            // 観測者から見て太陽が月の背後にあるとき illuminated、手前にあるとき新月側
             const cosPhase = Math.max(-1, Math.min(1, dot(toSunDir, viewDir)));
-            // cosPhase = +1: 月の向こう側に太陽（逆光＝新月）、cosPhase = -1: 観測者の背中側に太陽（順光＝満月）
-            // 照らされている割合の目安として、終端線の傾き・扁平度を決める
             const diskProjLen = len(sunInDisk);
 
-            // Canvas座標系での太陽光方向（x: 右+, y: 下+）
             const sunCanvasX = dot(sunInDisk, screenRight3D);
             const sunCanvasY = -dot(sunInDisk, screenUp3D);
 
@@ -2619,19 +2449,16 @@
             const shadowColor = skyBgColor || '#020208';
             const lightColor = '#fffdf0';
 
-            // ベース：影の円
             ctx.beginPath();
             ctx.arc(0, 0, r, 0, Math.PI * 2);
             ctx.fillStyle = shadowColor;
             ctx.fill();
 
-            // ほぼ新月（太陽と月がほぼ同じ方向で観測者から見て重なる場合）
             if (diskProjLen < 1e-4 && cosPhase > 0.9995) {
                 ctx.restore();
                 return;
             }
 
-            // ほぼ満月（太陽が観測者側にあって月面を正面から照らす場合）
             if (diskProjLen < 1e-4 && cosPhase < -0.9995) {
                 ctx.beginPath();
                 ctx.arc(0, 0, r, 0, Math.PI * 2);
@@ -2643,22 +2470,15 @@
                 return;
             }
 
-            // 光が当たる方向（+X軸を光の向かう方向にするため、angle = atan2(sunCanvasY, sunCanvasX) だけ回転）
             const lightAngle = Math.atan2(sunCanvasY, sunCanvasX);
             ctx.rotate(lightAngle);
 
-            // 回転後のローカル座標系では、+X 方向が太陽（光が来る側）、-X 方向が影（欠ける側）
-            // 位相角 alpha: 太陽方向と視線方向のなす角の補角（0=新月, PI=満月）
-            // toSunDir と (-viewDir) のなす角が 0 なら満月(cos=1)、PI なら新月(cos=-1)
             const litCos = Math.max(-1, Math.min(1, -cosPhase));
-            // 終端線（明暗境界線）のx座標係数: litCos = -1(新月) -> +1, litCos = 0(半月) -> 0, litCos = +1(満月) -> -1
             const terminatorXFactor = -litCos;
 
             const steps = 64;
             ctx.beginPath();
-            // 右半分（+X側、角度 -π/2 → +π/2）の外周を時計回りにたどる
             ctx.arc(0, 0, r, -Math.PI / 2, Math.PI / 2, false);
-            // 明暗境界線を +π/2 → -π/2 へ結ぶ（楕円弧のx座標は terminatorXFactor * sqrt(r^2 - y^2)）
             for (let i = steps; i >= 0; i--) {
                 const theta = -Math.PI / 2 + (Math.PI * i) / steps;
                 const y = r * Math.sin(theta);
@@ -2672,6 +2492,106 @@
             ctx.shadowColor = '#ffffcc';
             ctx.shadowBlur = 8;
             ctx.fill();
+            ctx.restore();
+        }
+
+        // ==========================================
+        // 4.5 背景薄雲・雨・雪の描画処理
+        // ==========================================
+        let cloudAnimTime = 0;
+        function drawBackgroundClouds(ctx, w, horizonY, zenithY, sunAlt, weatherOpacity) {
+            if (!showWeather || weatherOpacity <= 0 || currentWeather.cloudCover <= 3) return;
+
+            // 雲量は最大でも透明度 0.28。未来へ進むほど現在天気の確度に合わせて薄くする
+            const maxAlpha = Math.min(0.28, (currentWeather.cloudCover / 100) * 0.32) * weatherOpacity;
+            const skyH = Math.max(100, horizonY - zenithY);
+            const t = cloudAnimTime * 0.00008;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(0, zenithY, w, horizonY - zenithY);
+            ctx.clip();
+
+            // 昼夜に応じた雲の色調
+            const cloudColor = sunAlt > 0
+                ? 'rgba(255, 255, 255,'
+                : (sunAlt > -6 ? 'rgba(220, 190, 210,' : 'rgba(160, 185, 225,');
+
+            // 5層のソフトな大円形雲塊を漂わせる
+            const cloudBlobs = [
+                { fx: 0.18, fy: 0.35, rx: w * 0.42, ry: skyH * 0.28, speed: 1.0 },
+                { fx: 0.55, fy: 0.45, rx: w * 0.48, ry: skyH * 0.32, speed: 0.75 },
+                { fx: 0.88, fy: 0.30, rx: w * 0.38, ry: skyH * 0.26, speed: 1.2 },
+                { fx: 0.32, fy: 0.65, rx: w * 0.52, ry: skyH * 0.35, speed: 0.6 },
+                { fx: 0.76, fy: 0.70, rx: w * 0.45, ry: skyH * 0.30, speed: 0.9 }
+            ];
+
+            cloudBlobs.forEach((b, i) => {
+                const shiftX = ((b.fx + t * b.speed) % 1.4) - 0.2;
+                const cx = shiftX * w;
+                const cy = zenithY + b.fy * skyH;
+
+                const grad = ctx.createRadialGradient(cx, cy, 10, cx, cy, Math.max(b.rx, b.ry));
+                grad.addColorStop(0, `${cloudColor} ${maxAlpha.toFixed(3)})`);
+                grad.addColorStop(0.5, `${cloudColor} ${(maxAlpha * 0.5).toFixed(3)})`);
+                grad.addColorStop(1, `${cloudColor} 0)`);
+
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.ellipse(cx, cy, b.rx, b.ry, 0, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.restore();
+        }
+
+        function drawPrecipitation(ctx, w, horizonY, zenithY, weatherOpacity) {
+            if (!showWeather || weatherOpacity <= 0) return;
+            const isRaining = currentWeather.isRaining;
+            const isSnowing = currentWeather.isSnowing;
+            if (!isRaining && !isSnowing) return;
+
+            const skyH = Math.max(100, horizonY - zenithY);
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(0, zenithY, w, horizonY - zenithY);
+            ctx.clip();
+
+            ctx.globalAlpha = weatherOpacity;
+            if (isRaining) {
+                ctx.strokeStyle = 'rgba(20, 20, 255, 0.62)';
+                ctx.lineWidth = 2.0;
+                rainParticles.forEach(p => {
+                    p.y += p.speed;
+                    p.x += p.speed * 0.22; // 斜めに降る
+                    if (p.y > 1) { p.y = 0; p.x = Math.random(); }
+                    if (p.x > 1) { p.x = 0; }
+
+                    const px = p.x * w;
+                    const py = zenithY + p.y * skyH;
+                    ctx.beginPath();
+                    ctx.moveTo(px, py);
+                    ctx.lineTo(px + p.len * 0.22, py + p.len);
+                    ctx.stroke();
+                });
+            } else if (isSnowing) {
+                snowParticles.forEach(p => {
+                    p.y += p.speedY;
+                    p.swing += p.swingSpeed;
+                    if (p.y > 1) { p.y = 0; p.x = Math.random(); }
+
+                    const px = (p.x + Math.sin(p.swing) * 0.02) * w;
+                    const py = zenithY + p.y * skyH;
+                    ctx.beginPath();
+                    ctx.arc(px, py, p.r, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(240, 250, 255, 0.65)';
+                    ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
+                    ctx.shadowBlur = 3;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                });
+            }
 
             ctx.restore();
         }
@@ -2683,31 +2603,17 @@
             {
                 name: 'オリオン座',
                 stars: {
-                    bet: [88.8, 7.4],
-                    bel: [81.3, 6.3],
-                    m1: [83.0, -0.3],
-                    m2: [84.1, -1.2],
-                    m3: [85.2, -1.9],
-                    rig: [78.6, -8.2],
-                    sai: [86.9, -9.7]
+                    bet: [88.8, 7.4], bel: [81.3, 6.3], m1: [83.0, -0.3], m2: [84.1, -1.2],
+                    m3: [85.2, -1.9], rig: [78.6, -8.2], sai: [86.9, -9.7]
                 },
                 lines: [
-                    ['bel', 'bet'],
-                    ['bel', 'm1'], ['bet', 'm3'],
-                    ['m1', 'm2'], ['m2', 'm3'],
-                    ['m1', 'rig'], ['m3', 'sai'],
-                    ['rig', 'sai']
+                    ['bel', 'bet'], ['bel', 'm1'], ['bet', 'm3'],
+                    ['m1', 'm2'], ['m2', 'm3'], ['m1', 'rig'], ['m3', 'sai'], ['rig', 'sai']
                 ]
             },
             {
                 name: 'カシオペヤ座',
-                stars: {
-                    caph: [2.3, 59.2],
-                    sched: [10.1, 56.5],
-                    navi: [14.2, 60.7],
-                    ruch: [21.4, 60.2],
-                    segin: [28.6, 63.7]
-                },
+                stars: { caph: [2.3, 59.2], sched: [10.1, 56.5], navi: [14.2, 60.7], ruch: [21.4, 60.2], segin: [28.6, 63.7] },
                 lines: [['caph', 'sched'], ['sched', 'navi'], ['navi', 'ruch'], ['ruch', 'segin']]
             },
             {
@@ -2724,11 +2630,8 @@
             {
                 name: 'こぐま座 (北極星)',
                 stars: {
-                    polaris: [37.95, 89.26],
-                    d1: [261.0, 82.0], e1: [254.0, 77.8], z1: [237.0, 77.8],
-                    kochab: [222.7, 74.16],
-                    pher: [230.2, 71.83],
-                    h1: [244.0, 75.8]
+                    polaris: [37.95, 89.26], d1: [261.0, 82.0], e1: [254.0, 77.8], z1: [237.0, 77.8],
+                    kochab: [222.7, 74.16], pher: [230.2, 71.83], h1: [244.0, 75.8]
                 },
                 lines: [
                     ['polaris', 'd1'], ['d1', 'e1'], ['e1', 'z1'],
@@ -2737,38 +2640,25 @@
             },
             {
                 name: '夏の大三角',
-                stars: {
-                    vega: [279.2, 38.8],
-                    deneb: [310.4, 45.3],
-                    altair: [297.7, 8.9]
-                },
+                stars: { vega: [279.2, 38.8], deneb: [310.4, 45.3], altair: [297.7, 8.9] },
                 lines: [['vega', 'deneb'], ['deneb', 'altair'], ['altair', 'vega']]
             },
             {
                 name: 'さそり座',
                 stars: {
-                    graff: [241.3, -19.8],
-                    dzhub: [241.1, -22.6],
-                    pi: [242.2, -26.1],
-                    ant: [247.4, -26.4],
+                    graff: [241.3, -19.8], dzhub: [241.1, -22.6], pi: [242.2, -26.1], ant: [247.4, -26.4],
                     t1: [248.8, -34.3], t2: [253.9, -39.0], t3: [263.4, -37.1], shaula: [263.7, -37.1]
                 },
                 lines: [
-                    ['graff', 'dzhub'], ['dzhub', 'pi'],
-                    ['dzhub', 'ant'],
+                    ['graff', 'dzhub'], ['dzhub', 'pi'], ['dzhub', 'ant'],
                     ['ant', 't1'], ['t1', 't2'], ['t2', 't3'], ['t3', 'shaula']
                 ]
             },
             {
                 name: 'しし座',
                 stars: {
-                    reg: [152.1, 12.0],
-                    alg: [155.0, 19.8],
-                    ada: [154.5, 23.4],
-                    ras: [149.4, 26.0],
-                    zob: [168.5, 20.5],
-                    den: [177.3, 14.6],
-                    cho: [169.6, 15.4]
+                    reg: [152.1, 12.0], alg: [155.0, 19.8], ada: [154.5, 23.4], ras: [149.4, 26.0],
+                    zob: [168.5, 20.5], den: [177.3, 14.6], cho: [169.6, 15.4]
                 },
                 lines: [
                     ['reg', 'alg'], ['alg', 'ada'], ['ada', 'ras'],
@@ -2777,91 +2667,43 @@
             },
             {
                 name: 'おうし座 (すばる)',
-                stars: {
-                    ald: [68.98, 16.5],
-                    ple: [56.9, 24.1],
-                    hy1: [66.8, 15.6],
-                    h_top: [81.6, 28.6],
-                    h_bot: [86.2, 21.1]
-                },
-                lines: [
-                    ['ple', 'ald'],
-                    ['ald', 'hy1'],
-                    ['ald', 'h_bot'],
-                    ['hy1', 'h_top']
-                ]
+                stars: { ald: [68.98, 16.5], ple: [56.9, 24.1], hy1: [66.8, 15.6], h_top: [81.6, 28.6], h_bot: [86.2, 21.1] },
+                lines: [['ple', 'ald'], ['ald', 'hy1'], ['ald', 'h_bot'], ['hy1', 'h_top']]
             },
             {
                 name: 'ぎょしゃ座 (カペラ)',
-                stars: {
-                    cap: [79.2, 46.0],
-                    men: [89.9, 44.9],
-                    th: [89.8, 37.2],
-                    el: [81.6, 28.6],
-                    ha: [74.8, 33.1]
-                },
+                stars: { cap: [79.2, 46.0], men: [89.9, 44.9], th: [89.8, 37.2], el: [81.6, 28.6], ha: [74.8, 33.1] },
                 lines: [['cap', 'men'], ['men', 'th'], ['th', 'el'], ['el', 'ha'], ['ha', 'cap']]
             },
             {
                 name: 'ケフェウス座',
-                stars: {
-                    c1: [319.7, 62.6],
-                    c2: [322.2, 70.6],
-                    c3: [354.8, 77.6],
-                    c4: [352.0, 68.0],
-                    c5: [338.0, 57.0]
-                },
-                lines: [
-                    ['c1', 'c2'], ['c2', 'c3'], ['c3', 'c4'], ['c4', 'c5'], ['c5', 'c1'],
-                    ['c2', 'c4']
-                ]
+                stars: { c1: [319.7, 62.6], c2: [322.2, 70.6], c3: [354.8, 77.6], c4: [352.0, 68.0], c5: [338.0, 57.0] },
+                lines: [['c1', 'c2'], ['c2', 'c3'], ['c3', 'c4'], ['c4', 'c5'], ['c5', 'c1'], ['c2', 'c4']]
             },
             {
                 name: 'おおいぬ座',
                 stars: {
-                    sirius: [101.29, -16.72],
-                    mirzam: [95.68, -17.96],
-                    muliphein: [105.94, -15.63],
-                    wezen: [104.66, -26.39],
-                    adhara: [104.66, -28.97],
-                    aludra: [111.02, -29.30]
+                    sirius: [101.29, -16.72], mirzam: [95.68, -17.96], muliphein: [105.94, -15.63],
+                    wezen: [104.66, -26.39], adhara: [104.66, -28.97], aludra: [111.02, -29.30]
                 },
                 lines: [
-                    ['sirius', 'mirzam'],
-                    ['sirius', 'muliphein'],
-                    ['muliphein', 'wezen'],
-                    ['wezen', 'adhara'],
-                    ['adhara', 'aludra'],
-                    ['mirzam', 'muliphein'],
-                    ['sirius', 'adhara']
+                    ['sirius', 'mirzam'], ['sirius', 'muliphein'], ['muliphein', 'wezen'],
+                    ['wezen', 'adhara'], ['adhara', 'aludra'], ['mirzam', 'muliphein'], ['sirius', 'adhara']
                 ]
             },
             {
                 name: 'みなみじゅうじ座',
-                stars: {
-                    acrux: [186.65, -63.10],
-                    mimosa: [191.93, -59.69],
-                    gacrux: [187.79, -57.11],
-                    imai: [183.79, -58.75]
-                },
-                lines: [
-                    ['gacrux', 'acrux'],
-                    ['mimosa', 'imai']
-                ]
+                stars: { acrux: [186.65, -63.10], mimosa: [191.93, -59.69], gacrux: [187.79, -57.11], imai: [183.79, -58.75] },
+                lines: [['gacrux', 'acrux'], ['mimosa', 'imai']]
             },
             {
                 name: 'すばる (M45)',
                 isDeepSkyObject: true,
                 dsType: 'pleiades',
                 stars: {
-                    m45_center: [56.87, 24.12],
-                    alcyone: [56.87, 24.11],
-                    atlas: [57.29, 24.05],
-                    pleione: [57.29, 24.14],
-                    maia: [56.45, 24.37],
-                    electra: [56.20, 24.11],
-                    taygeta: [56.30, 24.47],
-                    merope: [56.58, 23.95]
+                    m45_center: [56.87, 24.12], alcyone: [56.87, 24.11], atlas: [57.29, 24.05],
+                    pleione: [57.29, 24.14], maia: [56.45, 24.37], electra: [56.20, 24.11],
+                    taygeta: [56.30, 24.47], merope: [56.58, 23.95]
                 },
                 lines: []
             },
@@ -2869,17 +2711,13 @@
                 name: 'アンドロメダ星雲 (M31)',
                 isDeepSkyObject: true,
                 dsType: 'andromeda',
-                stars: {
-                    m31_center: [10.68, 41.27],
-                    m31_ne: [11.95, 42.10],
-                    m31_sw: [9.40, 40.42]
-                },
+                stars: { m31_center: [10.68, 41.27], m31_ne: [11.95, 42.10], m31_sw: [9.40, 40.42] },
                 lines: []
             }
         ];
 
         // ==========================================
-        // 6. 空画面描画メイン (東西南北・ドーム投影)
+        // 6. 空画面描画メイン
         // ==========================================
         function renderTokyoSky(date) {
             if (!isSkyMode) return;
@@ -2891,13 +2729,12 @@
             const horizonY = h * 0.835;
             const zenithY = Math.max(h * 0.07, panelBottom + 24);
             const skyHeight = Math.max(100, horizonY - zenithY);
+            const weatherOpacity = getWeatherOpacity(date);
             const centerX = w / 2;
             const halfWidth = Math.max(1, w / 2 - 12);
 
             const azimuthMap = { north: 0, east: 90, south: 180, west: 270 };
-            const centerAz = Object.prototype.hasOwnProperty.call(azimuthMap, viewMode)
-                ? azimuthMap[viewMode]
-                : 180;
+            const centerAz = Object.prototype.hasOwnProperty.call(azimuthMap, viewMode) ? azimuthMap[viewMode] : 180;
             const rad = Math.PI / 180;
 
             const azimuthHalfRange = 135;
@@ -2912,10 +2749,8 @@
                 const safeAlt = Math.max(-5, Math.min(90, alt));
                 const a = Math.max(0, safeAlt) / 90;
 
-                const convergence = zenithConvergence + (1 - zenithConvergence) *
-                    (1 - Math.pow(a, 1.30));
+                const convergence = zenithConvergence + (1 - zenithConvergence) * (1 - Math.pow(a, 1.30));
                 const x = centerX + u * halfWidth * convergence;
-
                 const vertical = a + edgeLift * u * u * a * (1 - a);
                 const y = horizonY - skyHeight * (safeAlt < 0 ? safeAlt / 90 : vertical);
                 return { x, y, visible, relAz };
@@ -2929,41 +2764,22 @@
             const ePos = getPlanetHelioPosition(orbitalElements.earth, T).trueEcl;
             const sunGeo = { x: -ePos.x, y: -ePos.y, z: -ePos.z };
             const sunHoriz = toHorizontal(sunGeo.x, sunGeo.y, sunGeo.z, dDays);
-            const sunLonDeg = ((ePos.lon * 180 / Math.PI + 180) % 360 + 360) % 360;
             const moonLonDeg = getMoonGeocentricEclipticLon(dDays, T);
             const moonRad = moonLonDeg * rad;
             const moonHoriz = toHorizontal(Math.cos(moonRad), Math.sin(moonRad), 0, dDays);
 
             ensureActualTideData(date);
+            ensureWeatherData();
 
             const actualTideM = getActualTideAt(date);
             const actualAnnualRange = getActualAnnualTideRange(date);
-
-            const currentTideM = actualTideM !== null
-                ? actualTideM
-                : tideHeightFromAltitudes(
-                    sunHoriz.alt, moonHoriz.alt, dDays, T, ePos.r
-                );
-
+            const currentTideM = actualTideM !== null ? actualTideM : tideHeightFromAltitudes(sunHoriz.alt, moonHoriz.alt, dDays, T, ePos.r);
             const annualTideRange = actualAnnualRange || { min: -0.52, max: 0.52 };
+            const tideIsActual = actualTideM !== null && actualAnnualRange !== null;
+            const annualTideSpan = Math.max(0.001, annualTideRange.max - annualTideRange.min);
+            const tideRatio = Math.max(0, Math.min(1, (currentTideM - annualTideRange.min) / annualTideSpan));
 
-            const tideIsActual =
-                actualTideM !== null && actualAnnualRange !== null;
-
-            const annualTideSpan = Math.max(
-                0.001,
-                annualTideRange.max - annualTideRange.min
-            );
-
-            const tideRatio = Math.max(
-                0,
-                Math.min(
-                    1,
-                    (currentTideM - annualTideRange.min) / annualTideSpan
-                )
-            );
-            
-            // 1. 空と海面表示エリア
+            // 1. 空のベース背景
             const skyGrad = skyCtx.createLinearGradient(0, zenithY, 0, h);
             if (sunHoriz.alt > 0) {
                 skyGrad.addColorStop(0, '#1052a0');
@@ -2980,6 +2796,12 @@
             skyCtx.fillStyle = skyGrad;
             skyCtx.fillRect(0, 0, w, h);
 
+            // ★背景薄雲の描画（星や星座の背後・控えめで視認性を邪魔しない）
+            if (viewMode !== 'zenith') {
+                drawBackgroundClouds(skyCtx, w, horizonY, zenithY, sunHoriz.alt, weatherOpacity);
+            }
+
+            // 海面と潮位メーター
             if (viewMode !== 'zenith') {
                 const seaPanelTop = horizonY;
                 const seaPanelBottom = h;
@@ -3010,20 +2832,22 @@
                     skyCtx.shadowBlur = 0;
                 }
 
+                // 情報表示（観測地・天気・潮位）
                 const infoX = 16;
-                const infoY = Math.min(h - 54, horizonY + 9);
-                const infoW = Math.max(175, Math.min(430, w - 78));
-                skyCtx.fillStyle = 'rgba(1, 8, 20, 0.72)';
+                const infoY = Math.min(h - 54, horizonY + 40);
+                const infoW = Math.max(190, Math.min(480, w - 78));
+                skyCtx.fillStyle = 'rgba(1, 8, 20, 0.76)';
                 skyCtx.fillRect(infoX, infoY, infoW, 43);
                 skyCtx.fillStyle = 'rgba(235, 247, 255, 0.95)';
                 skyCtx.font = 'bold 12px sans-serif';
                 skyCtx.textAlign = 'left';
-                const locationLine =
-                    `${tr('observed')}: ${getCurrentCityDisplayName()} | ` +
-                    `${tideIsActual ? tr('tideStation') : tr('tideEstimate')}`;
+
+                const locationLine = `${tr('observed')}: ${getCurrentCityDisplayName()}`;
                 skyCtx.fillText(locationLine, infoX + 8, infoY + 15, infoW - 16);
+
                 const signedTide = `${currentTideM >= 0 ? '+' : ''}${currentTideM.toFixed(2)} m`;
-                const annualText = `${tr('current')} ${signedTide}   ${tr('annualMax')} ${annualTideRange.max >= 0 ? '+' : ''}${annualTideRange.max.toFixed(2)} / ${tr('annualMin')} ${annualTideRange.min >= 0 ? '+' : ''}${annualTideRange.min.toFixed(2)} m`;
+                const tideSource = tideIsActual ? tr('tideStation') : tr('tideEstimate');
+                const annualText = `${tideSource} ${tr('current')} ${signedTide}   ${tr('annualMax')} ${annualTideRange.max >= 0 ? '+' : ''}${annualTideRange.max.toFixed(2)} / ${tr('annualMin')} ${annualTideRange.min >= 0 ? '+' : ''}${annualTideRange.min.toFixed(2)} m`;
                 skyCtx.font = '11px sans-serif';
                 skyCtx.fillStyle = '#b9e9ff';
                 skyCtx.fillText(annualText, infoX + 8, infoY + 33, infoW - 16);
@@ -3056,7 +2880,7 @@
                 skyCtx.fillText(`${currentLang === 'ja' ? '最小' : 'MIN'} ${annualTideRange.min >= 0 ? '+' : ''}${annualTideRange.min.toFixed(2)}m`, gaugeX - 7, gaugeBottom - 2, Math.max(70, w * 0.35));
             }
 
-            // 今の天頂の位置（中央上）に「真上」／「〇〇方向表示」ボタンを表示
+            // 天頂／方向切替ボタン
             let zenithBtnRect = null;
             {
                 const isZenithActive = (viewMode === 'zenith');
@@ -3092,7 +2916,47 @@
             }
             skyCanvas._zenithBtnRect = zenithBtnRect;
 
-            // 現在の星空の方向表示を上から下の地平線の位置に下げる
+            // 天気・気温表示（真上ボタンの右側）
+            if (showWeather) {
+                const weatherKnown = weatherAvailable && weatherOpacity > 0 && weatherFetchedAt > 0;
+                const weatherLabel = weatherKnown
+                    ? `${currentWeather.icon} ${currentLang === 'en' ? currentWeather.textEn : currentWeather.textJa}`
+                    : '☁️ --';
+                const tempLabel = weatherKnown && currentWeather.temperature !== null
+                    ? ` ${currentWeather.temperature.toFixed(1)}°C`
+                    : '';
+                const weatherText = `${weatherLabel}${tempLabel}`;
+                const weatherBaseFont = parseFloat(getComputedStyle(document.body).fontSize) || 16;
+                const weatherFont = Math.max(15, Math.min(19, weatherBaseFont * 1.12));
+                const weatherX = zenithBtnRect ? zenithBtnRect.x + zenithBtnRect.w + 400 : centerX + 90;
+                const weatherY = Math.max(18, zenithY - 4);
+                const availableW = Math.max(0, w - weatherX - 10);
+
+                if (availableW > 45) {
+                    skyCtx.save();
+                    skyCtx.globalAlpha = weatherKnown ? Math.max(0.45, weatherOpacity) : 0.9;
+                    skyCtx.font = `bold ${weatherFont}px 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`;
+                    skyCtx.textAlign = 'left';
+                    skyCtx.textBaseline = 'middle';
+                    const textW = Math.min(availableW, skyCtx.measureText(weatherText).width + 20);
+                    const boxH = Math.round(weatherFont * 1.85);
+                    const boxY = weatherY - boxH / 2;
+                    skyCtx.fillStyle = 'rgba(8, 18, 38, 0.88)';
+                    skyCtx.strokeStyle = 'rgba(105, 165, 225, 0.82)';
+                    skyCtx.lineWidth = 1.2;
+                    skyCtx.beginPath();
+                    skyCtx.roundRect
+                        ? skyCtx.roundRect(weatherX - 8, boxY, textW, boxH, 8)
+                        : skyCtx.rect(weatherX - 8, boxY, textW, boxH);
+                    skyCtx.fill();
+                    skyCtx.stroke();
+                    skyCtx.fillStyle = '#f0f7ff';
+                    skyCtx.fillText(weatherText, weatherX + 2, weatherY + 0.5, availableW - 14);
+                    skyCtx.restore();
+                }
+            }
+
+            // 方角ラベル
             {
                 const dirText = tr(viewMode);
                 const baseFontPx = parseFloat(getComputedStyle(document.body).fontSize) || 16;
@@ -3122,6 +2986,7 @@
                 skyCtx.restore();
             }
 
+            // 真上ドームモード
             if (viewMode === 'zenith') {
                 const availTop = zenithY + 18;
                 const availBottom = h - 22;
@@ -3133,7 +2998,6 @@
                 const circleX = centerX + zenithPanX;
                 const circleY = baseCircleY + zenithPanY;
 
-                // 周囲360度地平線リングと外周背景
                 skyCtx.save();
                 skyCtx.beginPath();
                 skyCtx.rect(0, availTop, w, Math.max(40, availBottom - availTop));
@@ -3144,7 +3008,6 @@
                 skyCtx.fillStyle = sunHoriz.alt > 0 ? 'rgba(16, 43, 53, 0.45)' : 'rgba(6, 16, 30, 0.65)';
                 skyCtx.fill();
 
-                // 真円（天頂中心・外周=地平線0°）
                 const domeGrad = skyCtx.createRadialGradient(circleX, circleY, 4 * zenithZoom, circleX, circleY, circleR);
                 if (sunHoriz.alt > 0) {
                     domeGrad.addColorStop(0, '#1864ba');
@@ -3167,7 +3030,6 @@
                 skyCtx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
                 skyCtx.stroke();
 
-                // 高度円（15°, 30°, 45°, 60°, 75°）
                 [75, 60, 45, 30, 15].forEach(altVal => {
                     const rAlt = circleR * ((90 - altVal) / 90);
                     skyCtx.beginPath();
@@ -3182,16 +3044,11 @@
                     skyCtx.fillText(`${altVal}°`, circleX + 4, circleY - rAlt + 11);
                 });
 
-                // 360度方位線（画面上が zenithTopAz になるように回転）
                 const azToZenithXY = (az, alt) => {
                     const clampedAlt = Math.max(0, Math.min(90, alt));
                     const distR = circleR * ((90 - clampedAlt) / 90);
                     const theta = -Math.PI / 2 + (az - zenithTopAz) * rad;
-                    return {
-                        x: circleX + distR * Math.cos(theta),
-                        y: circleY + distR * Math.sin(theta),
-                        visible: alt >= -2
-                    };
+                    return { x: circleX + distR * Math.cos(theta), y: circleY + distR * Math.sin(theta), visible: alt >= -2 };
                 };
 
                 for (let az = 0; az < 360; az += 30) {
@@ -3204,13 +3061,10 @@
                     skyCtx.stroke();
                 }
 
-                // 周囲360度地平線上の東西南北・方位ラベル（回転追従）
                 const zCompass = currentLang === 'ja' ? {
-                    0: '北', 45: '北東', 90: '東', 135: '南東',
-                    180: '南', 225: '南西', 270: '西', 315: '北西'
+                    0: '北', 45: '北東', 90: '東', 135: '南東', 180: '南', 225: '南西', 270: '西', 315: '北西'
                 } : {
-                    0: 'N', 45: 'NE', 90: 'E', 135: 'SE',
-                    180: 'S', 225: 'SW', 270: 'W', 315: 'NW'
+                    0: 'N', 45: 'NE', 90: 'E', 135: 'SE', 180: 'S', 225: 'SW', 270: 'W', 315: 'NW'
                 };
                 Object.entries(zCompass).forEach(([azStr, label]) => {
                     const azVal = Number(azStr);
@@ -3225,7 +3079,6 @@
                     skyCtx.fillText(label, lx, ly);
                 });
 
-                // 全360度 星座描画
                 if (showConstellations) {
                     CONSTELLATIONS.forEach(c => {
                         const starCoords = {};
@@ -3239,7 +3092,6 @@
                                 if (!labelPoint) labelPoint = pt;
                             }
                         }
-
                         skyCtx.strokeStyle = 'rgba(160, 200, 255, 0.56)';
                         skyCtx.lineWidth = 1.25;
                         c.lines.forEach(([k1, k2]) => {
@@ -3250,7 +3102,6 @@
                                 skyCtx.stroke();
                             }
                         });
-
                         for (const key in starCoords) {
                             const pt = starCoords[key];
                             skyCtx.beginPath();
@@ -3258,7 +3109,6 @@
                             skyCtx.fillStyle = key === 'polaris' ? '#ffee88' : '#ffffff';
                             skyCtx.fill();
                         }
-
                         if (showLabels && labelPoint) {
                             skyCtx.fillStyle = 'rgba(210, 232, 255, 0.92)';
                             skyCtx.font = 'bold 11px sans-serif';
@@ -3269,24 +3119,15 @@
                     });
                 }
 
-                // 全360度 太陽・惑星・月描画
-                const zBodies = [
-                    { name: '太陽', alt: sunHoriz.alt, az: sunHoriz.az, isSun: true, size: 13 }
-                ];
+                const zBodies = [{ name: '太陽', alt: sunHoriz.alt, az: sunHoriz.az, isSun: true, size: 13 }];
                 for (const id in orbitalElements) {
                     if (id === 'earth') continue;
                     const pPos = getPlanetHelioPosition(orbitalElements[id], T).trueEcl;
                     const horiz = toHorizontal(pPos.x - ePos.x, pPos.y - ePos.y, pPos.z - ePos.z, dDays);
                     const pConf = planetsConfig.find(p => p.id === id);
-                    zBodies.push({
-                        name: pConf.name, alt: horiz.alt, az: horiz.az,
-                        color: '#' + pConf.color.toString(16).padStart(6, '0'),
-                        size: id === 'jupiter' || id === 'venus' ? 6.5 : 4.8
-                    });
+                    zBodies.push({ name: pConf.name, alt: horiz.alt, az: horiz.az, color: '#' + pConf.color.toString(16).padStart(6, '0'), size: id === 'jupiter' || id === 'venus' ? 6.5 : 4.8 });
                 }
-                zBodies.push({
-                    name: '月', alt: moonHoriz.alt, az: moonHoriz.az, isMoon: true, size: 12
-                });
+                zBodies.push({ name: '月', alt: moonHoriz.alt, az: moonHoriz.az, isMoon: true, size: 12 });
 
                 zBodies.forEach(b => {
                     if (b.alt >= -2) {
@@ -3309,7 +3150,6 @@
                             skyCtx.fillStyle = b.color;
                             skyCtx.fill();
                         }
-
                         if (showLabels) {
                             skyCtx.fillStyle = '#ffffff';
                             skyCtx.font = '11px sans-serif';
@@ -3382,11 +3222,9 @@
             }
 
             const compassNames = currentLang === 'ja' ? {
-                0: '北', 45: '北東', 90: '東', 135: '南東',
-                180: '南', 225: '南西', 270: '西', 315: '北西'
+                0: '北', 45: '北東', 90: '東', 135: '南東', 180: '南', 225: '南西', 270: '西', 315: '北西'
             } : {
-                0: 'N', 45: 'NE', 90: 'E', 135: 'SE',
-                180: 'S', 225: 'SW', 270: 'W', 315: 'NW'
+                0: 'N', 45: 'NE', 90: 'E', 135: 'SE', 180: 'S', 225: 'SW', 270: 'W', 315: 'NW'
             };
             Object.entries(compassNames).forEach(([azText, name]) => {
                 const pt = azAltToXY(Number(azText), 0);
@@ -3503,10 +3341,7 @@
             }
 
             // 5. 太陽・月・惑星
-            const celestialBodies = [
-                { name: '太陽', alt: sunHoriz.alt, az: sunHoriz.az, isSun: true, size: 16 }
-            ];
-
+            const celestialBodies = [{ name: '太陽', alt: sunHoriz.alt, az: sunHoriz.az, isSun: true, size: 16 }];
             for (const id in orbitalElements) {
                 if (id === 'earth') continue;
                 const pPos = getPlanetHelioPosition(orbitalElements[id], T).trueEcl;
@@ -3560,6 +3395,11 @@
                     }
                 }
             });
+
+            // ★雨や雪がある場合の降水エフェクト描画（一番手前に上品に描写）
+            if (viewMode !== 'zenith') {
+                drawPrecipitation(skyCtx, w, horizonY, zenithY, weatherOpacity);
+            }
         }
 
         // ==========================================
@@ -3914,6 +3754,18 @@
             updateLanguageUI();
         });
 
+        // 天気エフェクト ON/OFF（ボタンのイベント登録が欠けていたためここで接続）
+        if (btnToggleWeather) {
+            btnToggleWeather.addEventListener('click', () => {
+                showWeather = !showWeather;
+                btnToggleWeather.textContent = showWeather ? tr('weatherOn') : tr('weatherOff');
+                btnToggleWeather.style.background = showWeather ? '#164a5c' : '#182247';
+                btnToggleWeather.style.color = showWeather ? '#a8f0ff' : '#689bb5';
+                if (showWeather) ensureWeatherData();
+                if (isSkyMode) renderTokyoSky(simDate);
+            });
+        }
+
         // 星座トグル
         btnToggleConst.addEventListener('click', () => {
             showConstellations = !showConstellations;
@@ -4023,11 +3875,16 @@
         function animate(currentTime) {
             requestAnimationFrame(animate);
 
+            const frameDt = Math.min(0.1, Math.max(0, (currentTime - lastTime) / 1000));
             if (isPlaying) {
-                const dt = (currentTime - lastTime) / 1000;
-                const addMs = stepHours * 3600 * 1000 * dt;
+                const addMs = stepHours * 3600 * 1000 * frameDt;
                 simDate = new Date(simDate.getTime() + addMs);
                 updateSimulation(simDate);
+            }
+            // 星空表示中は一時停止／「現在」表示でも天気の雲・雨・雪を動かす
+            if (isSkyMode) {
+                cloudAnimTime += frameDt * 1000;
+                renderTokyoSky(simDate);
             }
             lastTime = currentTime;
 
@@ -4085,6 +3942,7 @@
 
         // 起動時初期化 (南の空からスタート)
         updateLanguageUI();
+        ensureWeatherData();
         setViewMode('south');
         updateSimulation(simDate);
     </script>
