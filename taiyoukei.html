@@ -181,7 +181,7 @@
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, 10%);
+            transform: translate(-60%, 10%);
             z-index: 220;
             display: flex;
             align-items: center;
@@ -267,7 +267,7 @@
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, 10%);
+            transform: translate(-60%, 10%);
             z-index: 225;
             display: flex;
             align-items: center;
@@ -1261,7 +1261,7 @@
             x: Math.random(),
             y: Math.random(),
             len: 20 + Math.random() * 30,
-            speed: 0.01 + Math.random() * 0.008
+            speed: 0.02 + Math.random() * 0.01
         }));
         const snowParticles = Array.from({ length: 100 }, () => ({
             x: Math.random(),
@@ -2525,7 +2525,7 @@
                 ctx.fillRect(0, zenithY, w, horizonY - zenithY);
                 ctx.globalAlpha = 1;
             }
-            
+
 
             // 昼夜に応じた雲の色調
             const cloudColor = sunAlt > 0
