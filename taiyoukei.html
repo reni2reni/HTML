@@ -507,6 +507,63 @@
             background: #354375;
             border-color: #7cc4ff;
         }
+        /* 左側ボタン直下の常時表示・観測地点ミニ世界地図 */
+        #worldMapMiniPanel {
+            position: fixed;
+            left: 2px;
+            top: 184px;
+            width: 280px;
+            height: 180px;
+            z-index: 60;
+            overflow: hidden;
+            border: 1px solid rgba(105, 160, 220, 0.45);
+            border-radius: 7px;
+            background: rgba(3, 12, 28, 0.52);
+            opacity: 0.58;
+            pointer-events: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+        }
+
+        #worldMapMini {
+            width: 100%;
+            height: 100%;
+            background: #071326;
+        }
+
+        #worldMapMini .leaflet-control-container {
+            display: none;
+        }
+
+        #worldMapMiniLabel {
+            position: absolute;
+            left: 5px;
+            right: 5px;
+            bottom: 4px;
+            z-index: 500;
+            padding: 2px 4px;
+            border-radius: 3px;
+            color: #e5f2ff;
+            background: rgba(2, 8, 20, 0.72);
+            font-size: 10px;
+            line-height: 1.25;
+            text-shadow: 0 1px 2px #000;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @media (max-width: 640px) {
+            #worldMapMiniPanel {
+                top: 202px;
+                left: 8px;
+                width: 142px;
+                height: 96px;
+                opacity: 0.48;
+            }
+            #worldMapMiniLabel {
+                font-size: 9px;
+            }
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -519,6 +576,10 @@
     <div id="canvas-container"></div>
     <canvas id="skyCanvas"></canvas>
     <button id="btnSkyEdgeLeft" class="sky-edge-btn" type="button">◀ 東の空</button>
+    <div id="worldMapMiniPanel" aria-label="現在の観測地点を示す世界地図">
+        <div id="worldMapMini"></div>
+        <div id="worldMapMiniLabel">観測地点を読み込み中...</div>
+    </div>
     <button id="btnSkyEdgeRight" class="sky-edge-btn" type="button">西の空 ▶</button>
 
     <div class="control-panel">
@@ -1671,6 +1732,9 @@
         const homeCityOption = document.getElementById('homeCityOption');
         homeCityOption.disabled = !homeSettings;
 
+        let worldMapMini = null;
+        let worldMapMiniMarker = null;
+
         function updateObserverMarker() {
             if (!earthMesh || !tokyoMarker) return;
             const lat = currentCity.lat * Math.PI / 180;
@@ -1681,8 +1745,95 @@
                 radius * Math.sin(lat),
                 radius * Math.cos(lat) * Math.cos(lon)
             );
+            if (typeof updateWorldMapMiniMarker === 'function') updateWorldMapMiniMarker();
         }
         updateObserverMarker();
+
+        // 左ボタンの下に常時表示する小型世界地図。赤丸は現在の観測地点。
+        function updateWorldMapMiniMarker() {
+            const label = document.getElementById('worldMapMiniLabel');
+            if (!currentCity || !label) return;
+
+            const lat = Number(currentCity.lat);
+            const lon = Number(currentCity.lon);
+            const cityName = getCurrentCityDisplayName();
+            label.textContent = `${cityName}  ${lat.toFixed(2)}°, ${lon.toFixed(2)}°`;
+
+            if (!worldMapMini || !Number.isFinite(lat) || !Number.isFinite(lon)) return;
+            if (!worldMapMiniMarker) {
+                worldMapMiniMarker = L.circleMarker([lat, lon], {
+                    radius: 4, color: '#ffb0b0', weight: 1.5,
+                    fillColor: '#ff2020', fillOpacity: 0.95
+                }).addTo(worldMapMini);
+            } else {
+                worldMapMiniMarker.setLatLng([lat, lon]);
+            }
+        }
+
+        function ensureWorldMapMini() {
+            const mapEl = document.getElementById('worldMapMini');
+            if (!mapEl || typeof L === 'undefined' || worldMapMini) return;
+
+            worldMapMini = L.map(mapEl, {
+                zoomControl: false, attributionControl: false,
+                dragging: false, scrollWheelZoom: false, doubleClickZoom: false,
+                boxZoom: false, keyboard: false, touchZoom: false,
+                worldCopyJump: true, minZoom: -0.3, maxZoom: -0.3
+            }).setView([20, 0], 0);
+
+            const GridLayer = L.GridLayer.extend({
+                createTile: function () {
+                    const tile = document.createElement('canvas');
+                    const size = this.getTileSize();
+                    tile.width = size.x;
+                    tile.height = size.y;
+                    const ctx = tile.getContext('2d');
+                    ctx.fillStyle = '#071326';
+                    ctx.fillRect(0, 0, size.x, size.y);
+                    return tile;
+                }
+            });
+            new GridLayer().addTo(worldMapMini);
+
+            fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+                .then(r => r.ok ? r.json() : null)
+                .then(topo => {
+                    if (!topo || !topo.objects || !topo.objects.countries || !worldMapMini) return;
+                    const arcs = topo.arcs || [];
+                    const tf = topo.transform || { scale: [1, 1], translate: [0, 0] };
+                    const decodeArc = (idx) => {
+                        const rev = idx < 0;
+                        const arc = arcs[rev ? ~idx : idx];
+                        let x = 0, y = 0;
+                        const pts = arc.map(([dx, dy]) => {
+                            x += dx; y += dy;
+                            return [x * tf.scale[0] + tf.translate[0], y * tf.scale[1] + tf.translate[1]];
+                        });
+                        return rev ? pts.reverse() : pts;
+                    };
+                    const polys = decodeTopoToUnwrappedPolys(topo, decodeArc);
+                    const countryStyle = {
+                        color: '#82b8e8', weight: 0.45,
+                        fillColor: '#315d87', fillOpacity: 0.72,
+                        opacity: 0.7, interactive: false
+                    };
+                    // 国ごとに別々に描画（全世界を一つのPolygonとして扱わない）
+                    polys.forEach(countryPolygon => {
+                        if (countryPolygon && countryPolygon.length) {
+                            L.polygon(countryPolygon, countryStyle).addTo(worldMapMini);
+                        }
+                    });
+                    updateWorldMapMiniMarker();
+                })
+                .catch(() => {});
+
+            updateWorldMapMiniMarker();
+            setTimeout(() => {
+                if (worldMapMini) worldMapMini.invalidateSize();
+            }, 80);
+        }
+
+        ensureWorldMapMini();
 
         let viewMode = 'south';
         let lastSkyDirection = 'south';
