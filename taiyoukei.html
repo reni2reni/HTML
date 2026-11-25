@@ -155,7 +155,7 @@
         }
 
         input[type=range] {
-            width: 160px;
+            width: 80px;
             cursor: pointer;
             accent-color: #00a6ff;
         }
@@ -600,7 +600,11 @@
                 <button id="btnPlayPause">再生</button>
                 <button id="btnNextHour">1時 ▶</button>
                 <button id="btnNextDay">1日 ▶</button>
-                
+                <div class="speed-control">
+                    <span id="speedLabel">速度:</span>
+                    <input type="range" id="speedSlider" min="1" max="24" step="1" value="1">
+                    <span id="speedVal" style="width: 50px;">1 h/s</span>
+                </div>
             </div>
         </div>
 
@@ -724,11 +728,7 @@
                     style="background: #182247; border: 1px solid #367d8f; color: #8fe5ff; font-weight: bold;">☁️ 天気:
                     ON</button>-
                 <button id="btnLanguage" type="button" title="Language">🌐 English</button>
-                <div class="speed-control">
-                    <span id="speedLabel">速度:</span>
-                    <input type="range" id="speedSlider" min="0.1" max="24" step="0.1" value="1.0">
-                    <span id="speedVal" style="width: 60px;">1.0 h/秒</span>
-                </div>
+                
             </div>
         </div>
 
@@ -1519,7 +1519,7 @@
                 location: '観測場所', japanGroup: '日本・47都道府県（県庁所在地）', worldGroup: '海外の主な首都（国名｜都市名）',
                 constellationOn: '✨ 星座: ON', constellationOff: '✨ 星座: OFF',
                 labelsOn: '🏷️ 名称: ON', labelsOff: '🏷️ 名称: OFF',
-                weatherOn: '☁️ 天気: ON', weatherOff: '☁️ 天気: OFF', speed: '速度:', speedUnit: 'h/秒',
+                weatherOn: '☁️ 天気: ON', weatherOff: '☁️ 天気: OFF', speed: '速度:', speedUnit: 'h/s',
                 homeSettings: '🏠 ホーム設定', homeName: '名前', homeLat: '緯度', homeLon: '経度', homeTimeZone: 'ホーム時間帯', save: '保存',
                 homeNamePlaceholder: '例：自宅', homeOptionUnset: '🏠 ホーム（先に設定）', homeTime: 'ホーム時間', localTime: '表示地域の時間',
                 observed: '観測地', tideEstimate: '天文潮（概算）', current: '現在', annualMax: '年間最大', annualMin: '年間最小',
@@ -1538,7 +1538,7 @@
                 location: 'Observation location', japanGroup: 'Japan · 47 prefectural capitals', worldGroup: 'World capitals (country · city)',
                 constellationOn: '✨ Constellations: ON', constellationOff: '✨ Constellations: OFF',
                 labelsOn: '🏷️ Labels: ON', labelsOff: '🏷️ Labels: OFF',
-                weatherOn: '☁️ Weather: ON', weatherOff: '☁️ Weather: OFF', speed: 'Speed:', speedUnit: 'h/sec',
+                weatherOn: '☁️ Weather: ON', weatherOff: '☁️ Weather: OFF', speed: 'Speed:', speedUnit: 'h/s',
                 homeSettings: '🏠 Home settings', homeName: 'Name', homeLat: 'Latitude', homeLon: 'Longitude', homeTimeZone: 'Home time zone', save: 'Save',
                 homeNamePlaceholder: 'e.g. My Home', homeOptionUnset: '🏠 Home (set up first)', homeTime: 'Home time', localTime: 'Selected location time',
                 observed: 'Location', tideEstimate: 'Astronomical tide (estimate)', current: 'Now', annualMax: 'Annual max', annualMin: 'Annual min',
@@ -2273,7 +2273,7 @@
                 btnToggleWeather.style.color = showWeather ? '#a8f0ff' : '#689bb5';
             }
             updateSpaceLabelsVisibility();
-            document.getElementById('speedVal').textContent = `${stepHours.toFixed(1)} ${tr('speedUnit')}`;
+            document.getElementById('speedVal').textContent = `${stepHours.toFixed(0)} ${tr('speedUnit')}`;
             dateInput.title = currentLang === 'ja' ? 'クリックして日時を直接変更' : 'Click to change date and time';
             citySelect.setAttribute('aria-label', tr('location'));
             const groups = citySelect.querySelectorAll('optgroup');
@@ -3692,7 +3692,7 @@
 
         speedSlider.addEventListener('input', (e) => {
             stepHours = parseFloat(e.target.value);
-            speedVal.textContent = `${stepHours.toFixed(1)} ${tr('speedUnit')}`;
+            speedVal.textContent = `${stepHours.toFixed(0)} ${tr('speedUnit')}`;
         });
 
         document.getElementById('btnNow').addEventListener('click', () => {
