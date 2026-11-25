@@ -2503,7 +2503,10 @@
             if (!showWeather || weatherOpacity <= 0 || currentWeather.cloudCover <= 3) return;
 
             // 雲量は最大でも透明度 0.28。未来へ進むほど現在天気の確度に合わせて薄くする
-            const maxAlpha = Math.min(0.28, (currentWeather.cloudCover / 100) * 0.32) * weatherOpacity;
+            const cloudBrightness = sunAlt > 0 ? 1.0 : (sunAlt > -6 ? 0.65 : 0.10);
+            const nightFactor = sunAlt <= -6 ? 0.2 : 1.0;
+            const maxAlpha = Math.min(0.28, (currentWeather.cloudCover / 100) * 0.32)
+                * weatherOpacity * cloudBrightness;
             const skyH = Math.max(100, horizonY - zenithY);
             const t = cloudAnimTime * 0.00008;
 
@@ -2516,9 +2519,9 @@
             if (currentWeather.isRaining) {
                 const cloudGrad = ctx.createLinearGradient(0, zenithY, 0, horizonY);
 
-                cloudGrad.addColorStop(0, 'rgba(105, 115, 130, 0.78)');
-                cloudGrad.addColorStop(0.5, 'rgba(125, 135, 150, 0.68)');
-                cloudGrad.addColorStop(1, 'rgba(150, 155, 165, 0.55)');
+                cloudGrad.addColorStop(0, `rgba(105, 115, 130, ${0.78 * nightFactor})`);
+                cloudGrad.addColorStop(0.5, `rgba(125, 135, 150, ${0.68 * nightFactor})`);
+                cloudGrad.addColorStop(1, `rgba(150, 155, 165, ${0.55 * nightFactor})`);
 
                 ctx.globalAlpha = weatherOpacity;
                 ctx.fillStyle = cloudGrad;
