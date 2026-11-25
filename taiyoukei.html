@@ -1762,12 +1762,13 @@
             if (!worldMapMini || !Number.isFinite(lat) || !Number.isFinite(lon)) return;
             if (!worldMapMiniMarker) {
                 worldMapMiniMarker = L.circleMarker([lat, lon], {
-                    radius: 4, color: '#ffb0b0', weight: 1.5,
-                    fillColor: '#ff2020', fillOpacity: 0.95
+                    radius: 4, color: '#ffffff', weight: 2.5,
+                    fillColor: '#ff0000', fillOpacity: 1
                 }).addTo(worldMapMini);
             } else {
                 worldMapMiniMarker.setLatLng([lat, lon]);
             }
+            worldMapMiniMarker.bringToFront();
         }
 
         function ensureWorldMapMini() {
@@ -1972,7 +1973,7 @@
 
             if (!customRegionMarker) {
                 customRegionMarker = L.circleMarker([lat, lon], {
-                    radius: 7, color: '#00ffff', weight: 2, fillColor: '#ff2244', fillOpacity: 0.95
+                    radius: 5, color: '#00ffff', weight: 2, fillColor: '#ff2244', fillOpacity: 0.95
                 }).addTo(customRegionMap);
             } else {
                 customRegionMarker.setLatLng([lat, lon]);
@@ -2374,7 +2375,7 @@
 
             if (!homeRegionMarker) {
                 homeRegionMarker = L.circleMarker([lat, lon], {
-                    radius: 7, color: '#00ffff', weight: 2, fillColor: '#ff2244', fillOpacity: 0.95
+                    radius: 5, color: '#00ffff', weight: 2, fillColor: '#ff2244', fillOpacity: 0.95
                 }).addTo(homeRegionMap);
             } else {
                 homeRegionMarker.setLatLng([lat, lon]);
