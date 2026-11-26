@@ -1730,7 +1730,8 @@ body > #customRegionPanel[hidden] {
             icon: '☀️',
             textJa: '快晴',
             textEn: 'Clear',
-            temperature: null
+            temperature: null,
+            precipitation: 0
         };
 
         function parseWeatherCode(code, cloudCover) {
@@ -1767,7 +1768,7 @@ body > #customRegionPanel[hidden] {
             if (weatherPending) return;
             weatherPending = true;
 
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentCity.lat.toFixed(4)}&longitude=${currentCity.lon.toFixed(4)}&current=weather_code,cloud_cover,temperature_2m,wind_speed_10m,wind_direction_10m&timezone=auto`;
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentCity.lat.toFixed(4)}&longitude=${currentCity.lon.toFixed(4)}&current=weather_code,cloud_cover,temperature_2m,wind_speed_10m,wind_direction_10m,precipitation&timezone=auto`;
             fetch(url)
                 .then(r => r.ok ? r.json() : null)
                 .then(data => {
@@ -1780,7 +1781,9 @@ body > #customRegionPanel[hidden] {
                         parsed.windSpeed = Number.isFinite(Number(data.current.wind_speed_10m))
                             ? Number(data.current.wind_speed_10m) : null; // km/h
                         parsed.windDir = Number.isFinite(Number(data.current.wind_direction_10m))
-                            ? Number(data.current.wind_direction_10m) : null; // 度数 (0〜360)    
+                            ? Number(data.current.wind_direction_10m) : null; // 度数 (0〜360)
+                        parsed.precipitation = Number.isFinite(Number(data.current.precipitation))
+                            ? Math.max(0, Number(data.current.precipitation)) : 0; // mm/h 相当
                         currentWeather = parsed;
                         weatherAvailable = true;
                         weatherFetchedAt = Date.now();
@@ -1801,7 +1804,8 @@ body > #customRegionPanel[hidden] {
             return Math.max(0, Math.min(1, 1 - futureHours / WEATHER_FADE_HOURS));
         }
 
-        const rainParticles = Array.from({ length: 100 }, () => ({
+        const MAX_RAIN_PARTICLES = 420;
+        const rainParticles = Array.from({ length: MAX_RAIN_PARTICLES }, () => ({
             x: Math.random(),
             y: Math.random(),
             len: 20 + Math.random() * 30,
@@ -3380,11 +3384,19 @@ body > #customRegionPanel[hidden] {
 
             ctx.globalAlpha = weatherOpacity;
             if (isRaining) {
+                // 降水量(mm)に応じて雨粒の本数を増減。弱い雨でも視認できる最低本数を確保。
+                const rainMm = Math.max(0, Number(currentWeather.precipitation) || 0);
+                const rainRatio = Math.min(1, rainMm / 5);
+                const activeRainCount = Math.min(
+                    MAX_RAIN_PARTICLES,
+                    Math.round(5 + Math.pow(rainRatio, 0.8) * (MAX_RAIN_PARTICLES - 5))
+                );
                 ctx.strokeStyle = 'rgba(80, 80, 255, 0.62)';
                 ctx.lineWidth = 2.0;
-                rainParticles.forEach(p => {
+                for (let i = 0; i < activeRainCount; i++) {
+                    const p = rainParticles[i];
                     p.y += p.speed;
-                    p.x += p.speed * 0.1;
+                    p.x += p.speed * 0.10;
                     if (p.y > 1) { p.y = 0; p.x = Math.random(); }
                     if (p.x > 1) { p.x = 0; }
 
@@ -3394,7 +3406,7 @@ body > #customRegionPanel[hidden] {
                     ctx.moveTo(px, py);
                     ctx.lineTo(px + p.len * 0.22, py + p.len);
                     ctx.stroke();
-                });
+                }
             } else if (isSnowing) {
                 snowParticles.forEach(p => {
                     p.y += p.speedY;
