@@ -563,7 +563,7 @@
 
         @media (max-width: 640px) {
             .sky-edge-btn {
-                top: 152px;
+                top: 180px;
                 padding: 9px 11px;
                 font-size: 0.85rem;
             }
@@ -639,7 +639,7 @@
 
         .sky-edge-btn {
             position: fixed;
-            top: 132px;
+            top: 160px;
             transform: none;
             z-index: 160;
             pointer-events: auto;
@@ -708,7 +708,7 @@
         #worldMapMiniPanel {
             position: fixed;
             left: 2px;
-            top: 184px;
+            top: 220px;
             width: 280px;
             height: 180px;
             z-index: 60;
@@ -762,6 +762,12 @@
                 font-size: 9px;
             }
         }
+        /* 風向矢印をなめらかに回転させるスタイル */
+.wind-arrow {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
     
 /* === 天体カタログ・表示／編集パネル（新規統合） === */
 .astro-head{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:rgba(20,42,78,.96);border-bottom:1px solid #34557f;font-weight:700;color:#9fe5ff}
@@ -1581,7 +1587,7 @@
             if (weatherPending) return;
             weatherPending = true;
 
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentCity.lat.toFixed(4)}&longitude=${currentCity.lon.toFixed(4)}&current=weather_code,cloud_cover,temperature_2m&timezone=auto`;
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentCity.lat.toFixed(4)}&longitude=${currentCity.lon.toFixed(4)}&current=weather_code,cloud_cover,temperature_2m,wind_speed_10m,wind_direction_10m&timezone=auto`;
             fetch(url)
                 .then(r => r.ok ? r.json() : null)
                 .then(data => {
@@ -1591,6 +1597,10 @@
                         const parsed = parseWeatherCode(code, cover);
                         parsed.temperature = Number.isFinite(Number(data.current.temperature_2m))
                             ? Number(data.current.temperature_2m) : null;
+                        parsed.windSpeed = Number.isFinite(Number(data.current.wind_speed_10m))
+                            ? Number(data.current.wind_speed_10m) : null; // km/h
+                        parsed.windDir = Number.isFinite(Number(data.current.wind_direction_10m))
+                            ? Number(data.current.wind_direction_10m) : null; // 度数 (0〜360)    
                         currentWeather = parsed;
                         weatherAvailable = true;
                         weatherFetchedAt = Date.now();
@@ -4172,7 +4182,28 @@
                 const tempLabel = weatherKnown && currentWeather.temperature !== null
                     ? ` ${currentWeather.temperature.toFixed(1)}°C`
                     : '';
-                const weatherText = `${weatherLabel}${tempLabel}`;
+                let windLabel = '';
+                if (weatherKnown && currentWeather.windSpeed !== null) {
+                    const mps = (currentWeather.windSpeed * 0.27778).toFixed(1);
+                    const compass = degToCompass(currentWeather.windDir);
+
+                    // 風が「吹いてくる方向（風向）」を、風が「進む方向（矢印の向き）」に補正 (+180度)
+                    // ※ Open-Meteoの風向は「北から吹いてくる(0°=北風)」ため、矢印を下(南)に向かわせるために+180します
+                    const deg = currentWeather.windDir !== null ? (currentWeather.windDir + 180) % 360 : 0;
+
+                    // キャンバス（2D context）で描画しているため、テキストの中に記号「⬆」と角度を入れる
+                    // ※もしHTML要素として表示する場合はCSSクラスが使えますが、キャンバス描画なので文字としてスッキリ見せます
+                    const windTextEn = `Wind: ${mps} m/s ${compass} (${currentWeather.windDir ?? 0}°)`;
+                    const windTextJa = `風速: ${mps}m/s ${compass} (${currentWeather.windDir ?? 0}°)`;
+
+                    // 方角に合わせた矢印アイコン (N=北から吹く場合、矢印は南へ向かうため ↓ 系になります)
+                    const arrowIcons = ['⬇', '↙', '⬅', '↖', '⬆', '↗', '➡', '↘'];
+                    const arrowIdx = currentWeather.windDir !== null ? Math.round(((currentWeather.windDir % 360) / 45)) % 8 : 0;
+                    const arrow = arrowIcons[arrowIdx];
+
+                    windLabel = ` 💨 ${arrow} ${currentLang === 'en' ? windTextEn : windTextJa}`;
+                }
+                const weatherText =  `${weatherLabel}${tempLabel}${windLabel}`;
                 const weatherBaseFont = parseFloat(getComputedStyle(document.body).fontSize) || 16;
                 const weatherFont = Math.max(15, Math.min(19, weatherBaseFont * 1.12));
                 const weatherX = zenithBtnRect ? zenithBtnRect.x + zenithBtnRect.w + 400 : centerX + 90;
@@ -5705,30 +5736,24 @@ astroInitWorkbench();
     let customRadarLayer = null;
 
     async function loadCustomMapRainRadar(mapInstance) {
-        if (!mapInstance) return;
-        try {
-            const resp = await fetch('https://api.rainviewer.com/public/weather-maps.json');
-            if (!resp.ok) return;
-            const data = await resp.json();
-            const radar = data?.radar;
-            const latest = radar?.nowcast?.[0] || radar?.past?.[radar.past.length - 1];
-            if (latest && latest.path) {
-                const url = `https://tilecache.rainviewer.com${latest.path}/256/{z}/{x}/{y}/2/1_1.png`;
-
-                // 既存の雨雲があれば削除
-                if (customRadarLayer && mapInstance.hasLayer(customRadarLayer)) {
-                    mapInstance.removeLayer(customRadarLayer);
+            if (!mapInstance || !showCustomRadar) return; // OFFなら読み込まない
+            try {
+                const resp = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+                if (!resp.ok) return;
+                const data = await resp.json();
+                const radar = data?.radar;
+                const latest = radar?.nowcast?.[0] || radar?.past?.[radar.past.length - 1];
+                if (latest && latest.path) {
+                    const url = `https://tilecache.rainviewer.com${latest.path}/256/{z}/{x}/{y}/2/1_1.png`;
+                    if (customRadarLayer && mapInstance.hasLayer(customRadarLayer)) {
+                        mapInstance.removeLayer(customRadarLayer);
+                    }
+                    customRadarLayer = L.tileLayer(url, { opacity: 0.75, zIndex: 9999 });
+                    customRadarLayer.addTo(mapInstance);
+                    customRadarLayer.bringToFront();
                 }
-
-                // 新しい雨雲タイルを生成（zIndex: 9999 で最前面に指定）
-                customRadarLayer = L.tileLayer(url, { opacity: 0.75, zIndex: 9999 });
-                customRadarLayer.addTo(mapInstance);
-
-                // 国境などのベクターデータのさらに手前に強制移動
-                customRadarLayer.bringToFront();
-            }
-        } catch (_) { }
-    }
+            } catch (_) { }
+        }
 
     // カスタム地域マップが開かれたときに雨雲をロードするフック
     const origEnsureCustomRegionMap = window.ensureCustomRegionMap;
@@ -5754,13 +5779,24 @@ astroInitWorkbench();
         }
     });
     
-    // カスタム地域マップの雨雲ON/OFFボタン制御
-        let showCustomRadar = true;
-        const btnToggleCustomRadar = document.getElementById('btnToggleCustomRadar');
+    // ローカルストレージから雨雲の保存状態を読み込み（初期値: true）
+        let showCustomRadar = localStorage.getItem('solarCustomRadarState') !== 'false';
 
+        const btnToggleCustomRadar = document.getElementById('btnToggleCustomRadar');
         if (btnToggleCustomRadar) {
+            // 起動時のボタン表示と状態の同期
+            btnToggleCustomRadar.textContent = showCustomRadar
+                ? (currentLang === 'en' ? '🌧️ Radar: ON' : '🌧️ 雨雲: ON')
+                : (currentLang === 'en' ? '🌧️ Radar: OFF' : '🌧️ 雨雲: OFF');
+            btnToggleCustomRadar.style.background = showCustomRadar ? '#13355a' : '#222';
+            btnToggleCustomRadar.style.color = showCustomRadar ? '#8fe5ff' : '#888';
+
             btnToggleCustomRadar.addEventListener('click', () => {
                 showCustomRadar = !showCustomRadar;
+
+                // 状態をローカルストレージに保存
+                localStorage.setItem('solarCustomRadarState', showCustomRadar);
+
                 btnToggleCustomRadar.textContent = showCustomRadar
                     ? (currentLang === 'en' ? '🌧️ Radar: ON' : '🌧️ 雨雲: ON')
                     : (currentLang === 'en' ? '🌧️ Radar: OFF' : '🌧️ 雨雲: OFF');
@@ -5777,7 +5813,16 @@ astroInitWorkbench();
                 }
             });
         }
-        
+
+    function degToCompass(deg) {
+        if (deg === null || deg === undefined) return '';
+        const val = Math.floor((deg / 22.5) + 0.5);
+        const arr = currentLang === 'en'
+            ? ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW']
+            : ['北', '北北東', '北東', '東北東', '東', '東南東', '南東', '南南東', '南', '南南西', '南西', '西南西', '西', '西北西', '北西', '北北西'];
+        return arr[(val % 16)];
+    }
+    
         // ==========================================
         // 9. アニメーションループ開始
         // ==========================================
