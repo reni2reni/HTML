@@ -984,6 +984,13 @@ body > #customRegionPanel[hidden] {
     }
 }
 
+
+.star-style-control{display:inline-flex;align-items:center;gap:5px;color:#cfe6ff;font-size:12px;white-space:nowrap}
+.star-style-control input[type="range"]{width:92px;accent-color:#73bfff}
+.star-style-control input[type="color"]{width:30px;height:25px;padding:1px;border:1px solid #6688bb;border-radius:4px;background:#15233d;cursor:pointer}
+.star-style-control input:disabled{opacity:.4;cursor:not-allowed}
+#selectedStarSizeValue{min-width:25px;color:#ffe58a;font-variant-numeric:tabular-nums}
+@media(max-width:700px){.star-style-control{font-size:10px;gap:3px}.star-style-control input[type="range"]{width:65px}.star-style-control input[type="color"]{width:27px;height:23px}}
 </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -1230,6 +1237,13 @@ body > #customRegionPanel[hidden] {
                 <div class="const-editor-controls">
                     <div class="star-nudge-group">
                         <span id="selectedStarInfo">星: 未選択</span>
+                        <label class="star-style-control" title="選択した星の大きさ">大きさ
+                            <input id="selectedStarSize" type="range" min="0.5" max="4" step="0.1" value="1" disabled>
+                            <output id="selectedStarSizeValue">1.0</output>
+                        </label>
+                        <label class="star-style-control" title="選択した星の色">色
+                            <input id="selectedStarColor" type="color" value="#ffffff" disabled>
+                        </label>
                         <button type="button" id="btnStarLeft" title="左へ (赤経 +)">◀</button>
                         <button type="button" id="btnStarUp" title="上へ (赤緯 +)">▲</button>
                         <button type="button" id="btnStarDown" title="下へ (赤緯 -)">▼</button>
@@ -2099,6 +2113,8 @@ body > #customRegionPanel[hidden] {
                 brightness: '光量',
                 flareIntensity: 'フレア強度',
                 flareSpread: 'フレア広がり',
+                spiralIntensity: '渦巻き強度',
+                spiralSpread: '渦巻きの広がり',
                 resetDefault: '初期値に戻す',
                 promptStarName: '追加する星の名前（例：star2）',
                 promptStarRa: '赤経（度 0〜360）',
@@ -2149,6 +2165,8 @@ body > #customRegionPanel[hidden] {
                 brightness: 'Brightness',
                 flareIntensity: 'Flare Intensity',
                 flareSpread: 'Flare Spread',
+                spiralIntensity: 'Spiral Intensity',
+                spiralSpread: 'Spiral Spread',
                 resetDefault: 'Reset to Default',
                 promptStarName: 'Star name/identifier (e.g., star2)',
                 promptStarRa: 'Right Ascension (deg 0–360)',
@@ -3389,7 +3407,7 @@ body > #customRegionPanel[hidden] {
                 const rainRatio = Math.min(1, rainMm / 5);
                 const activeRainCount = Math.min(
                     MAX_RAIN_PARTICLES,
-                    Math.round(5 + Math.pow(rainRatio, 0.8) * (MAX_RAIN_PARTICLES - 5))
+                    Math.round(5 + Math.pow(rainRatio, 0.80) * (MAX_RAIN_PARTICLES - 5))
                 );
                 ctx.strokeStyle = 'rgba(80, 80, 255, 0.62)';
                 ctx.lineWidth = 2.0;
@@ -3567,6 +3585,18 @@ body > #customRegionPanel[hidden] {
                     if (typeof saved.visible === 'boolean') {
                         c.visible = saved.visible;
                     }
+                    if (saved.starStyles && typeof saved.starStyles === 'object') {
+                        c.starStyles = c.starStyles || {};
+                        for (const k in saved.starStyles) {
+                            const st = saved.starStyles[k];
+                            if (!st || typeof st !== 'object') continue;
+                            const size = Number(st.size), color = String(st.color || '');
+                            c.starStyles[k] = {
+                                size: Number.isFinite(size) ? Math.max(0.5, Math.min(4, size)) : 1,
+                                color: /^#[0-9a-fA-F]{6}$/.test(color) ? color : '#ffffff'
+                            };
+                        }
+                    }
                     if (saved.stars && typeof saved.stars === 'object') {
                         for (const k in saved.stars) {
                             if (Array.isArray(saved.stars[k]) && saved.stars[k].length === 2 &&
@@ -3594,6 +3624,7 @@ body > #customRegionPanel[hidden] {
                     map[c.name] = {
                         visible: c.visible !== false,
                         stars: c.stars,
+                        starStyles: c.starStyles || {},
                         lines: c.lines
                     };
                 });
@@ -3612,6 +3643,9 @@ body > #customRegionPanel[hidden] {
         const constEditorCanvas = document.getElementById('constEditorCanvas');
         const constEditorCtx = constEditorCanvas.getContext('2d');
         const selectedStarInfo = document.getElementById('selectedStarInfo');
+        const selectedStarSize = document.getElementById('selectedStarSize');
+        const selectedStarSizeValue = document.getElementById('selectedStarSizeValue');
+        const selectedStarColor = document.getElementById('selectedStarColor');
         const btnResetConstCurrent = document.getElementById('btnResetConstCurrent');
 
         let editorSelectedConstIdx = 0;
@@ -3750,10 +3784,39 @@ body > #customRegionPanel[hidden] {
 
         document.getElementById('constellationSearch').addEventListener('input',renderConstEditorList);
 
+        function getConstellationStarStyle(c, key) {
+            const style = c && c.starStyles && c.starStyles[key] ? c.starStyles[key] : {};
+            const size = Number(style.size);
+            return {
+                size: Number.isFinite(size) ? Math.max(0.5, Math.min(4, size)) : 1,
+                color: /^#[0-9a-fA-F]{6}$/.test(String(style.color || '')) ? style.color : null
+            };
+        }
+
+        function updateSelectedStarStyle(patch) {
+            const c = CONSTELLATIONS[editorSelectedConstIdx];
+            if (!c || !editorSelectedStarKey || !c.stars[editorSelectedStarKey]) return;
+            c.starStyles = c.starStyles || {};
+            const current = getConstellationStarStyle(c, editorSelectedStarKey);
+            c.starStyles[editorSelectedStarKey] = {
+                size: patch.size !== undefined ? Math.max(0.5, Math.min(4, Number(patch.size))) : current.size,
+                color: patch.color !== undefined ? patch.color : (current.color || '#ffffff')
+            };
+            updateSelectedStarInfo();
+            saveConstellationsData();
+            renderConstEditorCanvas();
+            if (isSkyMode) renderTokyoSky(simDate);
+        }
+
         function updateSelectedStarInfo() {
                 const c = CONSTELLATIONS[editorSelectedConstIdx];
                 if (!c || !editorSelectedStarKey || !c.stars[editorSelectedStarKey]) {
                     selectedStarInfo.textContent = tr('starNone');
+                    selectedStarSize.disabled = true;
+                    selectedStarColor.disabled = true;
+                    selectedStarSize.value = '1';
+                    selectedStarSizeValue.textContent = '1.0';
+                    selectedStarColor.value = '#ffffff';
                     return;
                 }
                 const [ra, dec] = c.stars[editorSelectedStarKey];
@@ -3761,6 +3824,12 @@ body > #customRegionPanel[hidden] {
                     .replace('{key}', editorSelectedStarKey)
                     .replace('{ra}', ra.toFixed(1))
                     .replace('{dec}', dec.toFixed(1));
+                const starStyle = getConstellationStarStyle(c, editorSelectedStarKey);
+                selectedStarSize.disabled = false;
+                selectedStarColor.disabled = false;
+                selectedStarSize.value = String(starStyle.size);
+                selectedStarSizeValue.textContent = starStyle.size.toFixed(1);
+                selectedStarColor.value = starStyle.color || '#ffffff';
             }
 
         function computeConstEditorProjection(c, w, h) {
@@ -3911,10 +3980,12 @@ body > #customRegionPanel[hidden] {
                     ctx.stroke();
                 }
 
+                const starStyle = getConstellationStarStyle(c, key);
+                const starColor = isSelected ? '#ffee66' : (starStyle.color || '#ffffff');
                 ctx.beginPath();
-                ctx.arc(pt.x, pt.y, isSelected ? 6.5 : 5.2, 0, Math.PI * 2);
-                ctx.fillStyle = isSelected ? '#ffee66' : '#ffffff';
-                ctx.shadowColor = isSelected ? '#ffcc00' : '#66bbff';
+                ctx.arc(pt.x, pt.y, (isSelected ? 6.5 : 5.2) * starStyle.size, 0, Math.PI * 2);
+                ctx.fillStyle = starColor;
+                ctx.shadowColor = isSelected ? '#ffcc00' : starColor;
                 ctx.shadowBlur = 8;
                 ctx.fill();
                 ctx.shadowBlur = 0;
@@ -4133,6 +4204,14 @@ body > #customRegionPanel[hidden] {
             updateSelectedStarInfo();
             applyConstellationEditAndRefresh();
         }
+
+        selectedStarSize.addEventListener('input', () => {
+            selectedStarSizeValue.textContent = Number(selectedStarSize.value).toFixed(1);
+            updateSelectedStarStyle({ size: Number(selectedStarSize.value) });
+        });
+        selectedStarColor.addEventListener('input', () => {
+            updateSelectedStarStyle({ color: selectedStarColor.value });
+        });
 
         document.getElementById('btnStarLeft').addEventListener('click', () => nudgeSelectedStar(+0.4, 0));
         document.getElementById('btnStarRight').addEventListener('click', () => nudgeSelectedStar(-0.4, 0));
@@ -4577,8 +4656,10 @@ body > #customRegionPanel[hidden] {
                         for (const key in starCoords) {
                             const pt = starCoords[key];
                             skyCtx.beginPath();
-                            skyCtx.arc(pt.x, pt.y, key === 'polaris' ? 3.5 : 2.4, 0, Math.PI * 2);
-                            skyCtx.fillStyle = key === 'polaris' ? '#ffee88' : '#ffffff';
+                            const starStyle = getConstellationStarStyle(c, key);
+                            const defaultColor = key === 'polaris' ? '#ffee88' : '#ffffff';
+                            skyCtx.arc(pt.x, pt.y, (key === 'polaris' ? 3.5 : 2.4) * starStyle.size, 0, Math.PI * 2);
+                            skyCtx.fillStyle = starStyle.color || defaultColor;
                             skyCtx.fill();
                         }
                         if (showLabels && astroVisibility.constellationNames && labelPoint) {
@@ -4749,9 +4830,10 @@ body > #customRegionPanel[hidden] {
                             if (key === 'm45_center') continue;
                             const pt = starCoords[key];
                             const rStar = (key === 'alcyone' || key === 'atlas' || key === 'electra') ? 2.6 : 2.0;
+                            const starStyle = getConstellationStarStyle(c, key);
                             skyCtx.beginPath();
-                            skyCtx.arc(pt.x, pt.y, rStar, 0, Math.PI * 2);
-                            skyCtx.fillStyle = '#d8ecff';
+                            skyCtx.arc(pt.x, pt.y, rStar * starStyle.size, 0, Math.PI * 2);
+                            skyCtx.fillStyle = starStyle.color || '#d8ecff';
                             skyCtx.shadowColor = '#88c4ff';
                             skyCtx.shadowBlur = 6;
                             skyCtx.fill();
@@ -4793,9 +4875,11 @@ body > #customRegionPanel[hidden] {
                         for (const key in starCoords) {
                             const pt = starCoords[key];
                             skyCtx.beginPath();
-                            skyCtx.arc(pt.x, pt.y, key === 'polaris' ? 3.5 : 2.5, 0, Math.PI * 2);
-                            skyCtx.fillStyle = key === 'polaris' ? '#ffee88' : '#ffffff';
-                            skyCtx.shadowColor = '#88bbff';
+                            const starStyle = getConstellationStarStyle(c, key);
+                            const defaultColor = key === 'polaris' ? '#ffee88' : '#ffffff';
+                            skyCtx.arc(pt.x, pt.y, (key === 'polaris' ? 3.5 : 2.5) * starStyle.size, 0, Math.PI * 2);
+                            skyCtx.fillStyle = starStyle.color || defaultColor;
+                            skyCtx.shadowColor = starStyle.color || '#88bbff';
                             skyCtx.shadowBlur = 4;
                             skyCtx.fill();
                             skyCtx.shadowBlur = 0;
@@ -5405,6 +5489,13 @@ const ASTRO_DEEP_SKY_DEFAULTS = [{"id": "M42", "name": "オリオン大星雲", 
         } catch (e) { }
     }
     astroLoadPrefs();
+    // 銀河の見かけの扁平率（短軸/長軸）。0.1=真横に近い、1=真上に近い円形。
+    astroDeepSky.forEach(o => {
+        if (!Number.isFinite(Number(o.flattening))) {
+            o.flattening = o.type === '銀河' ? 0.30 : 1.00;
+        }
+        o.flattening = Math.max(0.1, Math.min(1, Number(o.flattening)));
+    });
 
     function astroApplyVisibility() {
         ['constLines', 'constNames', 'deepSky', 'solar'].forEach(k => {
@@ -5482,8 +5573,8 @@ const ASTRO_DEEP_SKY_DEFAULTS = [{"id": "M42", "name": "オリオン大星雲", 
         ${astroField(typeof tr === 'function' ? tr('color') : '色', 'nebColor', 'color', o.color)}
         ${astroField(typeof tr === 'function' ? tr('size') : 'サイズ', 'nebSize', 'range', o.size, 5, 60, 1)}
         ${astroField(typeof tr === 'function' ? tr('brightness') : '光量', 'nebBright', 'range', o.brightness, 0.1, 1.5, 0.01)}
-        ${astroField(typeof tr === 'function' ? tr('flareIntensity') : 'フレア強度', 'nebFlare', 'range', o.flare, 0, 1, 0.01)}
-        ${astroField(typeof tr === 'function' ? tr('flareSpread') : 'フレア広がり', 'nebSpread', 'range', o.spread, 0.3, 2.5, 0.05)}
+        ${astroField(typeof tr === 'function' ? tr('spiralIntensity') : '渦巻き強度', 'nebSpiralIntensity', 'range', Number.isFinite(Number(o.spiralIntensity)) ? o.spiralIntensity : 0.65, 0, 1, 0.01)}
+        ${astroField(typeof tr === 'function' ? tr('spiralSpread') : '渦巻きの広がり', 'nebSpiralSpread', 'range', Number.isFinite(Number(o.spiralSpread)) ? o.spiralSpread : 1.0, 0.3, 2.5, 0.05)}
         <div class="astro-actions"><button id="nebReset" type="button">${typeof tr === 'function' ? tr('resetDefault') : '初期値に戻す'}</button></div>`;
 
         const bind = (id, key, cast) => {
@@ -5498,10 +5589,10 @@ const ASTRO_DEEP_SKY_DEFAULTS = [{"id": "M42", "name": "オリオン大星雲", 
         bind('nebColor', 'color', String);
         bind('nebSize', 'size', Number);
         bind('nebBright', 'brightness', Number);
-        bind('nebFlare', 'flare', Number);
-        bind('nebSpread', 'spread', Number);
+        bind('nebSpiralIntensity', 'spiralIntensity', Number);
+        bind('nebSpiralSpread', 'spiralSpread', Number);
 
-        ['nebColor', 'nebSize', 'nebBright', 'nebFlare', 'nebSpread'].forEach(id => {
+        ['nebColor', 'nebSize', 'nebBright', 'nebSpiralIntensity', 'nebSpiralSpread'].forEach(id => {
             const el = $astro(id);
             if (el) el.addEventListener('input', astroDrawNebulaPreview);
         });
@@ -5548,18 +5639,7 @@ const ASTRO_DEEP_SKY_DEFAULTS = [{"id": "M42", "name": "オリオン大星雲", 
         else { x.ellipse(cx, cy, r * 1.25, r * 0.85, 0.25, 0, Math.PI * 2); }
         x.fill();
         x.restore();
-        if (o.flare > 0) {
-            x.save();
-            x.globalAlpha = o.flare * 0.7;
-            x.strokeStyle = o.color;
-            x.lineWidth = 2 + o.flare * 5;
-            x.shadowColor = o.color;
-            x.shadowBlur = 28 * o.spread;
-            x.beginPath();
-            x.arc(cx, cy, r * (0.55 + o.spread * 0.18), 0, Math.PI * 2);
-            x.stroke();
-            x.restore();
-        }
+        astroDrawSpiralArms(x, cx, cy, r, o.color, Number(o.spiralIntensity ?? 0.65), Number(o.spiralSpread ?? 1), Number(o.flattening ?? 1));
         x.fillStyle = '#eaf5ff';
         x.font = 'bold 22px sans-serif';
         const name = currentLang === 'en' ? (DEEP_SKY_NAMES_EN[o.name] || o.name) : o.name;
@@ -5720,8 +5800,8 @@ function astroField(label,id,type,value,min,max,step){return `<label>${label}<in
             const labelColor = typeof tr === 'function' ? tr('color') : 'Color';
             const labelSize = typeof tr === 'function' ? tr('size') : 'Size';
             const labelBright = typeof tr === 'function' ? tr('brightness') : 'Brightness';
-            const labelFlare = typeof tr === 'function' ? tr('flareIntensity') : 'Flare';
-            const labelSpread = typeof tr === 'function' ? tr('flareSpread') : 'Spread';
+            const labelSpiral = typeof tr === 'function' ? tr('spiralIntensity') : '渦巻き強度';
+            const labelSpiralSpread = typeof tr === 'function' ? tr('spiralSpread') : '渦巻きの広がり';
             const labelReset = typeof tr === 'function' ? tr('resetDefault') : 'Reset';
 
             e.innerHTML = `<strong>${displayName}</strong>
@@ -5729,8 +5809,9 @@ function astroField(label,id,type,value,min,max,step){return `<label>${label}<in
         ${astroField(labelColor, 'nebColor', 'color', o.color)}
         ${astroField(labelSize, 'nebSize', 'range', o.size, 5, 60, 1)}
         ${astroField(labelBright, 'nebBright', 'range', o.brightness, 0.1, 1.5, 0.01)}
-        ${astroField(labelFlare, 'nebFlare', 'range', o.flare, 0, 1, 0.01)}
-        ${astroField(labelSpread, 'nebSpread', 'range', o.spread, 0.3, 2.5, 0.05)}
+        ${astroField(labelSpiral, 'nebSpiralIntensity', 'range', Number.isFinite(Number(o.spiralIntensity)) ? o.spiralIntensity : 0.65, 0, 1, 0.01)}
+        ${astroField(labelSpiralSpread, 'nebSpiralSpread', 'range', Number.isFinite(Number(o.spiralSpread)) ? o.spiralSpread : 1.0, 0.3, 2.5, 0.05)}
+        ${astroField('形の扁平率（0.1=細長い／1.0=円形）', 'nebFlattening', 'range', Number.isFinite(Number(o.flattening)) ? o.flattening : (o.type === '銀河' ? 0.30 : 1.00), 0.1, 1, 0.05)}
         <div class="astro-actions"><button id="nebReset" type="button">${labelReset}</button></div>`;
 
             const bind = (id, key, cast) => {
@@ -5747,10 +5828,11 @@ function astroField(label,id,type,value,min,max,step){return `<label>${label}<in
             bind('nebColor', 'color', String);
             bind('nebSize', 'size', Number);
             bind('nebBright', 'brightness', Number);
-            bind('nebFlare', 'flare', Number);
-            bind('nebSpread', 'spread', Number);
+            bind('nebSpiralIntensity', 'spiralIntensity', Number);
+            bind('nebSpiralSpread', 'spiralSpread', Number);
+            bind('nebFlattening', 'flattening', Number);
 
-            ['nebColor', 'nebSize', 'nebBright', 'nebFlare', 'nebSpread'].forEach(id => {
+            ['nebColor', 'nebSize', 'nebBright', 'nebSpiralIntensity', 'nebSpiralSpread', 'nebFlattening'].forEach(id => {
                 const el = $astro(id);
                 if (el) el.addEventListener('input', astroDrawNebulaPreview);
             });
@@ -5774,7 +5856,21 @@ const ASTRO_EXISTING_CONSTELLATIONS=[{name:'オリオン座',en:'Orion',ra:85,de
 const ASTRO_ALL_CONSTELLATIONS=[...ASTRO_EXISTING_CONSTELLATIONS,...ASTRO_EXTRA_CONSTELLATIONS];
 function astroRenderConstellationList(){const box=$astro('astroConstellationList');box.innerHTML='';ASTRO_ALL_CONSTELLATIONS.forEach((o,i)=>{const b=document.createElement('button');b.type='button';b.className='astro-item'+(i===astroSelectedConstellation?' active':'');b.textContent=`${o.name} / ${o.en}`;b.addEventListener('click',()=>{astroSelectedConstellation=i;astroRenderConstellationList();astroRenderConstellationInfo();});box.appendChild(b);});}
 function astroRenderConstellationInfo(){const o=ASTRO_ALL_CONSTELLATIONS[astroSelectedConstellation];$astro('astroConstellationInfo').innerHTML=`<strong>${o.name}</strong><div class="astro-meta">${o.en}<br>代表位置（概略中心）<br>赤経 ${o.ra.toFixed(1)}° ／ 赤緯 ${o.dec.toFixed(1)}°<br><br>この一覧はIAU全88星座の名称・位置確認用です。代表位置は星座の境界線や全構成星を表すものではありません。主要星座の実星・星座線は既存データと追加描画で表示します。</div>`;}
-function astroDrawNebulaPreview(){const c=$astro('nebulaPreview');if(!c)return;const x=c.getContext('2d'),o=astroDeepSky.find(v=>v.id===astroSelectedNebula);if(!o)return;const w=c.width,h=c.height;x.clearRect(0,0,w,h);x.fillStyle='#030813';x.fillRect(0,0,w,h);for(let i=0;i<180;i++){const sx=(i*97%w),sy=(i*53%h);x.fillStyle=`rgba(190,220,255,${((i*13)%50)/220})`;x.fillRect(sx,sy,1.5,1.5);}const r= Math.max(12,o.size*2.1),cx=w*.48,cy=h*.51;const g=x.createRadialGradient(cx,cy,r*.04,cx,cy,r*(1.1+o.spread));g.addColorStop(0,o.color+'ee');g.addColorStop(.24,o.color+'99');g.addColorStop(.62,o.color+'35');g.addColorStop(1,o.color+'00');x.save();x.globalAlpha=Math.min(1,o.brightness);x.fillStyle=g;x.beginPath();if(o.type==='銀河'){x.ellipse(cx,cy,r*1.8,r*.58,-.3,0,Math.PI*2);}else if(o.type==='球状星団'||o.type==='散開星団'){x.arc(cx,cy,r*.8,0,Math.PI*2);}else if(o.type==='惑星状星雲'){x.arc(cx,cy,r*.75,0,Math.PI*2);}else{x.ellipse(cx,cy,r*1.25,r*.85,.25,0,Math.PI*2);}x.fill();x.restore();if(o.flare>0){x.save();x.globalAlpha=o.flare*.7;x.strokeStyle=o.color;x.lineWidth=2+o.flare*5;x.shadowColor=o.color;x.shadowBlur=28*o.spread;x.beginPath();x.arc(cx,cy,r*(.55+o.spread*.18),0,Math.PI*2);x.stroke();x.restore();}x.fillStyle='#eaf5ff';x.font='bold 22px sans-serif';x.fillText(`${o.id}  ${o.name}`,24,34);x.font='13px sans-serif';x.fillStyle='#a9c7e8';x.fillText(`${o.type}  /  等級 ${o.mag}  /  RA ${o.ra.toFixed(2)}°  Dec ${o.dec.toFixed(2)}°`,24,h-22);}
+function astroDrawSpiralArms(ctx,cx,cy,r,color,intensity,spread,flattening=1){
+ const power=Math.max(0,Math.min(1,Number(intensity)||0)); if(power<=0)return;
+ const turns=2.4, armCount=2, extent=Math.max(.3,Math.min(2.5,Number(spread)||1));
+ const flat=Math.max(.1,Math.min(1,Number(flattening)||1));
+ const rgb=(hex)=>{let h=String(hex||'#ffffff').replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return Number.isFinite(n)?[(n>>16)&255,(n>>8)&255,n&255]:[255,255,255];};
+ const [cr,cg,cb]=rgb(color); ctx.save();ctx.translate(cx,cy);ctx.scale(1,flat);
+ for(let arm=0;arm<armCount;arm++){ctx.beginPath();for(let i=0;i<=180;i++){const t=i/180,ang=t*Math.PI*2*turns+arm*Math.PI,rad=r*(.08+t*extent*.95);const px=Math.cos(ang)*rad,py=Math.sin(ang)*rad;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);}
+ ctx.strokeStyle=`rgba(${cr},${cg},${cb},${.12+power*.72})`;ctx.lineWidth=Math.max(1,r*(.018+power*.035));ctx.shadowColor=color;ctx.shadowBlur=power*10;ctx.stroke();
+ // 暗い色の筋を重ね、指定色の明暗差で渦巻きを表現
+ ctx.beginPath();for(let i=0;i<=180;i++){const t=i/180,ang=t*Math.PI*2*turns+arm*Math.PI+.12,rad=r*(.08+t*extent*.95);const px=Math.cos(ang)*rad,py=Math.sin(ang)*rad;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);}
+ ctx.strokeStyle=`rgba(${Math.round(cr*.28)},${Math.round(cg*.28)},${Math.round(cb*.28)},${.08+power*.42})`;ctx.lineWidth=Math.max(1,r*(.025+power*.025));ctx.shadowBlur=0;ctx.stroke();
+ }
+ ctx.restore();
+}
+function astroDrawNebulaPreview(){const c=$astro('nebulaPreview');if(!c)return;const x=c.getContext('2d'),o=astroDeepSky.find(v=>v.id===astroSelectedNebula);if(!o)return;const w=c.width,h=c.height;x.clearRect(0,0,w,h);x.fillStyle='#030813';x.fillRect(0,0,w,h);for(let i=0;i<180;i++){const sx=(i*97%w),sy=(i*53%h);x.fillStyle=`rgba(190,220,255,${((i*13)%50)/220})`;x.fillRect(sx,sy,1.5,1.5);}const r= Math.max(12,o.size*2.1),cx=w*.48,cy=h*.51;const g=x.createRadialGradient(cx,cy,r*.04,cx,cy,r*(1.1+Number(o.spiralSpread ?? 1)));g.addColorStop(0,o.color+'ee');g.addColorStop(.24,o.color+'99');g.addColorStop(.62,o.color+'35');g.addColorStop(1,o.color+'00');x.save();x.globalAlpha=Math.min(1,o.brightness);x.fillStyle=g;const flat=Math.max(.1,Math.min(1,Number.isFinite(Number(o.flattening))?Number(o.flattening):1));x.translate(cx,cy);x.scale(1,flat);x.translate(-cx,-cy);x.beginPath();if(o.type==='銀河'){x.ellipse(cx,cy,r*1.8,r*1.8,-.3,0,Math.PI*2);}else if(o.type==='球状星団'||o.type==='散開星団'){x.arc(cx,cy,r*.8,0,Math.PI*2);}else if(o.type==='惑星状星雲'){x.arc(cx,cy,r*.75,0,Math.PI*2);}else{x.ellipse(cx,cy,r*1.25,r*.85,.25,0,Math.PI*2);}x.fill();x.restore();astroDrawSpiralArms(x,cx,cy,r, o.color, Number(o.spiralIntensity ?? 0.65), Number(o.spiralSpread ?? 1), Number(o.flattening ?? 1));x.fillStyle='#eaf5ff';x.font='bold 22px sans-serif';x.fillText(`${o.id}  ${o.name}`,24,34);x.font='13px sans-serif';x.fillStyle='#a9c7e8';x.fillText(`${o.type}  /  等級 ${o.mag}  /  RA ${o.ra.toFixed(2)}°  Dec ${o.dec.toFixed(2)}°`,24,h-22);}
 function astroInstall88Constellations(){
  const old=CONSTELLATIONS;const alias={'北斗七星':'おおぐま座','こぐま座 (北極星)':'こぐま座','おうし座 (すばる)':'おうし座','ぎょしゃ座 (カペラ)':'ぎょしゃ座'};const oldByName={};old.forEach(c=>oldByName[alias[c.name]||c.name]=c);
  const official=[...ASTRO_EXISTING_CONSTELLATIONS,...ASTRO_EXTRA_CONSTELLATIONS];const seen=new Set();const merged=[];
@@ -5786,7 +5882,7 @@ function astroInstall88Constellations(){
  });
  // Persisted settings for matching names take precedence; the new 88-name set is the canonical base.
  let saved={};try{saved=JSON.parse(localStorage.getItem(CONSTELLATION_STORAGE_KEY)||'{}')||{};}catch(e){}
- merged.forEach(c=>{const v=saved[c.name];if(!v)return;if(typeof v.visible==='boolean')c.visible=v.visible;if(v.stars&&typeof v.stars==='object')Object.entries(v.stars).forEach(([k,p])=>{if(Array.isArray(p)&&p.length===2&&p.every(n=>Number.isFinite(Number(n))))c.stars[k]=[Number(p[0]),Number(p[1])];});if(Array.isArray(v.lines))c.lines=v.lines.filter(p=>Array.isArray(p)&&p.length===2&&p.every(k=>Object.prototype.hasOwnProperty.call(c.stars,k)));});
+ merged.forEach(c=>{const v=saved[c.name];if(!v)return;if(typeof v.visible==='boolean')c.visible=v.visible;if(v.starStyles&&typeof v.starStyles==='object'){c.starStyles={...(c.starStyles||{})};Object.entries(v.starStyles).forEach(([k,st])=>{if(!st||typeof st!=='object')return;const sz=Number(st.size),col=String(st.color||'');c.starStyles[k]={size:Number.isFinite(sz)?Math.max(.5,Math.min(4,sz)):1,color:/^#[0-9a-fA-F]{6}$/.test(col)?col:'#ffffff'};});}if(v.stars&&typeof v.stars==='object')Object.entries(v.stars).forEach(([k,p])=>{if(Array.isArray(p)&&p.length===2&&p.every(n=>Number.isFinite(Number(n))))c.stars[k]=[Number(p[0]),Number(p[1])];});if(Array.isArray(v.lines))c.lines=v.lines.filter(p=>Array.isArray(p)&&p.length===2&&p.every(k=>Object.prototype.hasOwnProperty.call(c.stars,k)));});
  DEFAULT_CONSTELLATIONS=JSON.parse(JSON.stringify(merged));CONSTELLATIONS=merged;editorSelectedConstIdx=Math.min(editorSelectedConstIdx,CONSTELLATIONS.length-1);saveConstellationsData();
 }
     function astroInitWorkbench() {
@@ -5850,21 +5946,23 @@ function astroDrawFlare(ctx,x,y,color,r,intensity,spread){if(intensity<=0)return
                 const p = astroProject(o.ra, o.dec, date);
                 if (!p || !p.visible || p.alt < 0) return;
                 const r = Math.max(3, (o.size || 20) * 0.5);
-                if (typeof astroDrawFlare === 'function') {
-                    astroDrawFlare(ctx, p.x, p.y, o.color, r, o.flare || 0, o.spread || 1);
-                }
                 ctx.save();
                 ctx.globalAlpha = Math.min(1, o.brightness || 0.8);
                 ctx.fillStyle = o.color || '#ffffff';
                 ctx.shadowColor = o.color || '#ffffff';
-                ctx.shadowBlur = 8 + (o.flare || 0) * 15;
+                ctx.shadowBlur = 8;
+                const flat = Math.max(0.1, Math.min(1, Number.isFinite(Number(o.flattening)) ? Number(o.flattening) : 1));
+                ctx.translate(p.x, p.y);
+                ctx.scale(1, flat);
+                ctx.translate(-p.x, -p.y);
                 ctx.beginPath();
-                if (o.type === '銀河') { ctx.ellipse(p.x, p.y, r * 1.5, r * 0.55, -0.4, 0, Math.PI * 2); }
+                if (o.type === '銀河') { ctx.ellipse(p.x, p.y, r * 1.5, r * 1.5, -0.4, 0, Math.PI * 2); }
                 else if (o.type === '球状星団') { ctx.arc(p.x, p.y, r * 0.72, 0, Math.PI * 2); }
                 else if (o.type === '惑星状星雲') { ctx.arc(p.x, p.y, r * 0.65, 0, Math.PI * 2); }
                 else { ctx.ellipse(p.x, p.y, r, r * 0.72, 0.2, 0, Math.PI * 2); }
                 ctx.fill();
                 ctx.restore();
+                astroDrawSpiralArms(ctx, p.x, p.y, r, o.color, Number(o.spiralIntensity ?? 0.65), Number(o.spiralSpread ?? 1), flat);
 
                 if (showLabels && astroVisibility.constellationNames) {
                     ctx.fillStyle = '#e9f5ff';
