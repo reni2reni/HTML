@@ -3404,17 +3404,17 @@ body > #customRegionPanel[hidden] {
             if (isRaining) {
                 // 降水量(mm)に応じて雨粒の本数を増減。弱い雨でも視認できる最低本数を確保。
                 const rainMm = Math.max(0, Number(currentWeather.precipitation) || 0);
-                const rainRatio = Math.min(1, rainMm / 12);
+                const rainRatio = Math.min(1, rainMm / 5);
                 const activeRainCount = Math.min(
                     MAX_RAIN_PARTICLES,
-                    Math.round(24 + rainRatio * (MAX_RAIN_PARTICLES - 24))
+                    Math.round(5 + Math.pow(rainRatio, 0.80) * (MAX_RAIN_PARTICLES - 5))
                 );
                 ctx.strokeStyle = 'rgba(80, 80, 255, 0.62)';
                 ctx.lineWidth = 2.0;
                 for (let i = 0; i < activeRainCount; i++) {
                     const p = rainParticles[i];
                     p.y += p.speed;
-                    p.x += p.speed * 0.22;
+                    p.x += p.speed * 0.10;
                     if (p.y > 1) { p.y = 0; p.x = Math.random(); }
                     if (p.x > 1) { p.x = 0; }
 
