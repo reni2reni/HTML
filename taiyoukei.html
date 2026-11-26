@@ -128,9 +128,10 @@
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            gap: 14px;
+            gap: 10px;
             flex: 0 0 auto;
             min-width: 0;
+            flex-wrap: wrap;
         }
 
         #citySelect {
@@ -347,6 +348,201 @@
             font-size: 0.76rem;
         }
 
+        /* ==========================================
+           星座エディタ モーダルパネル
+           ========================================== */
+        .const-editor-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 300;
+            width: min(1180px, calc(100vw - 24px));
+            max-height: calc(100vh - 32px);
+            background: rgba(8, 15, 32, 0.97);
+            border: 1px solid #4d7cc4;
+            border-radius: 12px;
+            box-shadow: 0 12px 44px rgba(0, 0, 0, 0.88), 0 0 24px rgba(0, 170, 255, 0.25);
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            color: #e6f3ff;
+        }
+
+        .const-editor-modal[hidden] {
+            display: none !important;
+        }
+
+        .const-editor-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: rgba(16, 30, 62, 0.95);
+            border-bottom: 1px solid #2b4a7c;
+        }
+
+        .const-editor-header h3 {
+            margin: 0;
+            font-size: 1.0rem;
+            color: #7ee2ff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .const-editor-body {
+            display: grid;
+            grid-template-columns: 215px 1fr;
+            gap: 12px;
+            padding: 12px 16px;
+            overflow-y: auto;
+            min-height: 360px;
+        }
+
+        .const-editor-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            max-height: 440px;
+            overflow-y: auto;
+            padding-right: 4px;
+            border-right: 1px solid rgba(75, 118, 184, 0.35);
+        }
+
+        .const-list-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 6px 6px;
+            border-bottom: 1px solid rgba(75, 118, 184, 0.35);
+            margin-bottom: 4px;
+            font-size: 0.78rem;
+            color: #8fd8ff;
+            font-weight: bold;
+        }
+
+        .const-list-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 8px;
+            background: #111c3d;
+            border: 1px solid #2a4373;
+            border-radius: 6px;
+            color: #cde3ff;
+            font-size: 0.83rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .const-list-row:hover {
+            background: #1b2f63;
+            border-color: #4aa3ff;
+        }
+
+        .const-list-row.active {
+            background: #23478f;
+            border-color: #00e5ff;
+            color: #ffffff;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+        }
+
+        .const-vis-checkbox {
+            accent-color: #00e5ff;
+            width: 15px;
+            height: 15px;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin: 0;
+        }
+
+        .const-list-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .const-editor-workspace {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .const-editor-canvas-wrap {
+            position: relative;
+            width: 100%;
+            height: 320px;
+            background: radial-gradient(circle at center, #0a1733 0%, #030712 100%);
+            border: 1px solid #2e4f82;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        #constEditorCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: crosshair;
+        }
+
+        .const-editor-guide {
+            font-size: 0.78rem;
+            color: #9ec8f0;
+            background: rgba(14, 28, 56, 0.75);
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(85, 135, 205, 0.3);
+            line-height: 1.45;
+        }
+
+        .const-editor-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .star-nudge-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8rem;
+            color: #b8dcff;
+        }
+
+        .star-nudge-group button {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+        }
+
+        .const-editor-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @media (max-width: 720px) {
+            .const-editor-body {
+                grid-template-columns: 1fr;
+            }
+            .const-editor-list {
+                flex-direction: row;
+                flex-wrap: wrap;
+                max-height: 110px;
+                border-right: none;
+                border-bottom: 1px solid rgba(75, 118, 184, 0.35);
+                padding-bottom: 8px;
+            }
+            .const-editor-canvas-wrap {
+                height: 240px;
+            }
+        }
+
         @media (max-width: 980px) {
             .toolbar-primary {
                 align-items: flex-start;
@@ -507,6 +703,7 @@
             background: #354375;
             border-color: #7cc4ff;
         }
+
         /* 左側ボタン直下の常時表示・観測地点ミニ世界地図 */
         #worldMapMiniPanel {
             position: fixed;
@@ -560,11 +757,48 @@
                 height: 96px;
                 opacity: 0.48;
             }
+
             #worldMapMiniLabel {
                 font-size: 9px;
             }
         }
-    </style>
+    
+/* === 天体カタログ・表示／編集パネル（新規統合） === */
+.astro-head{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:rgba(20,42,78,.96);border-bottom:1px solid #34557f;font-weight:700;color:#9fe5ff}
+.astro-head button{padding:3px 9px}
+.astro-content{padding:9px;overflow:auto;display:flex;flex-direction:column;gap:9px}
+.astro-checks{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;padding:7px;background:#0a1730;border:1px solid #263e64;border-radius:8px}
+.astro-checks label{display:flex;align-items:center;gap:6px;color:#d8eaff;white-space:nowrap}.astro-checks input{accent-color:#29c9ff}
+.astro-tabs{display:flex;gap:5px;flex-wrap:wrap}.astro-tabs button{flex:1 1 auto;padding:6px 8px}.astro-tabs button.active{background:#17618a;border-color:#5ddaff;color:white}
+.astro-pane{display:none;gap:8px}.astro-pane.active{display:grid;grid-template-columns:minmax(110px, .9fr) minmax(160px,1.1fr)}
+.astro-list{max-height:175px;overflow:auto;display:flex;flex-direction:column;gap:3px;padding-right:3px}
+.astro-item{display:flex;justify-content:space-between;gap:5px;text-align:left;padding:5px 7px;font-size:11px;white-space:normal}.astro-item.active{background:#18517d;border-color:#5bdcff}
+.astro-editor{display:flex;flex-direction:column;gap:7px;min-width:0}.astro-editor label{display:grid;grid-template-columns:70px 1fr;align-items:center;gap:6px;color:#c8dcf5}.astro-editor input[type=range]{width:100%;accent-color:#43caff}.astro-editor input[type=color]{width:100%;height:27px;padding:1px;background:#101b32;border:1px solid #47628a;border-radius:4px}.astro-editor input[type=number]{width:100%;min-width:0;background:#101b32;color:#fff;border:1px solid #47628a;border-radius:4px;padding:4px}
+.astro-meta{font-size:10px;line-height:1.45;color:#8eaccb}.astro-actions{display:flex;gap:5px;flex-wrap:wrap}.astro-actions button{font-size:11px;padding:5px 8px}.astro-status{color:#8ce3ff;min-height:14px;font-size:10px}
+
+
+/* 統合天体エディタ */
+.astro-unified-top{padding:10px 16px 0;display:flex;flex-direction:column;gap:8px;background:rgba(5,12,28,.96)}
+.astro-checks{display:flex;flex-wrap:wrap;gap:8px 18px;padding:8px 10px;background:#0a1730;border:1px solid #263e64;border-radius:8px;font-size:12px}
+.astro-checks label{display:flex;align-items:center;gap:6px;color:#d8eaff}.astro-checks input{accent-color:#29c9ff}
+.astro-tabs{display:flex;gap:6px;flex-wrap:wrap}.astro-tabs button{flex:1 1 180px;padding:8px 10px}.astro-tabs button.active{background:#17618a;border-color:#5ddaff;color:white}
+.editor-tab-pane{display:none;min-height:400px;overflow:auto}.editor-tab-pane.active{display:block}
+#editorPaneConstellation .const-editor-body{min-height:450px;grid-template-columns:250px minmax(0,1fr)}
+#editorPaneConstellation .const-editor-list{max-height:calc(100vh - 330px)}
+.const-list-column{display:flex;flex-direction:column;min-height:0}.const-list-column input{margin:0 0 7px;padding:7px;background:#0b1930;color:#fff;border:1px solid #3b5c88;border-radius:6px}.astro-edit-layout{display:grid;grid-template-columns:minmax(150px,230px) minmax(0,1fr);gap:14px;padding:14px 16px;min-height:420px}
+.astro-edit-layout .astro-list{max-height:calc(100vh - 310px);border-right:1px solid #34557f;padding-right:8px}
+.astro-edit-main{min-width:0;display:flex;flex-direction:column;gap:10px}
+.astro-preview{width:100%;height:clamp(180px,32vh,300px);background:radial-gradient(ellipse at 50% 50%,#14284a,#030813 72%);border:1px solid #35577f;border-radius:10px}
+.astro-editor{display:grid;grid-template-columns:repeat(2,minmax(180px,1fr));gap:10px;padding:10px;background:rgba(9,22,44,.8);border:1px solid #263e64;border-radius:8px}
+.astro-editor>strong,.astro-editor>.astro-meta,.astro-editor>.astro-actions{grid-column:1/-1}
+.astro-editor label{display:grid;grid-template-columns:92px minmax(0,1fr);align-items:center;gap:8px;color:#c8dcf5;font-size:12px}
+.astro-editor input[type=range]{width:100%;accent-color:#43caff}.astro-editor input[type=color]{width:100%;height:30px;padding:1px;background:#101b32;border:1px solid #47628a;border-radius:4px}
+.astro-editor input[type=number]{width:100%;min-width:0;background:#101b32;color:#fff;border:1px solid #47628a;border-radius:4px;padding:5px}
+.astro-meta{font-size:11px;line-height:1.5;color:#9ab6d5}.astro-actions{display:flex;gap:6px;flex-wrap:wrap}.astro-actions button{font-size:12px;padding:6px 10px}
+.const-list-row.active{background:rgba(30,90,145,.65)}
+@media(max-width:700px){.const-editor-modal{max-height:calc(100vh - 12px);width:calc(100vw - 12px)}.astro-edit-layout{grid-template-columns:110px minmax(0,1fr);padding:8px;gap:8px}.astro-edit-layout .astro-list{max-height:160px}.astro-editor{grid-template-columns:1fr}.astro-preview{height:180px}#editorPaneConstellation .const-editor-body{grid-template-columns:120px minmax(0,1fr);padding:8px;gap:8px}}
+
+</style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -716,8 +950,11 @@
                     </optgroup>
                 </select>
             </div>
-            
+
             <div class="location-speed-group">
+                <button id="btnConstEditor" type="button"
+                    style="background: #182b52; border: 1px solid #4a88cc; color: #9ce0ff; font-weight: bold;">🪄
+                    星座エディタ</button>
                 <button id="btnToggleConst" style="background: #182247; border: 1px solid #6644aa; color: #d0b0ff; font-weight: bold;">✨
                     星座:
                     OFF</button>
@@ -728,7 +965,7 @@
                     style="background: #182247; border: 1px solid #367d8f; color: #8fe5ff; font-weight: bold;">☁️ 天気:
                     ON</button>-
                 <button id="btnLanguage" type="button" title="Language">🌐 English</button>
-                
+
             </div>
         </div>
 
@@ -771,6 +1008,74 @@
             <button id="btnSaveHome" type="button">保存</button>
             <div id="homeRegionMap" aria-label="世界地図クリックでホーム緯度・経度を選択"></div>
         </div>
+    </div>
+
+
+    <!-- 星座エディタ 中央パネル -->
+    <div id="constEditorModal" class="const-editor-modal" hidden role="dialog" aria-labelledby="constEditorTitle">
+        <div class="const-editor-header">
+            <h3 id="constEditorTitle">🪄 星座エディタ</h3>
+            <button id="btnCloseConstEditor" type="button" style="background:#263259; border-color:#5674ad;">✕ 閉じる</button>
+        </div>
+        <div class="astro-unified-top">
+            <div class="astro-checks">
+                <label><input id="astroConstLines" type="checkbox" checked> 星座線</label>
+                <label><input id="astroConstNames" type="checkbox" checked> 星座名</label>
+                <label><input id="astroDeepSky" type="checkbox" checked> 星雲・星団</label>
+                <label><input id="astroSolar" type="checkbox" checked> 太陽・惑星</label>
+            </div>
+            <div class="astro-tabs" id="unifiedEditorTabs">
+                <button type="button" class="active" data-editor-tab="constellation">✦ 星座エディタ（88星座）</button>
+                <button type="button" data-editor-tab="nebula">☄ 星雲・星団</button>
+                <button type="button" data-editor-tab="planet">🪐 太陽・惑星</button>
+            </div>
+        </div>
+        <section class="editor-tab-pane active" id="editorPaneConstellation">
+        <div class="const-editor-body">
+            <div class="const-list-column"><input id="constellationSearch" type="search" placeholder="星座名・英名で検索" aria-label="星座検索"><div id="constEditorList" class="const-editor-list" aria-label="星座一覧"></div></div>
+            <div class="const-editor-workspace">
+                <div class="const-editor-guide" id="constEditorGuide">
+                    88星座を検索・選択して表示ON/OFF。星座線のある星座は<strong>ホイールで拡大・縮小</strong>、<strong>背景ドラッグで移動</strong>、<strong>破線クリック</strong>で接続切替、<strong>星ドラッグ</strong>で位置微調整できます。星のない星座は代表位置のみの初期登録です。星を追加して線を結べます（※一部は代表点のみの初期登録で、実星配置の完成データではありません）。
+                </div>
+                <div class="const-editor-canvas-wrap">
+                    <canvas id="constEditorCanvas"></canvas>
+                </div>
+                <div class="const-editor-controls">
+                    <div class="star-nudge-group">
+                        <span id="selectedStarInfo">星: 未選択</span>
+                        <button type="button" id="btnStarLeft" title="左へ (赤経 +)">◀</button>
+                        <button type="button" id="btnStarUp" title="上へ (赤緯 +)">▲</button>
+                        <button type="button" id="btnStarDown" title="下へ (赤緯 -)">▼</button>
+                        <button type="button" id="btnStarRight" title="右へ (赤経 -)">▶</button>
+                    </div>
+                    <div class="const-editor-actions">
+                        <button type="button" id="btnResetEditorView" style="background:#182e54; border-color:#3f72b5; color:#bfe2ff;">🔍 表示位置リセット</button>
+                        <button type="button" id="btnResetConstCurrent" style="background:#3a2238; border-color:#884477; color:#ffd0f0;">↺ この星座を初期値に戻す</button>
+                        <button type="button" id="btnAddConstStar" style="background:#164b50;border-color:#3c9a9a;color:#d0ffff;">＋ 星を追加</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </section>
+        <section class="editor-tab-pane" id="editorPaneNebula">
+            <div class="astro-edit-layout">
+                <div class="astro-list" id="astroNebulaList" aria-label="星雲・星団一覧"></div>
+                <div class="astro-edit-main">
+                    <canvas id="nebulaPreview" class="astro-preview" width="720" height="300" aria-label="星雲・星団の編集プレビュー"></canvas>
+                    <div class="astro-editor" id="astroNebulaEditor"></div>
+                </div>
+            </div>
+        </section>
+        <section class="editor-tab-pane" id="editorPanePlanet">
+            <div class="astro-edit-layout">
+                <div class="astro-list" id="astroPlanetList" aria-label="太陽・惑星一覧"></div>
+                <div class="astro-edit-main">
+                    <canvas id="planetPreview" class="astro-preview" width="720" height="300"
+                        aria-label="太陽・惑星の編集プレビュー"></canvas>
+                    <div class="astro-editor" id="astroPlanetEditor"></div>
+                </div>
+            </div>
+        </section>
     </div>
 
     <script>
@@ -1074,7 +1379,6 @@
         const TIDE_LUNAR_AMPLITUDE_M = 0.36;
         const TIDE_SOLAR_AMPLITUDE_M = 0.16;
         const TIDE_MEAN_LUNAR_DISTANCE_KM = 384400;
-        const annualTideRangeCache = new Map();
 
         function tideHeightFromAltitudes(sunAltDeg, moonAltDeg, dDays, T, earthSunDistanceAU) {
             const rad = Math.PI / 180;
@@ -1098,18 +1402,6 @@
             const lunarTerm = TIDE_LUNAR_AMPLITUDE_M * lunarDistanceFactor * moonP2;
             const solarTerm = TIDE_SOLAR_AMPLITUDE_M * solarDistanceFactor * sunP2;
             return lunarTerm + solarTerm;
-        }
-
-        function getAstronomicalTideHeight(date) {
-            const jd = (date.getTime() / 86400000.0) + 2440587.5;
-            const dDays = jd - 2451545.0;
-            const T = dDays / 36525.0;
-            const earthPos = getPlanetHelioPosition(orbitalElements.earth, T).trueEcl;
-            const sunGeo = { x: -earthPos.x, y: -earthPos.y, z: -earthPos.z };
-            const sunHoriz = toHorizontal(sunGeo.x, sunGeo.y, sunGeo.z, dDays);
-            const moonLon = getMoonGeocentricEclipticLon(dDays, T) * Math.PI / 180;
-            const moonHoriz = toHorizontal(Math.cos(moonLon), Math.sin(moonLon), 0, dDays);
-            return tideHeightFromAltitudes(sunHoriz.alt, moonHoriz.alt, dDays, T, earthPos.r);
         }
 
         // ==========================================
@@ -1241,7 +1533,7 @@
         let weatherPending = false;
         let weatherFetchedAt = 0;
         let weatherAvailable = false;
-        const WEATHER_FADE_HOURS = 6; // 現在天気しかないため、未来6時間で徐々に非表示
+        const WEATHER_FADE_HOURS = 6;
         let currentWeather = {
             weatherCode: 0,
             cloudCover: 0,
@@ -1311,15 +1603,12 @@
                 .finally(() => { weatherPending = false; });
         }
 
-        // 取得できているのは現在の天気のみ。シミュレーション時刻が未来へ進むほど
-        // 6時間かけてエフェクトと表示をフェードし、以降は不明（--）として扱う。
         function getWeatherOpacity(date) {
             if (!showWeather || !weatherAvailable || !weatherFetchedAt) return 0;
             const futureHours = Math.max(0, (date.getTime() - weatherFetchedAt) / 3600000);
             return Math.max(0, Math.min(1, 1 - futureHours / WEATHER_FADE_HOURS));
         }
 
-        // 雨・雪のパーティクル
         const rainParticles = Array.from({ length: 100 }, () => ({
             x: Math.random(),
             y: Math.random(),
@@ -1501,12 +1790,70 @@
         };
 
         const CONSTELLATION_NAMES_EN = {
-            'オリオン座': 'Orion', 'カシオペヤ座': 'Cassiopeia', '北斗七星': 'Big Dipper',
-            'こぐま座 (北極星)': 'Ursa Minor (Polaris)', '夏の大三角': 'Summer Triangle', 'さそり座': 'Scorpius',
-            'しし座': 'Leo', 'おうし座 (すばる)': 'Taurus (Pleiades)', 'ぎょしゃ座 (カペラ)': 'Auriga (Capella)',
-            'ケフェウス座': 'Cepheus', 'おおいぬ座': 'Canis Major', 'みなみじゅうじ座': 'Crux',
-            'すばる (M45)': 'Pleiades (M45)', 'アンドロメダ星雲 (M31)': 'Andromeda Galaxy (M31)'
-        };
+                'アンドロメダ座': 'Andromeda', 'いっかくじゅう座': 'Monoceros', 'いて座': 'Sagittarius',
+                'いるか座': 'Delphinus', 'インディアン座': 'Indus', 'うお座': 'Pisces', 'うさぎ座': 'Lepus',
+                'うしかい座': 'Boötes', 'うみへび座': 'Hydra', 'エリダヌス座': 'Eridanus',
+                'おうし座': 'Taurus', 'おうし座 (すばる)': 'Taurus (Pleiades)',
+                'おおいぬ座': 'Canis Major', 'おおかみ座': 'Lupus', 'おおぐま座': 'Ursa Major',
+                'おとめ座': 'Virgo', 'おひつじ座': 'Aries', 'カシオペヤ座': 'Cassiopeia', 'かじき座': 'Dorado',
+                'かに座': 'Cancer', 'かみのけ座': 'Coma Berenices', 'カメレオン座': 'Chamaeleon',
+                'からす座': 'Corvus', 'かんむり座': 'Corona Borealis', 'きりん座': 'Camelopardalis',
+                'ぎょしゃ座': 'Auriga', 'ぎょしゃ座 (カペラ)': 'Auriga (Capella)', 'きょしちょう座': 'Tucana',
+                'くじら座': 'Cetus', 'くじゃく座': 'Pavo', 'ケンタウルス座': 'Centaurus',
+                'けんびきょう座': 'Microscopium', 'こいぬ座': 'Canis Minor', 'こうま座': 'Equuleus',
+                'こぐま座': 'Ursa Minor', 'こぐま座 (北極星)': 'Ursa Minor (Polaris)', 'こじし座': 'Leo Minor',
+                'コップ座': 'Crater', 'こぎつね座': 'Vulpecula', 'コンパス座': 'Circinus',
+                'さいだん座': 'Ara', 'さそり座': 'Scorpius', 'さんかく座': 'Triangulum',
+                'しし座': 'Leo', 'じょうぎ座': 'Norma', 'たて座': 'Scutum',
+                'ちょうこくぐ座': 'Caelum', 'ちょうこくしつ座': 'Sculptor', 'つる座': 'Grus',
+                'テーブルさん座': 'Mensa', 'てんびん座': 'Libra', 'とかげ座': 'Lacerta',
+                'とけい座': 'Horologium', 'とびうお座': 'Volans', 'とも座': 'Puppis',
+                'はえ座': 'Musca', 'はくちょう座': 'Cygnus', 'はちぶんぎ座': 'Octans', 'はと座': 'Columba',
+                'ふうちょう座': 'Apus', 'ふたご座': 'Gemini', 'ペガスス座': 'Pegasus',
+                'へび座': 'Serpens', 'へびつかい座': 'Ophiuchus', 'ヘルクレス座': 'Hercules',
+                'ペルセウス座': 'Perseus', 'ほ座': 'Vela', 'ぼうえんきょう座': 'Telescopium',
+                'ほうおう座': 'Phoenix', 'ポンプ座': 'Antlia', 'みずがめ座': 'Aquarius',
+                'みずへび座': 'Hydrus', 'みなみじゅうじ座': 'Crux', 'みなみのうお座': 'Piscis Austrinus',
+                'みなみのかんむり座': 'Corona Australis', 'みなみのさんかく座': 'Triangulum Australe',
+                'やまねこ座': 'Lynx', 'や座': 'Sagitta', 'やぎ座': 'Capricornus',
+                'らしんばん座': 'Pyxis', 'りゅう座': 'Draco', 'りゅうこつ座': 'Carina',
+                'りょうけん座': 'Canes Venatici', 'レチクル座': 'Reticulum', 'ろ座': 'Fornax',
+                'ろくぶんぎ座': 'Sextans', 'わし座': 'Aquila',
+                // 特殊表示・アステリズム
+                '北斗七星': 'Big Dipper', '夏の大三角': 'Summer Triangle',
+                'すばる (M45)': 'Pleiades (M45)', 'アンドロメダ星雲 (M31)': 'Andromeda Galaxy (M31)'
+            };
+
+             const DEEP_SKY_NAMES_EN = {
+                    'オリオン大星雲': 'Orion Nebula', 'アンドロメダ銀河': 'Andromeda Galaxy', 'プレアデス星団': 'Pleiades',
+                    'ヘラクレス球状星団': 'Hercules Globular Cluster', 'ηカリーナ星雲': 'Eta Carinae Nebula',
+                    '干潟星雲': 'Lagoon Nebula', '三裂星雲': 'Trifid Nebula', 'オメガ星雲': 'Omega Nebula',
+                    'わし星雲': 'Eagle Nebula', 'かに星雲': 'Crab Nebula', '亜鈴状星雲': 'Dumbbell Nebula',
+                    'リング星雲': 'Ring Nebula', '北アメリカ星雲': 'North America Nebula', '網状星雲': 'Veil Nebula',
+                    'ばら星雲': 'Rosette Nebula', 'らせん星雲': 'Helix Nebula', 'きょしちょう座47': '47 Tucanae',
+                    'ω星団': 'Omega Centauri', 'タランチュラ星雲': 'Tarantula Nebula',
+                    '小マゼラン雲': 'Small Magellanic Cloud', '大マゼラン雲': 'Large Magellanic Cloud'
+                };
+
+                const NEBULA_TYPE_EN = {
+                    '散光星雲': 'Diffuse Nebula', '銀河': 'Galaxy', '球状星団': 'Globular Cluster',
+                    '散開星団': 'Open Cluster', '超新星残骸': 'Supernova Remnant', '惑星状星雲': 'Planetary Nebula'
+                };
+
+                const SATELLITE_NAMES_EN = {
+                    '月': 'Moon', 'フォボス': 'Phobos', 'イオ': 'Io',
+                    'エウロパ': 'Europa', 'ガニメデ': 'Ganymede', 'タイタン': 'Titan'
+                };
+
+                const PARENT_PLANETS_EN = {
+                    '地球': 'Earth', '火星': 'Mars', '木星': 'Jupiter', '土星': 'Saturn'
+                };
+            function getConstDisplayName(c) {
+                if (!c) return '';
+                return currentLang === 'en'
+                    ? (c.en || CONSTELLATION_NAMES_EN[c.name] || c.name)
+                    : (c.name || c.en || '');
+            }
         const CELESTIAL_NAMES_EN = {
             '太陽': 'Sun', '月': 'Moon', '水星': 'Mercury', '金星': 'Venus', '地球': 'Earth',
             '火星': 'Mars', '木星': 'Jupiter', '土星': 'Saturn', '天王星': 'Uranus', '海王星': 'Neptune'
@@ -1517,6 +1864,7 @@
                 pageTitle: '太陽系 3D ＆ プラネタリウム・シミュレーター', prevDay: '◁ 1日', prevHour: '◁ 1時', now: '現在', play: '▶️', stop: '⏸️',
                 nextHour: '1時 ▷', nextDay: '1日 ▷', east: '東の空', south: '南の空', west: '西の空', north: '北の空', zenith: '真上', zenithTop: '天頂（真上）', backFromZenith: '{dir}表示', space: '🪐 宇宙 3D', spaceMode: '宇宙 3D', backToSky: '星空（{dir}）',
                 location: '観測場所', japanGroup: '日本・47都道府県（県庁所在地）', worldGroup: '海外の主な首都（国名｜都市名）',
+                constEditorBtn: '🪄 星座エディタ',
                 constellationOn: '✨ 星座: ON', constellationOff: '✨ 星座: OFF',
                 labelsOn: '🏷️ 名称: ON', labelsOff: '🏷️ 名称: OFF',
                 weatherOn: '☁️ 天気: ON', weatherOff: '☁️ 天気: OFF', speed: '速度:', speedUnit: 'h/s',
@@ -1530,12 +1878,43 @@
                 customRegionName: '名称', customRegionNamePlaceholder: '例：種子島 / Tanegashima',
                 customRegionAdd: '登録', customRegionTranslating: '自動翻訳中...',
                 customRegionAdded: 'カスタム地域を追加しました',
-                customRegionValidation: '地域名を入力し、緯度（-90〜90）と経度（-180〜180）を正しく入力してください。'
+                customRegionValidation: '地域名を入力し、緯度（-90〜90）と経度（-180〜180）を正しく入力してください。',
+                constEditorTitle: '🪄 星座エディタ',
+                constEditorClose: '✕ 閉じる',
+                tabConstellation: '✦ 星座エディタ（88星座）',
+                tabNebula: '☄ 星雲・星団',
+                tabPlanet: '🪐 太陽・惑星',
+                chkConstLines: '星座線',
+                chkConstNames: '星座名',
+                chkDeepSky: '星雲・星団',
+                chkSolar: '太陽・惑星',
+                chkSatellites: '衛星',
+                searchConstPlaceholder: '星座名・英名で検索',
+                constEditorGuide: '88星座を検索・選択して表示ON/OFF。星座線のある星座は<strong>ホイールで拡大・縮小</strong>、<strong>背景ドラッグで移動</strong>、<strong>破線クリック</strong>で接続切替、<strong>星ドラッグ</strong>で位置微調整できます。星のない星座は代表位置のみの初期登録です。星を追加して線を結べます。',
+                btnResetView: '🔍 表示位置リセット',
+                btnResetConst: '↺ この星座を初期値に戻す',
+                btnAddStar: '＋ 星を追加',
+                starNone: '星: 未選択',
+                starSelected: '星: {key} (赤経 {ra}°, 赤緯 {dec}°)',
+                starApproxSuffix: '（代表点・星追加可）',
+                // 星雲・衛星共通
+                color: '色',
+                size: '表示サイズ',
+                brightness: '光量',
+                flareIntensity: 'フレア強度',
+                flareSpread: 'フレア広がり',
+                resetDefault: '初期値に戻す',
+                promptStarName: '追加する星の名前（例：star2）',
+                promptStarRa: '赤経（度 0〜360）',
+                promptStarDec: '赤緯（度 -90〜90）',
+                promptStarError: '座標を正しく入力してください',
+                moonOf: '{parent}の衛星'
             },
             en: {
                 pageTitle: 'Solar System 3D & Planetarium Simulator', prevDay: '◀ 1 d', prevHour: '◀ 1 h', now: 'Now', play: '▶️', stop: '⏸️',
                 nextHour: '1 h ▶', nextDay: '1 d ▶', east: 'East Sky', south: 'South Sky', west: 'West Sky', north: 'North Sky', zenith: 'Zenith', zenithTop: 'Zenith (Overhead)', backFromZenith: 'Show {dir}', space: '🪐 3D Space', spaceMode: '3D Space', backToSky: 'Sky ({dir})',
                 location: 'Observation location', japanGroup: 'Japan · 47 prefectural capitals', worldGroup: 'World capitals (country · city)',
+                constEditorBtn: '🪄 Constellation Editor',
                 constellationOn: '✨ Constellations: ON', constellationOff: '✨ Constellations: OFF',
                 labelsOn: '🏷️ Labels: ON', labelsOff: '🏷️ Labels: OFF',
                 weatherOn: '☁️ Weather: ON', weatherOff: '☁️ Weather: OFF', speed: 'Speed:', speedUnit: 'h/s',
@@ -1549,7 +1928,38 @@
                 customRegionName: 'Name', customRegionNamePlaceholder: 'e.g. Tanegashima / 種子島',
                 customRegionAdd: 'Add', customRegionTranslating: 'Auto-translating...',
                 customRegionAdded: 'Custom region added',
-                customRegionValidation: 'Enter a region name and valid coordinates (latitude -90 to 90, longitude -180 to 180).'
+                customRegionValidation: 'Enter a region name and valid coordinates (latitude -90 to 90, longitude -180 to 180).',
+                constEditorTitle: '🪄 Constellation Editor',
+                constEditorClose: '✕ Close',
+                tabConstellation: '✦ Constellations (88)',
+                tabNebula: '☄ Deep Sky Objects',
+                tabPlanet: '🪐 Sun & Planets',
+                chkConstLines: 'Constellation Lines',
+                chkConstNames: 'Constellation Names',
+                chkDeepSky: 'Deep Sky Objects',
+                chkSolar: 'Sun & Planets',
+                chkSatellites: 'Satellites',
+                searchConstPlaceholder: 'Search by name / abbreviation...',
+                constEditorGuide: 'Search/select 88 constellations to toggle display. Constellations with lines: <strong>mouse wheel to zoom</strong>, <strong>drag background to pan</strong>, <strong>click dashed lines</strong> to toggle connections, and <strong>drag stars</strong> to adjust positions. Constellations with no stars have nominal center markers; click "+ Add Star" to add stars and draw lines.',
+                btnResetView: '🔍 Reset View',
+                btnResetConst: '↺ Reset Constellation',
+                btnAddStar: '＋ Add Star',
+                starNone: 'Star: None selected',
+                starSelected: 'Star: {key} (RA {ra}°, Dec {dec}°)',
+                starApproxSuffix: ' (Nominal center, add stars)',
+                // Deep sky & Satellites
+                color: 'Color',
+                size: 'Display Size',
+                brightness: 'Brightness',
+                flareIntensity: 'Flare Intensity',
+                flareSpread: 'Flare Spread',
+                resetDefault: 'Reset to Default',
+                promptStarName: 'Star name/identifier (e.g., star2)',
+                promptStarRa: 'Right Ascension (deg 0–360)',
+                promptStarDec: 'Declination (deg -90–90)',
+                promptStarError: 'Please enter valid coordinates.',
+                moonOf: 'Moon of {parent}'
+            
             }
         };
 
@@ -1620,7 +2030,7 @@
             try { localStorage.setItem(CUSTOM_REGIONS_STORAGE_KEY, JSON.stringify(list)); } catch (_) { }
         }
         function hasJapaneseChars(str) {
-            return /[\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\uFF00-\uFFEF]/.test(str);
+            return /[　-〿぀-ゟ゠-ヿ一-鿿＀-￯]/.test(str);
         }
         function estimateTimeZoneByLon(lat, lon) {
             if (lon >= 122 && lon <= 154 && lat >= 20 && lat <= 46) return 'Asia/Tokyo';
@@ -1751,7 +2161,6 @@
         }
         updateObserverMarker();
 
-        // 左ボタンの下に常時表示する小型世界地図。赤丸は現在の観測地点。
         function updateWorldMapMiniMarker() {
             const label = document.getElementById('worldMapMiniLabel');
             if (!currentCity || !label) return;
@@ -1820,7 +2229,6 @@
                         fillColor: '#315d87', fillOpacity: 0.72,
                         opacity: 0.7, interactive: false
                     };
-                    // 国ごとに別々に描画（全世界を一つのPolygonとして扱わない）
                     polys.forEach(countryPolygon => {
                         if (countryPolygon && countryPolygon.length) {
                             L.polygon(countryPolygon, countryStyle).addTo(worldMapMini);
@@ -1828,7 +2236,7 @@
                     });
                     updateWorldMapMiniMarker();
                 })
-                .catch(() => {});
+                .catch(() => { });
 
             updateWorldMapMiniMarker();
             setTimeout(() => {
@@ -1856,6 +2264,7 @@
 
         const skyCanvas = document.getElementById('skyCanvas');
         const skyCtx = skyCanvas.getContext('2d');
+        const btnConstEditor = document.getElementById('btnConstEditor');
         const btnToggleConst = document.getElementById('btnToggleConst');
         const btnToggleLabels = document.getElementById('btnToggleLabels');
         const btnToggleWeather = document.getElementById('btnToggleWeather');
@@ -1893,6 +2302,7 @@
             btnCustomRegion.setAttribute('aria-expanded', open ? 'true' : 'false');
             if (open) {
                 setHomeSettingsOpen(false);
+                if (typeof setConstEditorOpen === 'function') setConstEditorOpen(false);
                 customRegionStatus.textContent = '';
                 ensureCustomRegionMap();
                 customRegionNameInput.focus();
@@ -1905,6 +2315,7 @@
             btnHomeSettings.setAttribute('aria-expanded', open ? 'true' : 'false');
             if (open) {
                 setCustomRegionOpen(false);
+                if (typeof setConstEditorOpen === 'function') setConstEditorOpen(false);
                 ensureHomeRegionMap();
                 homeNameInput.focus();
                 setTimeout(() => { if (homeRegionMap) homeRegionMap.invalidateSize(); }, 30);
@@ -1917,6 +2328,7 @@
             if (event.key === 'Escape') {
                 if (!homeSettingsPanel.hidden) setHomeSettingsOpen(false);
                 if (!customRegionPanel.hidden) setCustomRegionOpen(false);
+                if (constEditorModal && !constEditorModal.hidden) setConstEditorOpen(false);
             }
         });
         document.addEventListener('pointerdown', (event) => {
@@ -2014,7 +2426,6 @@
             updateSimulation(simDate);
         }
 
-        // アンラップ付きTopoJSONデコーダー共通関数（日付変更線の横断ジャンプ・反転を完全に防止）
         function decodeTopoToUnwrappedPolys(topo, decodeArc) {
             const ringToLatLngs = (ring) => {
                 const rawCoords = [];
@@ -2109,7 +2520,7 @@
                         };
 
                         const polys = decodeTopoToUnwrappedPolys(topo, decodeArc);
-                        L.polygon(polys, { color: '#5ca8e6', weight: 0.8, fillColor: '#1d4675', fillOpacity: 0.72, interactive: false }).addTo(customRegionMap);
+                        L.polygon(polys, { color: '#5ca8e6', weight: 0.8, fillColor: '#1d4675', fillOpacity: 0.1, interactive: false }).addTo(customRegionMap);
                         if (customRegionMarker && typeof customRegionMarker.bringToFront === 'function') customRegionMarker.bringToFront();
                     })
                     .catch(() => { });
@@ -2249,7 +2660,8 @@
                 homeTimeZoneLabel: 'homeTimeZone', btnSaveHome: 'save', speedLabel: 'speed',
                 btnCustomRegion: 'customRegionBtn', customRegionHeading: 'customRegionHeading',
                 customRegionNameLabel: 'customRegionName', customRegionLatLabel: 'homeLat', customRegionLonLabel: 'homeLon',
-                btnSaveCustomRegion: 'customRegionAdd'
+                btnSaveCustomRegion: 'customRegionAdd',
+                btnConstEditor: 'constEditorBtn'
             };
             Object.entries(textById).forEach(([id, key]) => { const el = document.getElementById(id); if (el) el.textContent = tr(key); });
             if (btnCloseCustomRegion) {
@@ -2300,7 +2712,55 @@
             homeNameInput.placeholder = tr('homeNamePlaceholder');
             updateHomeOptionLabel();
             refreshClockDisplay(simDate);
+            if (typeof renderConstEditorList === 'function' && constEditorModal && !constEditorModal.hidden) {
+                renderConstEditorList();
+                renderConstEditorCanvas();
+            }
             if (isSkyMode) renderTokyoSky(simDate);
+            // --- 星座エディタ UI言語更新 ---
+            const edTitle = document.getElementById('constEditorTitle');
+            if (edTitle) edTitle.textContent = tr('constEditorTitle');
+            const edClose = document.getElementById('btnCloseConstEditor');
+            if (edClose) edClose.textContent = tr('constEditorClose');
+
+            const chkLineLabel = document.querySelector('label[for="astroConstLines"]') || document.getElementById('astroConstLines')?.parentElement;
+            if (chkLineLabel) chkLineLabel.lastChild.textContent = ' ' + tr('chkConstLines');
+            const chkNameLabel = document.getElementById('astroConstNames')?.parentElement;
+            if (chkNameLabel) chkNameLabel.lastChild.textContent = ' ' + tr('chkConstNames');
+            const chkDeepLabel = document.getElementById('astroDeepSky')?.parentElement;
+            if (chkDeepLabel) chkDeepLabel.lastChild.textContent = ' ' + tr('chkDeepSky');
+            const chkSolarLabel = document.getElementById('astroSolar')?.parentElement;
+            if (chkSolarLabel) chkSolarLabel.lastChild.textContent = ' ' + tr('chkSolar');
+            const chkSatLabel = document.getElementById('astroSatellites')?.parentElement;
+            if (chkSatLabel) chkSatLabel.lastChild.textContent = ' ' + tr('chkSatellites');
+
+            const tabButtons = document.querySelectorAll('#unifiedEditorTabs button');
+            if (tabButtons[0]) tabButtons[0].textContent = tr('tabConstellation');
+            if (tabButtons[1]) tabButtons[1].textContent = tr('tabNebula');
+            if (tabButtons[2]) tabButtons[2].textContent = tr('tabPlanet');
+
+            const searchInput = document.getElementById('constellationSearch');
+            if (searchInput) searchInput.placeholder = tr('searchConstPlaceholder');
+
+            const guide = document.getElementById('constEditorGuide');
+            if (guide) guide.innerHTML = tr('constEditorGuide');
+
+            const btnResetV = document.getElementById('btnResetEditorView');
+            if (btnResetV) btnResetV.textContent = tr('btnResetView');
+            const btnResetC = document.getElementById('btnResetConstCurrent');
+            if (btnResetC) btnResetC.textContent = tr('btnResetConst');
+            const btnAddS = document.getElementById('btnAddConstStar');
+            if (btnAddS) btnAddS.textContent = tr('btnAddStar');
+
+            updateSelectedStarInfo();
+            if (typeof astroRenderNebulaList === 'function') astroRenderNebulaList();
+            if (typeof astroRenderNebulaEditor === 'function') astroRenderNebulaEditor();
+            if (typeof astroRenderSatelliteList === 'function') astroRenderSatelliteList();
+            if (typeof astroRenderSatelliteEditor === 'function') astroRenderSatelliteEditor();
+            if (typeof renderConstEditorList === 'function') renderConstEditorList();
+            if (typeof renderConstEditorCanvas === 'function') renderConstEditorCanvas();
+            if (isSkyMode) renderTokyoSky(simDate);
+
         }
 
         function populateHomeTimeZones() {
@@ -2427,7 +2887,7 @@
                         };
 
                         const polys = decodeTopoToUnwrappedPolys(topo, decodeArc);
-                        L.polygon(polys, { color: '#5ca8e6', weight: 0.8, fillColor: '#1d4675', fillOpacity: 0.72, interactive: false }).addTo(homeRegionMap);
+                        L.polygon(polys, { color: '#5ca8e6', weight: 0.8, fillColor: '#1d4675', fillOpacity: 0.5, interactive: false }).addTo(homeRegionMap);
                         if (homeRegionMarker && typeof homeRegionMarker.bringToFront === 'function') homeRegionMarker.bringToFront();
                     })
                     .catch(() => { });
@@ -2656,7 +3116,6 @@
         function drawBackgroundClouds(ctx, w, horizonY, zenithY, sunAlt, weatherOpacity) {
             if (!showWeather || weatherOpacity <= 0 || currentWeather.cloudCover <= 3) return;
 
-            // 雲量は最大でも透明度 0.28。未来へ進むほど現在天気の確度に合わせて薄くする
             const cloudBrightness = sunAlt > 0 ? 1.0 : (sunAlt > -6 ? 0.65 : 0.10);
             const nightFactor = sunAlt <= -6 ? 0.2 : 1.0;
             const maxAlpha = Math.min(0.28, (currentWeather.cloudCover / 100) * 0.32)
@@ -2669,7 +3128,6 @@
             ctx.rect(0, zenithY, w, horizonY - zenithY);
             ctx.clip();
 
-            // 雨のときは空全体を雲で覆う
             if (currentWeather.isRaining) {
                 const cloudGrad = ctx.createLinearGradient(0, zenithY, 0, horizonY);
 
@@ -2683,13 +3141,10 @@
                 ctx.globalAlpha = 1;
             }
 
-
-            // 昼夜に応じた雲の色調
             const cloudColor = sunAlt > 0
                 ? 'rgba(255, 255, 255,'
                 : (sunAlt > -6 ? 'rgba(220, 190, 210,' : 'rgba(160, 185, 225,');
 
-            // 5層のソフトな大円形雲塊を漂わせる
             const cloudBlobs = [
                 { fx: 0.18, fy: 0.35, rx: w * 0.42, ry: skyH * 0.28, speed: 1.0 },
                 { fx: 0.55, fy: 0.45, rx: w * 0.48, ry: skyH * 0.32, speed: 0.75 },
@@ -2698,7 +3153,7 @@
                 { fx: 0.76, fy: 0.70, rx: w * 0.45, ry: skyH * 0.30, speed: 0.9 }
             ];
 
-            cloudBlobs.forEach((b, i) => {
+            cloudBlobs.forEach((b) => {
                 const shiftX = ((b.fx + t * b.speed) % 1.4) - 0.2;
                 const cx = shiftX * w;
                 const cy = zenithY + b.fy * skyH;
@@ -2736,7 +3191,7 @@
                 ctx.lineWidth = 2.0;
                 rainParticles.forEach(p => {
                     p.y += p.speed;
-                    p.x += p.speed * 0.22; // 斜めに降る
+                    p.x += p.speed * 0.22;
                     if (p.y > 1) { p.y = 0; p.x = Math.random(); }
                     if (p.x > 1) { p.x = 0; }
 
@@ -2769,9 +3224,9 @@
         }
 
         // ==========================================
-        // 5. 星座データ
+        // 5. 星座データ & 星座エディタ永続化
         // ==========================================
-        const CONSTELLATIONS = [
+        let DEFAULT_CONSTELLATIONS = [
             {
                 name: 'オリオン座',
                 stars: {
@@ -2888,6 +3343,626 @@
             }
         ];
 
+        const CONSTELLATION_STORAGE_KEY = 'solarCustomConstellationsV1';
+        function cloneConstellations(data) {
+            return JSON.parse(JSON.stringify(data));
+        }
+
+        function loadConstellationsData() {
+            const base = cloneConstellations(DEFAULT_CONSTELLATIONS);
+            base.forEach(c => { c.visible = true; });
+            try {
+                const raw = localStorage.getItem(CONSTELLATION_STORAGE_KEY);
+                if (!raw) return base;
+                const savedMap = JSON.parse(raw);
+                if (!savedMap || typeof savedMap !== 'object') return base;
+                base.forEach(c => {
+                    const saved = savedMap[c.name];
+                    if (!saved) return;
+                    if (typeof saved.visible === 'boolean') {
+                        c.visible = saved.visible;
+                    }
+                    if (saved.stars && typeof saved.stars === 'object') {
+                        for (const k in saved.stars) {
+                            if (Array.isArray(saved.stars[k]) && saved.stars[k].length === 2 &&
+                                Number.isFinite(Number(saved.stars[k][0])) && Number.isFinite(Number(saved.stars[k][1]))) {
+                                c.stars[k] = [Number(saved.stars[k][0]), Number(saved.stars[k][1])];
+                            }
+                        }
+                    }
+                    if (Array.isArray(saved.lines)) {
+                        c.lines = saved.lines.filter(pair =>
+                            Array.isArray(pair) && pair.length === 2 &&
+                            Object.prototype.hasOwnProperty.call(c.stars, pair[0]) &&
+                            Object.prototype.hasOwnProperty.call(c.stars, pair[1])
+                        );
+                    }
+                });
+            } catch (_) { }
+            return base;
+        }
+
+        function saveConstellationsData() {
+            try {
+                const map = {};
+                CONSTELLATIONS.forEach(c => {
+                    map[c.name] = {
+                        visible: c.visible !== false,
+                        stars: c.stars,
+                        lines: c.lines
+                    };
+                });
+                localStorage.setItem(CONSTELLATION_STORAGE_KEY, JSON.stringify(map));
+            } catch (_) { }
+        }
+
+        let CONSTELLATIONS = loadConstellationsData();
+
+        // ==========================================
+        // 5.5 星座エディタ ロジック
+        // ==========================================
+        const constEditorModal = document.getElementById('constEditorModal');
+        const btnCloseConstEditor = document.getElementById('btnCloseConstEditor');
+        const constEditorList = document.getElementById('constEditorList');
+        const constEditorCanvas = document.getElementById('constEditorCanvas');
+        const constEditorCtx = constEditorCanvas.getContext('2d');
+        const selectedStarInfo = document.getElementById('selectedStarInfo');
+        const btnResetConstCurrent = document.getElementById('btnResetConstCurrent');
+
+        let editorSelectedConstIdx = 0;
+        let editorSelectedStarKey = null;
+        let editorDraggingStarKey = null;
+        let editorIsPanning = false;
+        let editorPanStartX = 0;
+        let editorPanStartY = 0;
+        let editorPanOriginX = 0;
+        let editorPanOriginY = 0;
+        let editorDragMoved = false;
+        let editorZoom = 1.0;
+        let editorPanX = 0;
+        let editorPanY = 0;
+        let editorProjCache = null; // { starPts: {key: {x, y}}, segments: [{k1, k2, active, x1, y1, x2, y2}], cx, cy, scale, centerRa, centerDec }
+
+        function resetEditorViewport() {
+            editorZoom = 1.0;
+            editorPanX = 0;
+            editorPanY = 0;
+        }
+
+        function setConstEditorOpen(open) {
+            constEditorModal.hidden = !open;
+            if (open) {
+                setHomeSettingsOpen(false);
+                setCustomRegionOpen(false);
+                // 星座表示がOFFの場合は自動でONにして星空に反映を見やすくする
+                if (!showConstellations) {
+                    showConstellations = true;
+                    astroVisibility.deepSky = true;
+                    const chkDeepSky = document.getElementById('astroDeepSky');
+                    if (chkDeepSky) chkDeepSky.checked = true;
+                    astroSavePrefs();
+                    btnToggleConst.textContent = tr('constellationOn');
+                    btnToggleConst.style.background = '#5522aa';
+                    btnToggleConst.style.color = '#fff';
+                }
+                if (!isSkyMode) {
+                    setViewMode(lastSkyDirection || 'south');
+                }
+                renderConstEditorList();
+                resizeConstEditorCanvas();
+                renderConstEditorCanvas();
+                if (isSkyMode) renderTokyoSky(simDate);
+            }
+        }
+
+        btnConstEditor.addEventListener('click', () => {
+            setConstEditorOpen(constEditorModal.hidden);
+        });
+        btnCloseConstEditor.addEventListener('click', () => {
+            setConstEditorOpen(false);
+        });
+        document.getElementById('btnResetEditorView').addEventListener('click', () => {
+            resetEditorViewport();
+            renderConstEditorCanvas();
+        });
+
+        function resizeConstEditorCanvas() {
+            const wrap = constEditorCanvas.parentElement;
+            if (!wrap) return;
+            const rect = wrap.getBoundingClientRect();
+            const w = Math.max(240, Math.floor(rect.width));
+            const h = Math.max(200, Math.floor(rect.height));
+            if (constEditorCanvas.width !== w || constEditorCanvas.height !== h) {
+                constEditorCanvas.width = w;
+                constEditorCanvas.height = h;
+            }
+        }
+        window.addEventListener('resize', () => {
+            if (!constEditorModal.hidden) {
+                resizeConstEditorCanvas();
+                renderConstEditorCanvas();
+            }
+        });
+
+        function getConstDisplayName(c) {
+            return currentLang === 'en' ? (c.en || CONSTELLATION_NAMES_EN[c.name] || c.name) : c.name;
+        }
+
+        function renderConstEditorList() {
+            constEditorList.innerHTML = '';
+
+            // 星座数ヘッダー（表示中 / 全星座数）
+            const visibleCount = CONSTELLATIONS.filter(c => c.visible !== false).length;
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'const-list-header';
+            const titleSpan = document.createElement('span');
+            titleSpan.textContent = currentLang === 'en' ? 'Constellations' : '星座一覧';
+            const countSpan = document.createElement('span');
+            countSpan.textContent = currentLang === 'en'
+                ? `${visibleCount} / ${CONSTELLATIONS.length} shown`
+                : `表示 ${visibleCount} / 全 ${CONSTELLATIONS.length} 星座`;
+            headerDiv.appendChild(titleSpan);
+            headerDiv.appendChild(countSpan);
+            constEditorList.appendChild(headerDiv);
+
+            const q=(document.getElementById('constellationSearch')?.value||'').trim().toLowerCase();
+            CONSTELLATIONS.forEach((c, idx) => {
+                if (q && !(c.name + ' ' + (c.en || '') + ' ' + (CONSTELLATION_NAMES_EN[c.name] || '')).toLowerCase().includes(q)) return;
+                const row = document.createElement('div');
+                row.className = 'const-list-row' + (idx === editorSelectedConstIdx ? ' active' : '');
+
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.className = 'const-vis-checkbox';
+                cb.checked = (c.visible !== false);
+                cb.title = currentLang === 'en' ? 'Show/Hide on Sky' : '星空画面への表示ON/OFF';
+                cb.addEventListener('click', (e) => e.stopPropagation());
+                cb.addEventListener('change', () => {
+                    c.visible = cb.checked;
+                    saveConstellationsData();
+                    if (isSkyMode) renderTokyoSky(simDate);
+                });
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'const-list-name';
+                nameSpan.textContent = getConstDisplayName(c) + (c.catalogOnly ? tr('starApproxSuffix') : '');
+
+                row.appendChild(cb);
+                row.appendChild(nameSpan);
+
+                row.addEventListener('click', () => {
+                    editorSelectedConstIdx = idx;
+                    editorSelectedStarKey = null;
+                    resetEditorViewport();
+                    updateSelectedStarInfo();
+                    renderConstEditorList();
+                    renderConstEditorCanvas();
+                });
+                constEditorList.appendChild(row);
+
+            });
+        }
+
+        document.getElementById('constellationSearch').addEventListener('input',renderConstEditorList);
+
+        function updateSelectedStarInfo() {
+                const c = CONSTELLATIONS[editorSelectedConstIdx];
+                if (!c || !editorSelectedStarKey || !c.stars[editorSelectedStarKey]) {
+                    selectedStarInfo.textContent = tr('starNone');
+                    return;
+                }
+                const [ra, dec] = c.stars[editorSelectedStarKey];
+                selectedStarInfo.textContent = tr('starSelected')
+                    .replace('{key}', editorSelectedStarKey)
+                    .replace('{ra}', ra.toFixed(1))
+                    .replace('{dec}', dec.toFixed(1));
+            }
+
+        function computeConstEditorProjection(c, w, h) {
+            const keys = Object.keys(c.stars);
+            if (keys.length === 0) return null;
+
+            // 赤経(RA)の0/360跨ぎに対応した中心算出
+            const rad = Math.PI / 180;
+            let sumSin = 0, sumCos = 0, minDec = 90, maxDec = -90;
+            keys.forEach(k => {
+                const [ra, dec] = c.stars[k];
+                sumSin += Math.sin(ra * rad);
+                sumCos += Math.cos(ra * rad);
+                if (dec < minDec) minDec = dec;
+                if (dec > maxDec) maxDec = dec;
+            });
+            const centerRa = ((Math.atan2(sumSin, sumCos) / rad) + 360) % 360;
+            const centerDec = (minDec + maxDec) / 2;
+            const cosDec = Math.max(0.2, Math.cos(centerDec * rad));
+
+            // 各星のローカル相対座標 (東が左: -dRa * cosDec, 北が上: dDec)
+            const localPts = {};
+            let maxAbsX = 2.5, maxAbsY = 2.5;
+            keys.forEach(k => {
+                const [ra, dec] = c.stars[k];
+                const dRa = ((ra - centerRa + 540) % 360) - 180;
+                const lx = -dRa * cosDec;
+                const ly = dec - centerDec;
+                localPts[k] = { lx, ly };
+                if (Math.abs(lx) > maxAbsX) maxAbsX = Math.abs(lx);
+                if (Math.abs(ly) > maxAbsY) maxAbsY = Math.abs(ly);
+            });
+
+            const pad = 48;
+            const scaleX = (w / 2 - pad) / maxAbsX;
+            const scaleY = (h / 2 - pad) / maxAbsY;
+            const baseScale = Math.max(4, Math.min(scaleX, scaleY));
+            const scale = baseScale * editorZoom;
+
+            const cx = w / 2 + editorPanX;
+            const cy = h / 2 + editorPanY;
+            const starPts = {};
+            keys.forEach(k => {
+                starPts[k] = {
+                    x: cx + localPts[k].lx * scale,
+                    y: cy - localPts[k].ly * scale
+                };
+            });
+
+            const activeSet = new Set();
+            c.lines.forEach(([a, b]) => {
+                const pairKey = a < b ? `${a}|${b}` : `${b}|${a}`;
+                activeSet.add(pairKey);
+            });
+
+            const segments = [];
+            for (let i = 0; i < keys.length; i++) {
+                for (let j = i + 1; j < keys.length; j++) {
+                    const k1 = keys[i];
+                    const k2 = keys[j];
+                    const pairKey = k1 < k2 ? `${k1}|${k2}` : `${k2}|${k1}`;
+                    segments.push({
+                        k1, k2,
+                        pairKey,
+                        active: activeSet.has(pairKey),
+                        x1: starPts[k1].x,
+                        y1: starPts[k1].y,
+                        x2: starPts[k2].x,
+                        y2: starPts[k2].y
+                    });
+                }
+            }
+
+            return { starPts, segments, cx, cy, baseScale, scale, centerRa, centerDec, cosDec };
+        }
+
+        function drawEditorScene(c, proj) {
+            const w = constEditorCanvas.width;
+            const h = constEditorCanvas.height;
+            const ctx = constEditorCtx;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // 背景グリッド（パン・ズーム連動）
+            const gridStep = 32 * editorZoom;
+            if (gridStep >= 8) {
+                ctx.strokeStyle = 'rgba(70, 120, 190, 0.14)';
+                ctx.lineWidth = 1;
+                const startX = ((w / 2 + editorPanX) % gridStep + gridStep) % gridStep;
+                const startY = ((h / 2 + editorPanY) % gridStep + gridStep) % gridStep;
+                for (let x = startX; x < w; x += gridStep) {
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+                }
+                for (let y = startY; y < h; y += gridStep) {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+                }
+            }
+
+            // 星座名タイトル＆ズーム倍率
+            ctx.fillStyle = 'rgba(160, 215, 255, 0.88)';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText(`${getConstDisplayName(c)}  (${editorZoom.toFixed(2)}x)`, 12, 10);
+
+            // 1. すべての候補ラインをまず破線で描画
+            proj.segments.forEach(seg => {
+                if (!seg.active) {
+                    ctx.save();
+                    ctx.setLineDash([5, 5]);
+                    ctx.strokeStyle = 'rgba(125, 175, 235, 0.36)';
+                    ctx.lineWidth = 1.4;
+                    ctx.beginPath();
+                    ctx.moveTo(seg.x1, seg.y1);
+                    ctx.lineTo(seg.x2, seg.y2);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            });
+
+            // 2. 有効化されたラインを実線で描画
+            proj.segments.forEach(seg => {
+                if (seg.active) {
+                    ctx.save();
+                    ctx.setLineDash([]);
+                    ctx.strokeStyle = '#38e8ff';
+                    ctx.lineWidth = 2.6;
+                    ctx.shadowColor = 'rgba(0, 225, 255, 0.65)';
+                    ctx.shadowBlur = 6;
+                    ctx.beginPath();
+                    ctx.moveTo(seg.x1, seg.y1);
+                    ctx.lineTo(seg.x2, seg.y2);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            });
+
+            // 3. 星ノードの描画
+            for (const key in proj.starPts) {
+                const pt = proj.starPts[key];
+                const isSelected = (key === editorSelectedStarKey);
+
+                if (isSelected) {
+                    ctx.beginPath();
+                    ctx.arc(pt.x, pt.y, 12, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#ffdd55';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, isSelected ? 6.5 : 5.2, 0, Math.PI * 2);
+                ctx.fillStyle = isSelected ? '#ffee66' : '#ffffff';
+                ctx.shadowColor = isSelected ? '#ffcc00' : '#66bbff';
+                ctx.shadowBlur = 8;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                ctx.fillStyle = isSelected ? '#ffee88' : '#cfe6ff';
+                ctx.font = isSelected ? 'bold 12px sans-serif' : '11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText(key, pt.x, pt.y - 9);
+            }
+        }
+
+        function renderConstEditorCanvas() {
+            resizeConstEditorCanvas();
+            const w = constEditorCanvas.width;
+            const h = constEditorCanvas.height;
+            const c = CONSTELLATIONS[editorSelectedConstIdx];
+            if (!c) return;
+
+            const proj = computeConstEditorProjection(c, w, h);
+            editorProjCache = proj;
+            if (!proj) return;
+
+            drawEditorScene(c, proj);
+        }
+
+        function distToSegment(px, py, x1, y1, x2, y2) {
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const lenSq = dx * dx + dy * dy;
+            if (lenSq === 0) return Math.hypot(px - x1, py - y1);
+            let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+            t = Math.max(0, Math.min(1, t));
+            return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+        }
+
+        function applyConstellationEditAndRefresh() {
+            saveConstellationsData();
+            renderConstEditorCanvas();
+            if (isSkyMode) renderTokyoSky(simDate);
+        }
+
+        // ホイールでカーソル位置を中心に拡大・縮小
+        constEditorCanvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const rect = constEditorCanvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const w = constEditorCanvas.width;
+            const h = constEditorCanvas.height;
+
+            const zoomFactor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+            const prevZoom = editorZoom;
+            const nextZoom = Math.max(0.4, Math.min(10.0, prevZoom * zoomFactor));
+            if (nextZoom === prevZoom) return;
+
+            const ratio = nextZoom / prevZoom;
+            const baseCx = w / 2;
+            const baseCy = h / 2;
+            editorPanX = mx - baseCx - ratio * (mx - (baseCx + editorPanX));
+            editorPanY = my - baseCy - ratio * (my - (baseCy + editorPanY));
+            editorZoom = nextZoom;
+
+            renderConstEditorCanvas();
+        }, { passive: false });
+
+        constEditorCanvas.addEventListener('pointerdown', (e) => {
+            if (!editorProjCache) return;
+            const rect = constEditorCanvas.getBoundingClientRect();
+            const px = e.clientX - rect.left;
+            const py = e.clientY - rect.top;
+
+            // 星のヒット判定（優先）
+            let hitStar = null;
+            let bestStarDist = 16;
+            for (const key in editorProjCache.starPts) {
+                const pt = editorProjCache.starPts[key];
+                const d = Math.hypot(px - pt.x, py - pt.y);
+                if (d < bestStarDist) {
+                    bestStarDist = d;
+                    hitStar = key;
+                }
+            }
+
+            if (hitStar) {
+                editorSelectedStarKey = hitStar;
+                editorDraggingStarKey = hitStar;
+                editorDragMoved = false;
+                constEditorCanvas.setPointerCapture(e.pointerId);
+                updateSelectedStarInfo();
+                renderConstEditorCanvas();
+                return;
+            }
+
+            // 星以外をドラッグした場合はキャンバス全体をパン移動
+            editorIsPanning = true;
+            editorDragMoved = false;
+            editorPanStartX = e.clientX;
+            editorPanStartY = e.clientY;
+            editorPanOriginX = editorPanX;
+            editorPanOriginY = editorPanY;
+            constEditorCanvas.style.cursor = 'grabbing';
+            constEditorCanvas.setPointerCapture(e.pointerId);
+        });
+
+        constEditorCanvas.addEventListener('pointermove', (e) => {
+            if (editorIsPanning) {
+                const dx = e.clientX - editorPanStartX;
+                const dy = e.clientY - editorPanStartY;
+                if (Math.hypot(dx, dy) > 4) editorDragMoved = true;
+                editorPanX = editorPanOriginX + dx;
+                editorPanY = editorPanOriginY + dy;
+                renderConstEditorCanvas();
+                return;
+            }
+
+            if (!editorDraggingStarKey || !editorProjCache) return;
+            const c = CONSTELLATIONS[editorSelectedConstIdx];
+            if (!c || !c.stars[editorDraggingStarKey]) return;
+
+            const rect = constEditorCanvas.getBoundingClientRect();
+            const px = e.clientX - rect.left;
+            const py = e.clientY - rect.top;
+            editorDragMoved = true;
+
+            const { cx, cy, scale, centerRa, centerDec, cosDec } = editorProjCache;
+            const lx = (px - cx) / scale;
+            const ly = (cy - py) / scale;
+
+            const newDec = Math.max(-89.9, Math.min(89.9, centerDec + ly));
+            const dRa = -lx / cosDec;
+            const newRa = (((centerRa + dRa) % 360) + 360) % 360;
+
+            c.stars[editorDraggingStarKey] = [Number(newRa.toFixed(3)), Number(newDec.toFixed(3))];
+            updateSelectedStarInfo();
+            saveConstellationsData();
+
+            // ドラッグ中は現在の投影スケールを維持したまま再描画して暴れを防止
+            editorProjCache.starPts[editorDraggingStarKey] = { x: px, y: py };
+            editorProjCache.segments.forEach(seg => {
+                if (seg.k1 === editorDraggingStarKey) { seg.x1 = px; seg.y1 = py; }
+                if (seg.k2 === editorDraggingStarKey) { seg.x2 = px; seg.y2 = py; }
+            });
+            drawEditorScene(c, editorProjCache);
+
+            if (isSkyMode) renderTokyoSky(simDate);
+        });
+
+        constEditorCanvas.addEventListener('pointerup', (e) => {
+            if (editorIsPanning) {
+                editorIsPanning = false;
+                constEditorCanvas.style.cursor = 'crosshair';
+                if (constEditorCanvas.hasPointerCapture && constEditorCanvas.hasPointerCapture(e.pointerId)) {
+                    constEditorCanvas.releasePointerCapture(e.pointerId);
+                }
+                if (editorDragMoved) {
+                    editorDragMoved = false;
+                    return;
+                }
+            }
+
+            if (editorDraggingStarKey) {
+                editorDraggingStarKey = null;
+                if (constEditorCanvas.hasPointerCapture && constEditorCanvas.hasPointerCapture(e.pointerId)) {
+                    constEditorCanvas.releasePointerCapture(e.pointerId);
+                }
+                if (editorDragMoved) {
+                    renderConstEditorCanvas();
+                }
+                return;
+            }
+
+            if (!editorProjCache) return;
+            const rect = constEditorCanvas.getBoundingClientRect();
+            const px = e.clientX - rect.left;
+            const py = e.clientY - rect.top;
+
+            // 星の上ならライン切り替えしない
+            for (const key in editorProjCache.starPts) {
+                const pt = editorProjCache.starPts[key];
+                if (Math.hypot(px - pt.x, py - pt.y) < 14) return;
+            }
+
+            // ライン（破線・実線）のクリック判定
+            let hitSeg = null;
+            let bestSegDist = 11;
+            editorProjCache.segments.forEach(seg => {
+                const d = distToSegment(px, py, seg.x1, seg.y1, seg.x2, seg.y2);
+                if (d < bestSegDist) {
+                    bestSegDist = d;
+                    hitSeg = seg;
+                }
+            });
+
+            if (hitSeg) {
+                const c = CONSTELLATIONS[editorSelectedConstIdx];
+                if (hitSeg.active) {
+                    // 実線 → 削除（破線に戻る）
+                    c.lines = c.lines.filter(([a, b]) => !((a === hitSeg.k1 && b === hitSeg.k2) || (a === hitSeg.k2 && b === hitSeg.k1)));
+                } else {
+                    // 破線 → 実線として追加
+                    c.lines.push([hitSeg.k1, hitSeg.k2]);
+                }
+                applyConstellationEditAndRefresh();
+            }
+        });
+
+        // 選択中の星を微調整する関数
+        function nudgeSelectedStar(dRaStep, dDecStep) {
+            const c = CONSTELLATIONS[editorSelectedConstIdx];
+            if (!c || !editorSelectedStarKey || !c.stars[editorSelectedStarKey]) return;
+            const [ra, dec] = c.stars[editorSelectedStarKey];
+            const nextRa = (((ra + dRaStep) % 360) + 360) % 360;
+            const nextDec = Math.max(-89.9, Math.min(89.9, dec + dDecStep));
+            c.stars[editorSelectedStarKey] = [Number(nextRa.toFixed(3)), Number(nextDec.toFixed(3))];
+            updateSelectedStarInfo();
+            applyConstellationEditAndRefresh();
+        }
+
+        document.getElementById('btnStarLeft').addEventListener('click', () => nudgeSelectedStar(+0.4, 0));
+        document.getElementById('btnStarRight').addEventListener('click', () => nudgeSelectedStar(-0.4, 0));
+        document.getElementById('btnStarUp').addEventListener('click', () => nudgeSelectedStar(0, +0.4));
+        document.getElementById('btnStarDown').addEventListener('click', () => nudgeSelectedStar(0, -0.4));
+
+        document.addEventListener('keydown', (e) => {
+            if (constEditorModal.hidden || !editorSelectedStarKey) return;
+            if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+                e.preventDefault();
+                if (e.key === 'ArrowLeft') nudgeSelectedStar(+0.3, 0);
+                if (e.key === 'ArrowRight') nudgeSelectedStar(-0.3, 0);
+                if (e.key === 'ArrowUp') nudgeSelectedStar(0, +0.3);
+                if (e.key === 'ArrowDown') nudgeSelectedStar(0, -0.3);
+            }
+        });
+
+        document.getElementById('btnAddConstStar').addEventListener('click', () => {
+                const c = CONSTELLATIONS[editorSelectedConstIdx];
+                if (!c) return;
+                const defaultName = 'star' + (Object.keys(c.stars).length + 1);
+                const key = prompt(tr('promptStarName'), defaultName);
+                if (!key) return;
+                const ra = Number(prompt(tr('promptStarRa'), String(c.ra || 0)));
+                const dec = Number(prompt(tr('promptStarDec'), String(c.dec || 0)));
+                if (!Number.isFinite(ra) || !Number.isFinite(dec) || ra < 0 || ra > 360 || dec < -90 || dec > 90) {
+                    alert(tr('promptStarError'));
+                    return;
+                }
+                c.stars[key] = [ra, dec];
+                editorSelectedStarKey = key;
+                updateSelectedStarInfo();
+                applyConstellationEditAndRefresh();
+            });
+
         // ==========================================
         // 6. 空画面描画メイン
         // ==========================================
@@ -2968,7 +4043,6 @@
             skyCtx.fillStyle = skyGrad;
             skyCtx.fillRect(0, 0, w, h);
 
-            // ★背景薄雲の描画（星や星座の背後・控えめで視認性を邪魔しない）
             if (viewMode !== 'zenith') {
                 drawBackgroundClouds(skyCtx, w, horizonY, zenithY, sunHoriz.alt, weatherOpacity);
             }
@@ -3004,7 +4078,6 @@
                     skyCtx.shadowBlur = 0;
                 }
 
-                // 情報表示（観測地・天気・潮位）
                 const infoX = 16;
                 const infoY = Math.min(h - 54, horizonY + 40);
                 const infoW = Math.max(190, Math.min(480, w - 78));
@@ -3251,8 +4324,9 @@
                     skyCtx.fillText(label, lx, ly);
                 });
 
-                if (showConstellations) {
+                if (showConstellations && (astroVisibility.constellationLines || astroVisibility.constellationNames)) {
                     CONSTELLATIONS.forEach(c => {
+                        if (c.visible === false) return;
                         const starCoords = {};
                         let labelPoint = null;
                         for (const key in c.stars) {
@@ -3266,7 +4340,7 @@
                         }
                         skyCtx.strokeStyle = 'rgba(160, 200, 255, 0.56)';
                         skyCtx.lineWidth = 1.25;
-                        c.lines.forEach(([k1, k2]) => {
+                        if (astroVisibility.constellationLines) c.lines.forEach(([k1, k2]) => {
                             if (starCoords[k1] && starCoords[k2]) {
                                 skyCtx.beginPath();
                                 skyCtx.moveTo(starCoords[k1].x, starCoords[k1].y);
@@ -3281,12 +4355,12 @@
                             skyCtx.fillStyle = key === 'polaris' ? '#ffee88' : '#ffffff';
                             skyCtx.fill();
                         }
-                        if (showLabels && labelPoint) {
+                        if (showLabels && astroVisibility.constellationNames && labelPoint) {
                             skyCtx.fillStyle = 'rgba(210, 232, 255, 0.92)';
                             skyCtx.font = 'bold 11px sans-serif';
                             skyCtx.textAlign = 'center';
                             skyCtx.textBaseline = 'alphabetic';
-                            skyCtx.fillText(currentLang === 'en' ? (CONSTELLATION_NAMES_EN[c.name] || c.name) : c.name, labelPoint.x, labelPoint.y - 7);
+                            skyCtx.fillText(getConstDisplayName(c), labelPoint.x, labelPoint.y - 7);
                         }
                     });
                 }
@@ -3408,8 +4482,9 @@
             });
 
             // 4. 星座
-            if (showConstellations) {
+            if (showConstellations && (astroVisibility.constellationLines || astroVisibility.constellationNames)) {
                 CONSTELLATIONS.forEach(c => {
+                    if (c.visible === false) return;
                     const starCoords = {};
                     let labelPoint = null;
                     for (const key in c.stars) {
@@ -3424,7 +4499,7 @@
 
                     skyCtx.strokeStyle = 'rgba(160, 200, 255, 0.53)';
                     skyCtx.lineWidth = 1.25;
-                    c.lines.forEach(([k1, k2]) => {
+                    if (astroVisibility.constellationLines) c.lines.forEach(([k1, k2]) => {
                         if (starCoords[k1] && starCoords[k2]) {
                             skyCtx.beginPath();
                             skyCtx.moveTo(starCoords[k1].x, starCoords[k1].y);
@@ -3501,13 +4576,13 @@
                         }
                     }
 
-                    if (showLabels && labelPoint) {
+                    if (showLabels && astroVisibility.constellationNames && labelPoint) {
                         skyCtx.fillStyle = c.isDeepSkyObject ? 'rgba(220, 238, 255, 0.94)' : 'rgba(200, 225, 255, 0.9)';
                         skyCtx.font = 'bold 12px sans-serif';
                         skyCtx.textAlign = 'center';
                         skyCtx.shadowBlur = 0;
                         const labelYOffset = c.isDeepSkyObject ? -16 : -10;
-                        skyCtx.fillText(currentLang === 'en' ? (CONSTELLATION_NAMES_EN[c.name] || c.name) : c.name, labelPoint.x, labelPoint.y + labelYOffset);
+                        skyCtx.fillText(getConstDisplayName(c), labelPoint.x, labelPoint.y + labelYOffset);
                     }
                 });
             }
@@ -3534,7 +4609,7 @@
                 moonLonDeg: moonLonDeg, size: 15
             });
 
-            celestialBodies.forEach(b => {
+            if (astroVisibility.solarSystem) celestialBodies.forEach(b => {
                 const pt = azAltToXY(b.az, b.alt);
                 if (pt.visible && b.alt >= -2) {
                     if (b.isSun) {
@@ -3568,7 +4643,6 @@
                 }
             });
 
-            // ★雨や雪がある場合の降水エフェクト描画（一番手前に上品に描写）
             if (viewMode !== 'zenith') {
                 drawPrecipitation(skyCtx, w, horizonY, zenithY, weatherOpacity);
             }
@@ -3593,7 +4667,6 @@
                 const pos = getPlanetHelioPosition(pObj.elem, T);
                 pObj.pivot.position.set(pos.x, pos.y, pos.z);
 
-                // 3D軌道線の経年変化反映
                 if (pObj.orbitLine) {
                     const posAttr = pObj.orbitLine.geometry.getAttribute('position');
                     for (let i = 0; i < posAttr.count; i++) {
@@ -3604,7 +4677,6 @@
                     posAttr.needsUpdate = true;
                 }
 
-                // 惑星の自転（rotPeriodHours の符号で順行・逆行を表現）
                 if (!pObj.config.isEarth && pObj.mesh && pObj.config.rotPeriodHours) {
                     const spinAngle = (totalHoursSinceJ2000 / pObj.config.rotPeriodHours) * Math.PI * 2;
                     pObj.mesh.rotation.y = spinAngle;
@@ -3625,7 +4697,6 @@
 
                         const mPos = computeMoonPositionThreeJS(mData, dDays, T, angleRad);
                         mObj.mesh.position.copy(mPos);
-                        // 潮汐固定（同期自転）に合わせて衛星の向きも公転方向へ追従
                         mObj.mesh.rotation.y = -angleRad;
 
                         if (mObj.orbitLine) {
@@ -3734,7 +4805,6 @@
             updateSimulation(simDate);
         });
 
-        // 宇宙3D切り替え・星空への復帰
         if (viewButtons.space) {
             viewButtons.space.addEventListener('click', () => {
                 if (isSkyMode) {
@@ -3751,7 +4821,7 @@
                 }
             });
         }
-        // 星座Canvas左右端の隣接方位ボタン（即応・連打安定化）
+
         let lastEdgeSwitchTime = 0;
         function switchAdjacentSky(side) {
             const nowMs = performance.now();
@@ -3788,14 +4858,11 @@
             let handledByPointerUp = false;
             btn.addEventListener('pointerup', (e) => {
                 if (e.button !== undefined && e.button !== 0) return;
-                e.preventDefault();
                 e.stopPropagation();
                 handledByPointerUp = true;
                 switchAdjacentSky(side);
-                setTimeout(() => { handledByPointerUp = false; }, 0);
             });
             btn.addEventListener('click', (e) => {
-                e.preventDefault();
                 e.stopPropagation();
                 if (handledByPointerUp) {
                     handledByPointerUp = false;
@@ -3804,50 +4871,67 @@
                 switchAdjacentSky(side);
             });
         }
-
         bindEdgeButton(btnSkyEdgeLeft, 'left');
         bindEdgeButton(btnSkyEdgeRight, 'right');
 
-        let zenithDragActive = false;
-        let zenithDidDrag = false;
+        let isZenithDragging = false;
         let zenithDragStartX = 0;
         let zenithDragStartY = 0;
-        let zenithPanStartX = 0;
-        let zenithPanStartY = 0;
+        let zenithDragOriginX = 0;
+        let zenithDragOriginY = 0;
+        let zenithDragMoved = false;
+
+        function isHitZenithButton(clientX, clientY) {
+            const btnRect = skyCanvas._zenithBtnRect;
+            if (!btnRect) return false;
+            const rect = skyCanvas.getBoundingClientRect();
+            const px = clientX - rect.left;
+            const py = clientY - rect.top;
+            return (
+                px >= btnRect.x && px <= btnRect.x + btnRect.w &&
+                py >= btnRect.y && py <= btnRect.y + btnRect.h
+            );
+        }
 
         skyCanvas.addEventListener('pointerdown', (e) => {
             if (!isSkyMode || viewMode !== 'zenith') return;
-            if (e.button !== 0 && e.button !== 1 && e.button !== 2) return;
-            const rect = skyCanvas.getBoundingClientRect();
-            const px = e.clientX - rect.left;
-            const py = e.clientY - rect.top;
-            const r = skyCanvas._zenithBtnRect;
-            if (r && px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h) return;
-
-            zenithDragActive = true;
-            zenithDidDrag = false;
+            if (e.button !== undefined && e.button !== 0) return;
+            if (isHitZenithButton(e.clientX, e.clientY)) return;
+            isZenithDragging = true;
+            zenithDragMoved = false;
             zenithDragStartX = e.clientX;
             zenithDragStartY = e.clientY;
-            zenithPanStartX = zenithPanX;
-            zenithPanStartY = zenithPanY;
-            skyCanvas.setPointerCapture(e.pointerId);
+            zenithDragOriginX = zenithPanX;
+            zenithDragOriginY = zenithPanY;
+            skyCanvas.style.cursor = 'grabbing';
+            if (skyCanvas.setPointerCapture) {
+                try { skyCanvas.setPointerCapture(e.pointerId); } catch (_) { }
+            }
         });
 
         skyCanvas.addEventListener('pointermove', (e) => {
-            if (!zenithDragActive || !isSkyMode || viewMode !== 'zenith') return;
-            const dx = e.clientX - zenithDragStartX;
-            const dy = e.clientY - zenithDragStartY;
-            if (Math.hypot(dx, dy) > 3) zenithDidDrag = true;
-            zenithPanX = Math.max(-600, Math.min(600, zenithPanStartX + dx));
-            zenithPanY = Math.max(-450, Math.min(450, zenithPanStartY + dy));
-            renderTokyoSky(simDate);
+            if (!isSkyMode || viewMode !== 'zenith') {
+                skyCanvas.style.cursor = isHitZenithButton(e.clientX, e.clientY) ? 'pointer' : 'default';
+                return;
+            }
+            if (isZenithDragging) {
+                const dx = e.clientX - zenithDragStartX;
+                const dy = e.clientY - zenithDragStartY;
+                if (Math.hypot(dx, dy) > 4) zenithDragMoved = true;
+                zenithPanX = zenithDragOriginX + dx;
+                zenithPanY = zenithDragOriginY + dy;
+                renderTokyoSky(simDate);
+            } else {
+                skyCanvas.style.cursor = isHitZenithButton(e.clientX, e.clientY) ? 'pointer' : 'grab';
+            }
         });
 
         function endZenithDrag(e) {
-            if (!zenithDragActive) return;
-            zenithDragActive = false;
-            if (e && skyCanvas.hasPointerCapture && skyCanvas.hasPointerCapture(e.pointerId)) {
-                skyCanvas.releasePointerCapture(e.pointerId);
+            if (!isZenithDragging) return;
+            isZenithDragging = false;
+            skyCanvas.style.cursor = viewMode === 'zenith' ? 'grab' : 'default';
+            if (e && e.pointerId !== undefined && skyCanvas.releasePointerCapture) {
+                try { skyCanvas.releasePointerCapture(e.pointerId); } catch (_) { }
             }
         }
         skyCanvas.addEventListener('pointerup', endZenithDrag);
@@ -3856,241 +4940,844 @@
         skyCanvas.addEventListener('wheel', (e) => {
             if (!isSkyMode || viewMode !== 'zenith') return;
             e.preventDefault();
-            const zoomFactor = e.deltaY < 0 ? 1.12 : (1 / 1.12);
-            const nextZoom = Math.max(0.5, Math.min(4.5, zenithZoom * zoomFactor));
-            if (Math.abs(nextZoom - zenithZoom) < 1e-4) return;
+            const zoomFactor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+            const prevZoom = zenithZoom;
+            const nextZoom = Math.max(0.65, Math.min(4.5, prevZoom * zoomFactor));
+            if (nextZoom === prevZoom) return;
 
             const rect = skyCanvas.getBoundingClientRect();
             const mx = e.clientX - rect.left;
             const my = e.clientY - rect.top;
-            const ratio = nextZoom / zenithZoom;
             const panel = document.querySelector('.control-panel');
             const panelBottom = panel ? panel.getBoundingClientRect().height : 0;
             const zenithY = Math.max(skyCanvas.height * 0.07, panelBottom + 24);
-            const baseCircleY = (zenithY + 18) + Math.max(120, (skyCanvas.height - 22) - (zenithY + 18)) * 0.5;
-            const curCircleX = skyCanvas.width / 2 + zenithPanX;
-            const curCircleY = baseCircleY + zenithPanY;
+            const availTop = zenithY + 18;
+            const availBottom = skyCanvas.height - 22;
+            const availH = Math.max(120, availBottom - availTop);
+            const baseCircleX = skyCanvas.width / 2;
+            const baseCircleY = availTop + availH * 0.5;
 
-            const nextCircleX = mx - (mx - curCircleX) * ratio;
-            const nextCircleY = my - (my - curCircleY) * ratio;
-            zenithPanX = Math.max(-600, Math.min(600, nextCircleX - skyCanvas.width / 2));
-            zenithPanY = Math.max(-450, Math.min(450, nextCircleY - baseCircleY));
+            const ratio = nextZoom / prevZoom;
+            zenithPanX = mx - baseCircleX - ratio * (mx - (baseCircleX + zenithPanX));
+            zenithPanY = my - baseCircleY - ratio * (my - (baseCircleY + zenithPanY));
             zenithZoom = nextZoom;
+
             renderTokyoSky(simDate);
         }, { passive: false });
 
         skyCanvas.addEventListener('click', (e) => {
             if (!isSkyMode) return;
-            if (zenithDidDrag) {
-                zenithDidDrag = false;
+            if (zenithDragMoved) {
+                zenithDragMoved = false;
                 return;
             }
-            if (skyCanvas._zenithBtnRect) {
-                const rect = skyCanvas.getBoundingClientRect();
-                const px = e.clientX - rect.left;
-                const py = e.clientY - rect.top;
-                const r = skyCanvas._zenithBtnRect;
-                if (px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h) {
-                    if (viewMode === 'zenith') {
-                        const returnDir = ADJACENT_SKY[skyReturnDirection] ? skyReturnDirection : 'south';
-                        setViewMode(returnDir);
-                    } else {
-                        setViewMode('zenith');
-                    }
-                    return;
-                }
+            if (!isHitZenithButton(e.clientX, e.clientY)) return;
+            e.stopPropagation();
+            if (viewMode === 'zenith') {
+                const targetDir = ADJACENT_SKY[skyReturnDirection] ? skyReturnDirection : 'south';
+                setViewMode(targetDir);
+            } else {
+                zenithZoom = 1.0;
+                zenithPanX = 0;
+                zenithPanY = 0;
+                setViewMode('zenith');
             }
-            togglePlayPause();
         });
 
-        // 地域変更
-        citySelect.addEventListener('change', (e) => {
-            const cityKey = e.target.value;
-            if (!Object.prototype.hasOwnProperty.call(CITIES, cityKey)) return;
-            if (cityKey === 'home' && !homeSettings) {
-                citySelect.value = currentCityKey;
-                return;
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') {
+                e.preventDefault();
+                togglePlayPause();
             }
-            currentCityKey = cityKey;
-            currentCity = CITIES[cityKey];
-            localStorage.setItem('selectedSolarCity', cityKey);
+        });
+
+        btnToggleConst.addEventListener('click', () => {
+                showConstellations = !showConstellations;
+                // 星雲・星団（DSO）の表示フラグとチェックボックスも同期
+                astroVisibility.deepSky = showConstellations;
+                const chkDeepSky = document.getElementById('astroDeepSky');
+                if (chkDeepSky) chkDeepSky.checked = showConstellations;
+                astroSavePrefs();
+
+                btnToggleConst.textContent = showConstellations ? tr('constellationOn') : tr('constellationOff');
+                btnToggleConst.style.background = showConstellations ? '#5522aa' : '#182247';
+                btnToggleConst.style.color = showConstellations ? '#fff' : '#d0b0ff';
+                if (isSkyMode) renderTokyoSky(simDate);
+            });
+
+        btnToggleLabels.addEventListener('click', () => {
+            showLabels = !showLabels;
             updateLanguageUI();
-            updateObserverMarker();
-            updateSimulation(simDate);
+            if (isSkyMode) {
+                renderTokyoSky(simDate);
+            } else {
+                renderSpaceLabels3D();
+            }
         });
 
-        // 日本語 / English 切替
+        btnToggleWeather.addEventListener('click', () => {
+            showWeather = !showWeather;
+            if (showWeather) ensureWeatherData();
+            updateLanguageUI();
+            if (isSkyMode) renderTokyoSky(simDate);
+        });
+
         document.getElementById('btnLanguage').addEventListener('click', () => {
             currentLang = currentLang === 'ja' ? 'en' : 'ja';
             localStorage.setItem('solarLanguage', currentLang);
             updateLanguageUI();
+            updateWorldMapMiniMarker();
         });
 
-        // 天気エフェクト ON/OFF（ボタンのイベント登録が欠けていたためここで接続）
-        if (btnToggleWeather) {
-            btnToggleWeather.addEventListener('click', () => {
-                showWeather = !showWeather;
-                btnToggleWeather.textContent = showWeather ? tr('weatherOn') : tr('weatherOff');
-                btnToggleWeather.style.background = showWeather ? '#164a5c' : '#182247';
-                btnToggleWeather.style.color = showWeather ? '#a8f0ff' : '#689bb5';
-                if (showWeather) ensureWeatherData();
-                if (isSkyMode) renderTokyoSky(simDate);
-            });
-        }
-
-        // 星座トグル
-        btnToggleConst.addEventListener('click', () => {
-            showConstellations = !showConstellations;
-            btnToggleConst.textContent = showConstellations ? tr('constellationOn') : tr('constellationOff');
-            btnToggleConst.style.background = showConstellations ? '#5522aa' : '#182247';
-            btnToggleConst.style.color = showConstellations ? '#fff' : '#d0b0ff';
-            if (isSkyMode) renderTokyoSky(simDate);
+        citySelect.addEventListener('change', (e) => {
+            if (e.target.value === 'home' && !homeSettings) {
+                citySelect.value = currentCityKey;
+                return;
+            }
+            currentCityKey = e.target.value;
+            currentCity = CITIES[currentCityKey];
+            if (currentCityKey !== TEMP_CUSTOM_KEY) {
+                localStorage.setItem('selectedSolarCity', currentCityKey);
+            }
+            updateObserverMarker();
+            ensureWeatherData();
+            updateSimulation(simDate);
         });
 
-        // 宇宙3D 惑星・太陽・月ラベル（HTMLオーバーレイ投影）
-        const spaceLabelsContainer = document.createElement('div');
-        spaceLabelsContainer.id = 'spaceLabelsContainer';
-        spaceLabelsContainer.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:45;overflow:hidden;';
-        document.body.appendChild(spaceLabelsContainer);
+        // ==========================================
+        // 8.5 3D宇宙モード用 天体名称ラベルオーバーレイ
+        // ==========================================
+        const spaceLabelsLayer = document.createElement('div');
+        spaceLabelsLayer.id = 'space-labels-layer';
+        Object.assign(spaceLabelsLayer.style, {
+            position: 'fixed', top: '0', left: '0', width: '100vw', height: '100vh',
+            pointerEvents: 'none', zIndex: '45', overflow: 'hidden'
+        });
+        document.body.appendChild(spaceLabelsLayer);
+
+        const SPACE_LABEL_NAMES_EN = {
+            '太陽': 'Sun', '水星': 'Mercury', '金星': 'Venus', '地球': 'Earth',
+            '火星': 'Mars', '木星': 'Jupiter', '土星': 'Saturn', '天王星': 'Uranus', '海王星': 'Neptune',
+            '月': 'Moon', 'フォボス': 'Phobos', 'イオ': 'Io', 'エウロパ': 'Europa',
+            'ガニメデ': 'Ganymede', 'タイタン': 'Titan'
+        };
 
         const spaceLabelEntries = [];
-        function createSpaceLabelItem(jpName, worldPosProvider, yOffsetPx = -10) {
+        function createSpaceLabelEl(jaName, isMoon) {
             const el = document.createElement('div');
-            el.style.cssText = [
-                'position:absolute;transform:translate(-50%,-100%);',
-                'color:#eef6ff;font-size:12px;font-weight:bold;white-space:nowrap;',
-                'text-shadow:0 1px 4px rgba(0,0,0,0.95),0 0 8px rgba(0,0,0,0.85);',
-                'pointer-events:none;display:none;'
-            ].join('');
-            spaceLabelsContainer.appendChild(el);
-            spaceLabelEntries.push({ el, jpName, worldPosProvider, yOffsetPx });
+            Object.assign(el.style, {
+                position: 'absolute', transform: 'translate(-50%, -100%)',
+                color: isMoon ? '#a8d5ff' : '#ffffff',
+                fontSize: isMoon ? '11px' : '12px',
+                fontWeight: isMoon ? 'normal' : 'bold',
+                textShadow: '0 0 4px #000, 0 0 8px #000',
+                whiteSpace: 'nowrap', userSelect: 'none'
+            });
+            spaceLabelsLayer.appendChild(el);
+            return el;
         }
 
-        createSpaceLabelItem('太陽', () => sun.getWorldPosition(new THREE.Vector3()), -16);
-        planetsConfig.forEach(p => {
-            const pObj = planetMeshes[p.id];
-            if (pObj) {
-                createSpaceLabelItem(p.name, () => pObj.pivot.getWorldPosition(new THREE.Vector3()), -(p.radius * 2.2 + 8));
-            }
+        spaceLabelEntries.push({
+            obj: sun, radiusOffset: 16, jaName: '太陽', isMoon: false,
+            el: createSpaceLabelEl('太陽', false)
         });
-        createSpaceLabelItem('月', () => {
-            if (moonMesh) return moonMesh.getWorldPosition(new THREE.Vector3());
-            return new THREE.Vector3();
-        }, -8);
-
-        function refreshSpaceLabelTexts() {
-            spaceLabelEntries.forEach(item => {
-                item.el.textContent = currentLang === 'en' ? (CELESTIAL_NAMES_EN[item.jpName] || item.jpName) : item.jpName;
+        for (const id in planetMeshes) {
+            const pObj = planetMeshes[id];
+            spaceLabelEntries.push({
+                obj: pObj.mesh, radiusOffset: pObj.config.radius + 2.2,
+                jaName: pObj.config.name, isMoon: false,
+                el: createSpaceLabelEl(pObj.config.name, false)
             });
+            if (pObj.moons) {
+                pObj.moons.forEach(mObj => {
+                    spaceLabelEntries.push({
+                        obj: mObj.mesh, radiusOffset: mObj.data.radius + 1.4,
+                        jaName: mObj.data.name, isMoon: true,
+                        el: createSpaceLabelEl(mObj.data.name, true)
+                    });
+                });
+            }
         }
 
         function updateSpaceLabelsVisibility() {
-            const active = showLabels && !isSkyMode;
-            spaceLabelsContainer.style.display = active ? 'block' : 'none';
-            if (!active) {
-                spaceLabelEntries.forEach(item => { item.el.style.display = 'none'; });
-            } else {
-                refreshSpaceLabelTexts();
-            }
+            spaceLabelsLayer.style.display = (!isSkyMode && showLabels) ? 'block' : 'none';
         }
 
         const _projVec = new THREE.Vector3();
         function renderSpaceLabels3D() {
-            if (!showLabels || isSkyMode) {
-                spaceLabelsContainer.style.display = 'none';
-                return;
-            }
-            spaceLabelsContainer.style.display = 'block';
+            if (isSkyMode || !showLabels) return;
             const w = window.innerWidth;
             const h = window.innerHeight;
-            camera.updateMatrixWorld();
-
-            spaceLabelEntries.forEach(item => {
-                if (item.jpName === '月' && !moonMesh) {
+            scene.updateMatrixWorld();
+            for (let i = 0; i < spaceLabelEntries.length; i++) {
+                const item = spaceLabelEntries[i];
+                item.obj.getWorldPosition(_projVec);
+                _projVec.y += item.radiusOffset;
+                _projVec.project(camera);
+                if (_projVec.z > 1 || _projVec.z < -1) {
                     item.el.style.display = 'none';
-                    return;
-                }
-                const pos = item.worldPosProvider();
-                _projVec.copy(pos).project(camera);
-                if (_projVec.z < -1 || _projVec.z > 1) {
-                    item.el.style.display = 'none';
-                    return;
+                    continue;
                 }
                 const sx = (_projVec.x * 0.5 + 0.5) * w;
-                const sy = (-_projVec.y * 0.5 + 0.5) * h + item.yOffsetPx;
-                if (sx < -60 || sx > w + 60 || sy < 70 || sy > h + 30) {
+                const sy = (-_projVec.y * 0.5 + 0.5) * h;
+                if (sx < -40 || sx > w + 40 || sy < 40 || sy > h + 20) {
                     item.el.style.display = 'none';
-                    return;
+                    continue;
                 }
+                item.el.textContent = currentLang === 'en'
+                    ? (SPACE_LABEL_NAMES_EN[item.jaName] || item.jaName)
+                    : item.jaName;
                 item.el.style.display = 'block';
                 item.el.style.left = `${sx.toFixed(1)}px`;
                 item.el.style.top = `${sy.toFixed(1)}px`;
-            });
+            }
         }
 
-        if (btnToggleLabels) {
-            btnToggleLabels.addEventListener('click', () => {
-                showLabels = !showLabels;
-                btnToggleLabels.textContent = showLabels ? tr('labelsOn') : tr('labelsOff');
-                btnToggleLabels.style.background = showLabels ? '#1e4678' : '#182247';
-                btnToggleLabels.style.color = showLabels ? '#ffffff' : '#9ec4e8';
-                updateSpaceLabelsVisibility();
+
+// ================================================================
+// 新規統合：88星座カタログ／DSO編集／衛星編集／表示レイヤー
+// ================================================================
+const astroVisibility = { constellationLines:true, constellationNames:true, deepSky:true, solarSystem:true, satellites:true };
+const ASTRO_EXTRA_CONSTELLATIONS = [{"name": "アンドロメダ座", "en": "Andromeda", "ra": 10, "dec": 38}, {"name": "こいぬ座", "en": "Canis Minor", "ra": 112, "dec": 6}, {"name": "やぎ座", "en": "Capricornus", "ra": 315, "dec": -18}, {"name": "ポンプ座", "en": "Antlia", "ra": 155, "dec": -35}, {"name": "ふうちょう座", "en": "Apus", "ra": 245, "dec": -75}, {"name": "みずがめ座", "en": "Aquarius", "ra": 335, "dec": -10}, {"name": "わし座", "en": "Aquila", "ra": 295, "dec": 5}, {"name": "さいだん座", "en": "Ara", "ra": 260, "dec": -55}, {"name": "おひつじ座", "en": "Aries", "ra": 32, "dec": 20}, {"name": "うしかい座", "en": "Boötes", "ra": 220, "dec": 30}, {"name": "ちょうこくぐ座", "en": "Caelum", "ra": 75, "dec": -40}, {"name": "きりん座", "en": "Camelopardalis", "ra": 75, "dec": 68}, {"name": "かに座", "en": "Cancer", "ra": 130, "dec": 20}, {"name": "りょうけん座", "en": "Canes Venatici", "ra": 195, "dec": 40}, {"name": "りゅうこつ座", "en": "Carina", "ra": 125, "dec": -60}, {"name": "ケンタウルス座", "en": "Centaurus", "ra": 205, "dec": -45}, {"name": "くじら座", "en": "Cetus", "ra": 25, "dec": -10}, {"name": "カメレオン座", "en": "Chamaeleon", "ra": 160, "dec": -80}, {"name": "コンパス座", "en": "Circinus", "ra": 220, "dec": -60}, {"name": "はと座", "en": "Columba", "ra": 85, "dec": -35}, {"name": "かみのけ座", "en": "Coma Berenices", "ra": 190, "dec": 25}, {"name": "みなみのかんむり座", "en": "Corona Australis", "ra": 285, "dec": -40}, {"name": "かんむり座", "en": "Corona Borealis", "ra": 235, "dec": 30}, {"name": "からす座", "en": "Corvus", "ra": 185, "dec": -20}, {"name": "コップ座", "en": "Crater", "ra": 170, "dec": -15}, {"name": "はくちょう座", "en": "Cygnus", "ra": 305, "dec": 42}, {"name": "いるか座", "en": "Delphinus", "ra": 310, "dec": 12}, {"name": "かじき座", "en": "Dorado", "ra": 80, "dec": -65}, {"name": "りゅう座", "en": "Draco", "ra": 260, "dec": 65}, {"name": "こうま座", "en": "Equuleus", "ra": 320, "dec": 8}, {"name": "エリダヌス座", "en": "Eridanus", "ra": 55, "dec": -25}, {"name": "ろ座", "en": "Fornax", "ra": 40, "dec": -30}, {"name": "ふたご座", "en": "Gemini", "ra": 105, "dec": 25}, {"name": "つる座", "en": "Grus", "ra": 335, "dec": -45}, {"name": "ヘルクレス座", "en": "Hercules", "ra": 255, "dec": 30}, {"name": "とけい座", "en": "Horologium", "ra": 45, "dec": -50}, {"name": "うみへび座", "en": "Hydra", "ra": 150, "dec": -20}, {"name": "みずへび座", "en": "Hydrus", "ra": 35, "dec": -70}, {"name": "インディアン座", "en": "Indus", "ra": 315, "dec": -55}, {"name": "とかげ座", "en": "Lacerta", "ra": 335, "dec": 45}, {"name": "こじし座", "en": "Leo Minor", "ra": 155, "dec": 35}, {"name": "うさぎ座", "en": "Lepus", "ra": 85, "dec": -20}, {"name": "てんびん座", "en": "Libra", "ra": 230, "dec": -15}, {"name": "おおかみ座", "en": "Lupus", "ra": 230, "dec": -40}, {"name": "やまねこ座", "en": "Lynx", "ra": 120, "dec": 45}, {"name": "こと座", "en": "Lyra", "ra": 280, "dec": 38}, {"name": "テーブルさん座", "en": "Mensa", "ra": 90, "dec": -80}, {"name": "けんびきょう座", "en": "Microscopium", "ra": 315, "dec": -35}, {"name": "いっかくじゅう座", "en": "Monoceros", "ra": 100, "dec": -5}, {"name": "はえ座", "en": "Musca", "ra": 190, "dec": -70}, {"name": "じょうぎ座", "en": "Norma", "ra": 240, "dec": -50}, {"name": "はちぶんぎ座", "en": "Octans", "ra": 315, "dec": -85}, {"name": "へびつかい座", "en": "Ophiuchus", "ra": 260, "dec": -5}, {"name": "くじゃく座", "en": "Pavo", "ra": 300, "dec": -65}, {"name": "ペガスス座", "en": "Pegasus", "ra": 345, "dec": 20}, {"name": "ペルセウス座", "en": "Perseus", "ra": 50, "dec": 45}, {"name": "ほうおう座", "en": "Phoenix", "ra": 10, "dec": -50}, {"name": "がか座", "en": "Pictor", "ra": 85, "dec": -55}, {"name": "うお座", "en": "Pisces", "ra": 15, "dec": 10}, {"name": "みなみのうお座", "en": "Piscis Austrinus", "ra": 335, "dec": -30}, {"name": "とも座", "en": "Puppis", "ra": 115, "dec": -25}, {"name": "らしんばん座", "en": "Pyxis", "ra": 135, "dec": -25}, {"name": "レチクル座", "en": "Reticulum", "ra": 60, "dec": -60}, {"name": "や座", "en": "Sagitta", "ra": 295, "dec": 18}, {"name": "いて座", "en": "Sagittarius", "ra": 285, "dec": -25}, {"name": "ちょうこくしつ座", "en": "Sculptor", "ra": 5, "dec": -30}, {"name": "たて座", "en": "Scutum", "ra": 280, "dec": -10}, {"name": "へび座", "en": "Serpens", "ra": 245, "dec": 10}, {"name": "しし座", "en": "Sextans", "ra": 150, "dec": -5}, {"name": "ぼうえんきょう座", "en": "Telescopium", "ra": 280, "dec": -50}, {"name": "さんかく座", "en": "Triangulum", "ra": 32, "dec": 30}, {"name": "みなみのさんかく座", "en": "Triangulum Australe", "ra": 240, "dec": -65}, {"name": "きょしちょう座", "en": "Tucana", "ra": 350, "dec": -65}, {"name": "ほ座", "en": "Vela", "ra": 145, "dec": -45}, {"name": "おとめ座", "en": "Virgo", "ra": 195, "dec": -5}, {"name": "とびうお座", "en": "Volans", "ra": 115, "dec": -70}, {"name": "こぎつね座", "en": "Vulpecula", "ra": 300, "dec": 25}];
+const ASTRO_DEEP_SKY_DEFAULTS = [{"id": "M42", "name": "オリオン大星雲", "ra": 83.82, "dec": -5.39, "mag": 4.0, "type": "散光星雲", "color": "#70baff", "size": 28, "brightness": 0.85, "flare": 0.45, "spread": 1.0}, {"id": "M31", "name": "アンドロメダ銀河", "ra": 10.68, "dec": 41.27, "mag": 3.4, "type": "銀河", "color": "#d7c9a3", "size": 34, "brightness": 0.75, "flare": 0.28, "spread": 1.25}, {"id": "M45", "name": "プレアデス星団", "ra": 56.75, "dec": 24.12, "mag": 1.6, "type": "散開星団", "color": "#83c8ff", "size": 25, "brightness": 0.75, "flare": 0.38, "spread": 1.0}, {"id": "M13", "name": "ヘラクレス球状星団", "ra": 250.42, "dec": 36.46, "mag": 5.8, "type": "球状星団", "color": "#ffe1a1", "size": 18, "brightness": 0.72, "flare": 0.35, "spread": 0.8}, {"id": "EtaCar", "name": "ηカリーナ星雲", "ra": 161.27, "dec": -59.87, "mag": 1.0, "type": "散光星雲", "color": "#ff9d78", "size": 31, "brightness": 0.95, "flare": 0.65, "spread": 1.3}, {"id": "M8", "name": "干潟星雲", "ra": 270.9, "dec": -24.38, "mag": 6.0, "type": "散光星雲", "color": "#ff9b78", "size": 22, "brightness": 0.72, "flare": 0.42, "spread": 1.0}, {"id": "M20", "name": "三裂星雲", "ra": 270.6, "dec": -23.03, "mag": 6.3, "type": "散光星雲", "color": "#bd9aff", "size": 17, "brightness": 0.68, "flare": 0.35, "spread": 0.9}, {"id": "M17", "name": "オメガ星雲", "ra": 275.2, "dec": -16.18, "mag": 6.0, "type": "散光星雲", "color": "#8de4d2", "size": 20, "brightness": 0.7, "flare": 0.38, "spread": 1.0}, {"id": "M16", "name": "わし星雲", "ra": 274.7, "dec": -13.81, "mag": 6.4, "type": "散光星雲", "color": "#a6b9ff", "size": 18, "brightness": 0.65, "flare": 0.3, "spread": 0.9}, {"id": "M1", "name": "かに星雲", "ra": 83.63, "dec": 22.01, "mag": 8.4, "type": "超新星残骸", "color": "#ffad86", "size": 14, "brightness": 0.6, "flare": 0.25, "spread": 0.8}, {"id": "M27", "name": "亜鈴状星雲", "ra": 299.9, "dec": 22.72, "mag": 7.5, "type": "惑星状星雲", "color": "#a5f0d4", "size": 16, "brightness": 0.68, "flare": 0.35, "spread": 0.8}, {"id": "M57", "name": "リング星雲", "ra": 283.4, "dec": 33.03, "mag": 8.8, "type": "惑星状星雲", "color": "#91e9d0", "size": 13, "brightness": 0.62, "flare": 0.25, "spread": 0.7}, {"id": "NGC7000", "name": "北アメリカ星雲", "ra": 314.75, "dec": 44.5, "mag": 4.0, "type": "散光星雲", "color": "#789dff", "size": 26, "brightness": 0.65, "flare": 0.32, "spread": 1.3}, {"id": "NGC6960", "name": "網状星雲", "ra": 312.75, "dec": 30.7, "mag": 7.0, "type": "超新星残骸", "color": "#8fe8ff", "size": 21, "brightness": 0.65, "flare": 0.32, "spread": 1.1}, {"id": "NGC2237", "name": "ばら星雲", "ra": 97.97, "dec": 5.0, "mag": 6.0, "type": "散光星雲", "color": "#ff9dbd", "size": 24, "brightness": 0.7, "flare": 0.4, "spread": 1.2}, {"id": "NGC7293", "name": "らせん星雲", "ra": 337.4, "dec": -20.84, "mag": 7.6, "type": "惑星状星雲", "color": "#85dfff", "size": 17, "brightness": 0.62, "flare": 0.28, "spread": 0.9}, {"id": "NGC104", "name": "きょしちょう座47", "ra": 6.02, "dec": -72.08, "mag": 4.1, "type": "球状星団", "color": "#ffdca0", "size": 19, "brightness": 0.75, "flare": 0.35, "spread": 0.9}, {"id": "NGC5139", "name": "ω星団", "ra": 201.7, "dec": -47.48, "mag": 3.7, "type": "球状星団", "color": "#ffe5b0", "size": 22, "brightness": 0.8, "flare": 0.4, "spread": 1.0}, {"id": "NGC2070", "name": "タランチュラ星雲", "ra": 84.68, "dec": -69.1, "mag": 5.0, "type": "散光星雲", "color": "#ff9db8", "size": 23, "brightness": 0.75, "flare": 0.42, "spread": 1.0}, {"id": "SMC", "name": "小マゼラン雲", "ra": 13.19, "dec": -72.83, "mag": 2.7, "type": "銀河", "color": "#b8c8ff", "size": 27, "brightness": 0.7, "flare": 0.3, "spread": 1.2}, {"id": "LMC", "name": "大マゼラン雲", "ra": 80.89, "dec": -69.76, "mag": 0.9, "type": "銀河", "color": "#c6d2ff", "size": 32, "brightness": 0.78, "flare": 0.35, "spread": 1.3}];
+    const ASTRO_PLANET_DEFAULTS = [
+            { id: 'sun', name: '太陽', nameEn: 'Sun', color: '#ffcc00', size: 16, flare: 0.8, spread: 1.5 },
+            { id: 'moon', name: '月', nameEn: 'Moon', color: '#ffffff', size: 15, flare: 0.35, spread: 0.9 },
+            { id: 'mercury', name: '水星', nameEn: 'Mercury', color: '#aaaaaa', size: 5, flare: 0.2, spread: 0.6 },
+            { id: 'venus', name: '金星', nameEn: 'Venus', color: '#e3bb76', size: 8, flare: 0.45, spread: 0.8 },
+            { id: 'mars', name: '火星', nameEn: 'Mars', color: '#dd5533', size: 6, flare: 0.25, spread: 0.7 },
+            { id: 'jupiter', name: '木星', nameEn: 'Jupiter', color: '#c89e74', size: 9, flare: 0.4, spread: 0.9 },
+            { id: 'saturn', name: '土星', nameEn: 'Saturn', color: '#dfcb97', size: 7, flare: 0.35, spread: 0.8 },
+            { id: 'uranus', name: '天王星', nameEn: 'Uranus', color: '#66ccbb', size: 5, flare: 0.2, spread: 0.6 },
+            { id: 'neptune', name: '海王星', nameEn: 'Neptune', color: '#274687', size: 5, flare: 0.2, spread: 0.6 }
+        ];
+    const ASTRO_PREF_KEY = 'planetariumAstroWorkbenchV1';
+    let astroDeepSky = JSON.parse(JSON.stringify(ASTRO_DEEP_SKY_DEFAULTS));
+    let astroPlanets = JSON.parse(JSON.stringify(ASTRO_PLANET_DEFAULTS));
+    let astroSelectedNebula = astroDeepSky[0]?.id || null;
+    let astroSelectedPlanet = astroPlanets[0]?.id || null;
+    let astroSelectedConstellation = 0;
+
+    const $astro = id => document.getElementById(id);
+
+    function astroLoadPrefs() {
+        try {
+            const p = JSON.parse(localStorage.getItem(ASTRO_PREF_KEY) || '{}');
+            if (p.deepSky) astroDeepSky = ASTRO_DEEP_SKY_DEFAULTS.map(d => ({ ...d, ...(p.deepSky[d.id] || {}) }));
+            if (p.planets) astroPlanets = ASTRO_PLANET_DEFAULTS.map(d => ({ ...d, ...(p.planets[d.id] || {}) }));
+            if (p.visibility) Object.assign(astroVisibility, p.visibility);
+        } catch (e) { }
+    }
+
+    function astroSavePrefs() {
+        try {
+            localStorage.setItem(ASTRO_PREF_KEY, JSON.stringify({
+                deepSky: Object.fromEntries(astroDeepSky.map(x => [x.id, x])),
+                planets: Object.fromEntries(astroPlanets.map(x => [x.id, x])),
+                visibility: astroVisibility
+            }));
+        } catch (e) { }
+    }
+    astroLoadPrefs();
+
+    function astroApplyVisibility() {
+        ['constLines', 'constNames', 'deepSky', 'solar'].forEach(k => {
+            const el = $astro('astro' + k[0].toUpperCase() + k.slice(1));
+            if (el) el.checked = !!astroVisibility[k === 'constLines' ? 'constellationLines' : k === 'constNames' ? 'constellationNames' : k === 'solar' ? 'solarSystem' : k];
+        });
+        if (typeof sun !== 'undefined') sun.visible = !!astroVisibility.solarSystem;
+        if (typeof planetMeshes !== 'undefined') {
+            Object.values(planetMeshes).forEach(p => {
+                p.pivot.visible = !!astroVisibility.solarSystem;
+                p.orbitLine.visible = !!astroVisibility.solarSystem;
+                if (p.moons) p.moons.forEach(m => {
+                    m.mesh.visible = !!astroVisibility.solarSystem;
+                    m.orbitLine.visible = !!astroVisibility.solarSystem;
+                });
+            });
+        }
+        if (typeof renderTokyoSky === 'function' && isSkyMode) renderTokyoSky(simDate);
+        astroSavePrefs();
+    }
+
+    ['constLines', 'constNames', 'deepSky', 'solar'].forEach(k => {
+        const el = $astro('astro' + k[0].toUpperCase() + k.slice(1));
+        if (!el) return;
+        const key = k === 'constLines' ? 'constellationLines' : k === 'constNames' ? 'constellationNames' : k === 'solar' ? 'solarSystem' : k;
+        el.addEventListener('change', () => {
+            astroVisibility[key] = el.checked;
+            astroApplyVisibility();
+        });
+    });
+
+    document.querySelectorAll('[data-editor-tab]').forEach(b => b.addEventListener('click', () => {
+        document.querySelectorAll('[data-editor-tab]').forEach(x => x.classList.toggle('active', x === b));
+        document.querySelectorAll('.editor-tab-pane').forEach(x => x.classList.toggle('active', x.id === 'editorPane' + b.dataset.editorTab[0].toUpperCase() + b.dataset.editorTab.slice(1)));
+        if (b.dataset.editorTab === 'constellation') { resizeConstEditorCanvas(); renderConstEditorCanvas(); }
+        if (b.dataset.editorTab === 'nebula') astroDrawNebulaPreview();
+        if (b.dataset.editorTab === 'planet') astroDrawPlanetPreview();
+    }));
+
+    function astroField(label, id, type, value, min, max, step) {
+        return `<label>${label}<input id="${id}" type="${type}" value="${value}" ${min !== undefined ? `min="${min}"` : ''} ${max !== undefined ? `max="${max}"` : ''} ${step !== undefined ? `step="${step}"` : ''}></label>`;
+    }
+
+    // --- 星雲エディタ ---
+    function astroRenderNebulaList() {
+        const box = $astro('astroNebulaList');
+        if (!box) return;
+        box.innerHTML = '';
+        astroDeepSky.forEach(o => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'astro-item' + (o.id === astroSelectedNebula ? ' active' : '');
+            const name = currentLang === 'en' ? (DEEP_SKY_NAMES_EN[o.name] || o.name) : o.name;
+            b.textContent = `${o.id} ${name}`;
+            b.addEventListener('click', () => {
+                astroSelectedNebula = o.id;
+                astroRenderNebulaList();
+                astroRenderNebulaEditor();
+                astroDrawNebulaPreview();
+            });
+            box.appendChild(b);
+        });
+    }
+
+    function astroRenderNebulaEditor() {
+        const o = astroDeepSky.find(x => x.id === astroSelectedNebula);
+        if (!o) return;
+        const e = $astro('astroNebulaEditor');
+        if (!e) return;
+
+        const displayName = (currentLang === 'en' && typeof DEEP_SKY_NAMES_EN !== 'undefined') ? (DEEP_SKY_NAMES_EN[o.name] || o.name) : o.name;
+        const displayType = (currentLang === 'en' && typeof NEBULA_TYPE_EN !== 'undefined') ? (NEBULA_TYPE_EN[o.type] || o.type) : o.type;
+
+        e.innerHTML = `<strong>${displayName}</strong>
+        <div class="astro-meta">${o.id} / ${displayType} / Mag ${o.mag} / RA ${o.ra.toFixed(2)}°, Dec ${o.dec.toFixed(2)}°</div>
+        ${astroField(typeof tr === 'function' ? tr('color') : '色', 'nebColor', 'color', o.color)}
+        ${astroField(typeof tr === 'function' ? tr('size') : 'サイズ', 'nebSize', 'range', o.size, 5, 60, 1)}
+        ${astroField(typeof tr === 'function' ? tr('brightness') : '光量', 'nebBright', 'range', o.brightness, 0.1, 1.5, 0.01)}
+        ${astroField(typeof tr === 'function' ? tr('flareIntensity') : 'フレア強度', 'nebFlare', 'range', o.flare, 0, 1, 0.01)}
+        ${astroField(typeof tr === 'function' ? tr('flareSpread') : 'フレア広がり', 'nebSpread', 'range', o.spread, 0.3, 2.5, 0.05)}
+        <div class="astro-actions"><button id="nebReset" type="button">${typeof tr === 'function' ? tr('resetDefault') : '初期値に戻す'}</button></div>`;
+
+        const bind = (id, key, cast) => {
+            const el = $astro(id);
+            if (el) el.addEventListener('input', ev => {
+                o[key] = cast(ev.target.value);
+                astroSavePrefs();
+                astroDrawNebulaPreview();
                 if (isSkyMode) renderTokyoSky(simDate);
-                else renderSpaceLabels3D();
+            });
+        };
+        bind('nebColor', 'color', String);
+        bind('nebSize', 'size', Number);
+        bind('nebBright', 'brightness', Number);
+        bind('nebFlare', 'flare', Number);
+        bind('nebSpread', 'spread', Number);
+
+        ['nebColor', 'nebSize', 'nebBright', 'nebFlare', 'nebSpread'].forEach(id => {
+            const el = $astro(id);
+            if (el) el.addEventListener('input', astroDrawNebulaPreview);
+        });
+
+        const btnReset = $astro('nebReset');
+        if (btnReset) btnReset.addEventListener('click', () => {
+            const d = ASTRO_DEEP_SKY_DEFAULTS.find(x => x.id === o.id);
+            if (d) {
+                Object.assign(o, JSON.parse(JSON.stringify(d)));
+                astroRenderNebulaEditor();
+                astroDrawNebulaPreview();
+                astroSavePrefs();
+                if (isSkyMode) renderTokyoSky(simDate);
+            }
+        });
+    }
+
+    function astroDrawNebulaPreview() {
+        const c = $astro('nebulaPreview');
+        if (!c) return;
+        const x = c.getContext('2d'), o = astroDeepSky.find(v => v.id === astroSelectedNebula);
+        if (!o) return;
+        const w = c.width, h = c.height;
+        x.clearRect(0, 0, w, h);
+        x.fillStyle = '#030813';
+        x.fillRect(0, 0, w, h);
+        for (let i = 0; i < 180; i++) {
+            x.fillStyle = `rgba(190,220,255,${((i * 13) % 50) / 220})`;
+            x.fillRect((i * 97 % w), (i * 53 % h), 1.5, 1.5);
+        }
+        const r = Math.max(12, o.size * 2.1), cx = w * 0.48, cy = h * 0.51;
+        const g = x.createRadialGradient(cx, cy, r * 0.04, cx, cy, r * (1.1 + o.spread));
+        g.addColorStop(0, o.color + 'ee');
+        g.addColorStop(0.24, o.color + '99');
+        g.addColorStop(0.62, o.color + '35');
+        g.addColorStop(1, o.color + '00');
+        x.save();
+        x.globalAlpha = Math.min(1, o.brightness);
+        x.fillStyle = g;
+        x.beginPath();
+        if (o.type === '銀河') { x.ellipse(cx, cy, r * 1.8, r * 0.58, -0.3, 0, Math.PI * 2); }
+        else if (o.type === '球状星団' || o.type === '散開星団') { x.arc(cx, cy, r * 0.8, 0, Math.PI * 2); }
+        else if (o.type === '惑星状星雲') { x.arc(cx, cy, r * 0.75, 0, Math.PI * 2); }
+        else { x.ellipse(cx, cy, r * 1.25, r * 0.85, 0.25, 0, Math.PI * 2); }
+        x.fill();
+        x.restore();
+        if (o.flare > 0) {
+            x.save();
+            x.globalAlpha = o.flare * 0.7;
+            x.strokeStyle = o.color;
+            x.lineWidth = 2 + o.flare * 5;
+            x.shadowColor = o.color;
+            x.shadowBlur = 28 * o.spread;
+            x.beginPath();
+            x.arc(cx, cy, r * (0.55 + o.spread * 0.18), 0, Math.PI * 2);
+            x.stroke();
+            x.restore();
+        }
+        x.fillStyle = '#eaf5ff';
+        x.font = 'bold 22px sans-serif';
+        const name = currentLang === 'en' ? (DEEP_SKY_NAMES_EN[o.name] || o.name) : o.name;
+        const displayType = currentLang === 'en' ? (NEBULA_TYPE_EN[o.type] || o.type) : o.type;
+        x.fillText(`${o.id}  ${name}`, 24, 34);
+        x.font = '13px sans-serif';
+        x.fillStyle = '#a9c7e8';
+        x.fillText(`${displayType}  /  Mag ${o.mag}  /  RA ${o.ra.toFixed(2)}°  Dec ${o.dec.toFixed(2)}°`, 24, h - 22);
+    }
+
+    // --- 太陽・惑星エディタ ---
+    function astroRenderPlanetList() {
+        const box = $astro('astroPlanetList');
+        if (!box) return;
+        box.innerHTML = '';
+        astroPlanets.forEach(o => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'astro-item' + (o.id === astroSelectedPlanet ? ' active' : '');
+            b.textContent = currentLang === 'en' ? o.nameEn : o.name;
+            b.addEventListener('click', () => {
+                astroSelectedPlanet = o.id;
+                astroRenderPlanetList();
+                astroRenderPlanetEditor();
+                astroDrawPlanetPreview();
+            });
+            box.appendChild(b);
+        });
+    }
+
+    function astroRenderPlanetEditor() {
+        const o = astroPlanets.find(x => x.id === astroSelectedPlanet);
+        if (!o) return;
+        const e = $astro('astroPlanetEditor');
+        if (!e) return;
+        const displayName = currentLang === 'en' ? o.nameEn : o.name;
+        e.innerHTML = `<strong>${displayName}</strong>
+        <div class="astro-meta">${currentLang === 'en' ? 'Solar System Body' : '太陽系天体（太陽・惑星）'}</div>
+        ${astroField(typeof tr === 'function' ? tr('color') : '色', 'planetColor', 'color', o.color)}
+        ${astroField(typeof tr === 'function' ? tr('size') : 'サイズ', 'planetSize', 'range', o.size, 3, 35, 1)}
+        ${astroField(typeof tr === 'function' ? tr('flareIntensity') : 'フレア強度', 'planetFlare', 'range', o.flare, 0, 1, 0.01)}
+        ${astroField(typeof tr === 'function' ? tr('flareSpread') : 'フレア広がり', 'planetSpread', 'range', o.spread, 0.3, 2.5, 0.05)}
+        <div class="astro-actions"><button id="planetReset" type="button">${typeof tr === 'function' ? tr('resetDefault') : '初期値に戻す'}</button></div>`;
+
+        const bind = (id, key, cast) => {
+            const el = $astro(id);
+            if (el) el.addEventListener('input', ev => {
+                o[key] = cast(ev.target.value);
+                astroSavePrefs();
+                astroDrawPlanetPreview();
+                if (isSkyMode) renderTokyoSky(simDate);
+            });
+        };
+        bind('planetColor', 'color', String);
+        bind('planetSize', 'size', Number);
+        bind('planetFlare', 'flare', Number);
+        bind('planetSpread', 'spread', Number);
+        ['planetColor', 'planetSize', 'planetFlare', 'planetSpread'].forEach(id => {
+            const el = $astro(id);
+            if (el) el.addEventListener('input', astroDrawPlanetPreview);
+        });
+        const btnReset = $astro('planetReset');
+        if (btnReset) btnReset.addEventListener('click', () => {
+            const d = ASTRO_PLANET_DEFAULTS.find(x => x.id === o.id);
+            if (d) {
+                Object.assign(o, JSON.parse(JSON.stringify(d)));
+                astroRenderPlanetEditor();
+                astroDrawPlanetPreview();
+                astroSavePrefs();
+                if (isSkyMode) renderTokyoSky(simDate);
+            }
+        });
+    }
+
+    function astroDrawPlanetPreview() {
+        const c = $astro('planetPreview');
+        if (!c) return;
+        const x = c.getContext('2d'), o = astroPlanets.find(v => v.id === astroSelectedPlanet);
+        if (!o) return;
+        const w = c.width, h = c.height;
+        x.clearRect(0, 0, w, h);
+        x.fillStyle = '#030813';
+        x.fillRect(0, 0, w, h);
+        const cx = w * 0.48, cy = h * 0.5, r = Math.max(10, o.size * 2.3);
+        if (o.flare > 0) {
+            const glow = x.createRadialGradient(cx, cy, r * 0.2, cx, cy, r * (1.2 + o.spread * 1.5));
+            glow.addColorStop(0, o.color + 'aa');
+            glow.addColorStop(1, o.color + '00');
+            x.fillStyle = glow;
+            x.beginPath();
+            x.arc(cx, cy, r * (1.2 + o.spread * 1.5), 0, Math.PI * 2);
+            x.fill();
+        }
+        const sphere = x.createRadialGradient(cx - r * 0.35, cy - r * 0.4, r * 0.05, cx, cy, r);
+        sphere.addColorStop(0, '#ffffff');
+        sphere.addColorStop(0.25, o.color);
+        sphere.addColorStop(1, '#080e18');
+        x.fillStyle = sphere;
+        x.beginPath();
+        x.arc(cx, cy, r, 0, Math.PI * 2);
+        x.fill();
+        if (o.id === 'saturn') {
+            x.strokeStyle = o.color + '99';
+            x.lineWidth = 6;
+            x.beginPath();
+            x.ellipse(cx, cy, r * 1.8, r * 0.55, -0.25, 0, Math.PI * 2);
+            x.stroke();
+        }
+        x.fillStyle = '#eaf5ff';
+        x.font = 'bold 22px sans-serif';
+        x.fillText(currentLang === 'en' ? o.nameEn : o.name, 24, 34);
+        x.font = '13px sans-serif';
+        x.fillStyle = '#a9c7e8';
+        x.fillText(`Size: ${o.size}  /  Flare: ${o.flare.toFixed(2)}  /  Spread: ${o.spread.toFixed(2)}`, 24, h - 22);
+    }
+
+    document.querySelectorAll('[data-editor-tab]').forEach(b => b.addEventListener('click', () => {
+        document.querySelectorAll('[data-editor-tab]').forEach(x => x.classList.toggle('active', x === b));
+        document.querySelectorAll('.editor-tab-pane').forEach(x => x.classList.toggle('active', x.id === 'editorPane' + b.dataset.editorTab[0].toUpperCase() + b.dataset.editorTab.slice(1)));
+        if (b.dataset.editorTab === 'constellation') { resizeConstEditorCanvas(); renderConstEditorCanvas(); }
+        if (b.dataset.editorTab === 'nebula') astroDrawNebulaPreview();
+        if (b.dataset.editorTab === 'planet') astroDrawPlanetPreview();
+    }));
+function astroField(label,id,type,value,min,max,step){return `<label>${label}<input id="${id}" type="${type}" value="${value}" ${min!==undefined?`min="${min}"`:''} ${max!==undefined?`max="${max}"`:''} ${step!==undefined?`step="${step}"`:''}></label>`;}
+    function astroRenderNebulaList() {
+        const box = $astro('astroNebulaList');
+        box.innerHTML = '';
+        astroDeepSky.forEach(o => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'astro-item' + (o.id === astroSelectedNebula ? ' active' : '');
+            const name = currentLang === 'en' ? (DEEP_SKY_NAMES_EN[o.name] || o.name) : o.name;
+            b.textContent = `${o.id} ${name}`;
+            b.addEventListener('click', () => {
+                astroSelectedNebula = o.id;
+                astroRenderNebulaList();
+                astroRenderNebulaEditor();
+                astroDrawNebulaPreview();
+            });
+            box.appendChild(b);
+        });
+    }
+    function astroRenderNebulaEditor() {
+            const o = astroDeepSky.find(x => x.id === astroSelectedNebula);
+            if (!o) return;
+            const e = $astro('astroNebulaEditor');
+            if (!e) return;
+
+            const displayName = (currentLang === 'en' && typeof DEEP_SKY_NAMES_EN !== 'undefined')
+                ? (DEEP_SKY_NAMES_EN[o.name] || o.name) : o.name;
+            const displayType = (currentLang === 'en' && typeof NEBULA_TYPE_EN !== 'undefined')
+                ? (NEULA_TYPE_EN = NEBULA_TYPE_EN || {}, NEBULA_TYPE_EN[o.type] || o.type) : o.type;
+
+            const metaText = currentLang === 'en'
+                ? `${o.id} / ${displayType} / Mag ${o.mag} / RA ${o.ra.toFixed(2)}°, Dec ${o.dec.toFixed(2)}°`
+                : `${o.id} ／ ${displayType} ／ 等級 ${o.mag} ／ 赤経 ${o.ra.toFixed(2)}°・赤緯 ${o.dec.toFixed(2)}°`;
+
+            const labelColor = typeof tr === 'function' ? tr('color') : 'Color';
+            const labelSize = typeof tr === 'function' ? tr('size') : 'Size';
+            const labelBright = typeof tr === 'function' ? tr('brightness') : 'Brightness';
+            const labelFlare = typeof tr === 'function' ? tr('flareIntensity') : 'Flare';
+            const labelSpread = typeof tr === 'function' ? tr('flareSpread') : 'Spread';
+            const labelReset = typeof tr === 'function' ? tr('resetDefault') : 'Reset';
+
+            e.innerHTML = `<strong>${displayName}</strong>
+        <div class="astro-meta">${metaText}</div>
+        ${astroField(labelColor, 'nebColor', 'color', o.color)}
+        ${astroField(labelSize, 'nebSize', 'range', o.size, 5, 60, 1)}
+        ${astroField(labelBright, 'nebBright', 'range', o.brightness, 0.1, 1.5, 0.01)}
+        ${astroField(labelFlare, 'nebFlare', 'range', o.flare, 0, 1, 0.01)}
+        ${astroField(labelSpread, 'nebSpread', 'range', o.spread, 0.3, 2.5, 0.05)}
+        <div class="astro-actions"><button id="nebReset" type="button">${labelReset}</button></div>`;
+
+            const bind = (id, key, cast) => {
+                const el = $astro(id);
+                if (!el) return;
+                el.addEventListener('input', ev => {
+                    o[key] = cast(ev.target.value);
+                    astroSavePrefs();
+                    astroDrawNebulaPreview();
+                    if (isSkyMode) renderTokyoSky(simDate);
+                });
+            };
+
+            bind('nebColor', 'color', String);
+            bind('nebSize', 'size', Number);
+            bind('nebBright', 'brightness', Number);
+            bind('nebFlare', 'flare', Number);
+            bind('nebSpread', 'spread', Number);
+
+            ['nebColor', 'nebSize', 'nebBright', 'nebFlare', 'nebSpread'].forEach(id => {
+                const el = $astro(id);
+                if (el) el.addEventListener('input', astroDrawNebulaPreview);
+            });
+
+            const btnReset = $astro('nebReset');
+            if (btnReset) {
+                btnReset.addEventListener('click', () => {
+                    const d = ASTRO_DEEP_SKY_DEFAULTS.find(x => x.id === o.id);
+                    if (d) {
+                        Object.assign(o, JSON.parse(JSON.stringify(d)));
+                        astroRenderNebulaEditor();
+                        astroDrawNebulaPreview();
+                        astroSavePrefs();
+                        if (isSkyMode) renderTokyoSky(simDate);
+                    }
+                });
+            }
+        }
+
+const ASTRO_EXISTING_CONSTELLATIONS=[{name:'オリオン座',en:'Orion',ra:85,dec:0},{name:'カシオペヤ座',en:'Cassiopeia',ra:15,dec:60},{name:'おおぐま座',en:'Ursa Major',ra:185,dec:55},{name:'こぐま座',en:'Ursa Minor',ra:225,dec:78},{name:'さそり座',en:'Scorpius',ra:250,dec:-30},{name:'しし座',en:'Leo',ra:155,dec:15},{name:'おうし座',en:'Taurus',ra:65,dec:20},{name:'ぎょしゃ座',en:'Auriga',ra:82,dec:42},{name:'ケフェウス座',en:'Cepheus',ra:330,dec:70},{name:'おおいぬ座',en:'Canis Major',ra:105,dec:-22},{name:'みなみじゅうじ座',en:'Crux',ra:190,dec:-60}];
+const ASTRO_ALL_CONSTELLATIONS=[...ASTRO_EXISTING_CONSTELLATIONS,...ASTRO_EXTRA_CONSTELLATIONS];
+function astroRenderConstellationList(){const box=$astro('astroConstellationList');box.innerHTML='';ASTRO_ALL_CONSTELLATIONS.forEach((o,i)=>{const b=document.createElement('button');b.type='button';b.className='astro-item'+(i===astroSelectedConstellation?' active':'');b.textContent=`${o.name} / ${o.en}`;b.addEventListener('click',()=>{astroSelectedConstellation=i;astroRenderConstellationList();astroRenderConstellationInfo();});box.appendChild(b);});}
+function astroRenderConstellationInfo(){const o=ASTRO_ALL_CONSTELLATIONS[astroSelectedConstellation];$astro('astroConstellationInfo').innerHTML=`<strong>${o.name}</strong><div class="astro-meta">${o.en}<br>代表位置（概略中心）<br>赤経 ${o.ra.toFixed(1)}° ／ 赤緯 ${o.dec.toFixed(1)}°<br><br>この一覧はIAU全88星座の名称・位置確認用です。代表位置は星座の境界線や全構成星を表すものではありません。主要星座の実星・星座線は既存データと追加描画で表示します。</div>`;}
+function astroDrawNebulaPreview(){const c=$astro('nebulaPreview');if(!c)return;const x=c.getContext('2d'),o=astroDeepSky.find(v=>v.id===astroSelectedNebula);if(!o)return;const w=c.width,h=c.height;x.clearRect(0,0,w,h);x.fillStyle='#030813';x.fillRect(0,0,w,h);for(let i=0;i<180;i++){const sx=(i*97%w),sy=(i*53%h);x.fillStyle=`rgba(190,220,255,${((i*13)%50)/220})`;x.fillRect(sx,sy,1.5,1.5);}const r= Math.max(12,o.size*2.1),cx=w*.48,cy=h*.51;const g=x.createRadialGradient(cx,cy,r*.04,cx,cy,r*(1.1+o.spread));g.addColorStop(0,o.color+'ee');g.addColorStop(.24,o.color+'99');g.addColorStop(.62,o.color+'35');g.addColorStop(1,o.color+'00');x.save();x.globalAlpha=Math.min(1,o.brightness);x.fillStyle=g;x.beginPath();if(o.type==='銀河'){x.ellipse(cx,cy,r*1.8,r*.58,-.3,0,Math.PI*2);}else if(o.type==='球状星団'||o.type==='散開星団'){x.arc(cx,cy,r*.8,0,Math.PI*2);}else if(o.type==='惑星状星雲'){x.arc(cx,cy,r*.75,0,Math.PI*2);}else{x.ellipse(cx,cy,r*1.25,r*.85,.25,0,Math.PI*2);}x.fill();x.restore();if(o.flare>0){x.save();x.globalAlpha=o.flare*.7;x.strokeStyle=o.color;x.lineWidth=2+o.flare*5;x.shadowColor=o.color;x.shadowBlur=28*o.spread;x.beginPath();x.arc(cx,cy,r*(.55+o.spread*.18),0,Math.PI*2);x.stroke();x.restore();}x.fillStyle='#eaf5ff';x.font='bold 22px sans-serif';x.fillText(`${o.id}  ${o.name}`,24,34);x.font='13px sans-serif';x.fillStyle='#a9c7e8';x.fillText(`${o.type}  /  等級 ${o.mag}  /  RA ${o.ra.toFixed(2)}°  Dec ${o.dec.toFixed(2)}°`,24,h-22);}
+function astroInstall88Constellations(){
+ const old=CONSTELLATIONS;const alias={'北斗七星':'おおぐま座','こぐま座 (北極星)':'こぐま座','おうし座 (すばる)':'おうし座','ぎょしゃ座 (カペラ)':'ぎょしゃ座'};const oldByName={};old.forEach(c=>oldByName[alias[c.name]||c.name]=c);
+ const official=[...ASTRO_EXISTING_CONSTELLATIONS,...ASTRO_EXTRA_CONSTELLATIONS];const seen=new Set();const merged=[];
+ official.forEach(o=>{let name=o.name;if(o.en==='Sextans')name='ろくぶんぎ座';if(seen.has(o.en))return;seen.add(o.en);let prev=oldByName[name];let stars,lines,catalogOnly=false;
+ if(prev){stars=JSON.parse(JSON.stringify(prev.stars));lines=JSON.parse(JSON.stringify(prev.lines));}
+ else if(ASTRO_LINEWORK[name]){stars=JSON.parse(JSON.stringify(ASTRO_LINEWORK[name].stars));lines=JSON.parse(JSON.stringify(ASTRO_LINEWORK[name].lines));}
+ else {stars={代表位置:[o.ra,o.dec]};lines=[];catalogOnly=true;}
+ merged.push({name,en:o.en,ra:o.ra,dec:o.dec,stars,lines,visible:prev?.visible!==false,catalogOnly});
+ });
+ // Persisted settings for matching names take precedence; the new 88-name set is the canonical base.
+ let saved={};try{saved=JSON.parse(localStorage.getItem(CONSTELLATION_STORAGE_KEY)||'{}')||{};}catch(e){}
+ merged.forEach(c=>{const v=saved[c.name];if(!v)return;if(typeof v.visible==='boolean')c.visible=v.visible;if(v.stars&&typeof v.stars==='object')Object.entries(v.stars).forEach(([k,p])=>{if(Array.isArray(p)&&p.length===2&&p.every(n=>Number.isFinite(Number(n))))c.stars[k]=[Number(p[0]),Number(p[1])];});if(Array.isArray(v.lines))c.lines=v.lines.filter(p=>Array.isArray(p)&&p.length===2&&p.every(k=>Object.prototype.hasOwnProperty.call(c.stars,k)));});
+ DEFAULT_CONSTELLATIONS=JSON.parse(JSON.stringify(merged));CONSTELLATIONS=merged;editorSelectedConstIdx=Math.min(editorSelectedConstIdx,CONSTELLATIONS.length-1);saveConstellationsData();
+}
+    function astroInitWorkbench() {
+        astroInstall88Constellations();
+        astroRenderNebulaList();
+        astroRenderNebulaEditor();
+        astroRenderPlanetList();
+        astroRenderPlanetEditor();
+        renderConstEditorList();
+        updateSelectedStarInfo();
+        astroDrawNebulaPreview();
+        astroDrawPlanetPreview();
+        astroApplyVisibility();
+    }
+// Project equatorial coordinates into the same horizon panel geometry as the original sky renderer.
+function astroProject(ra,dec,date){
+ const w=skyCanvas.width,h=skyCanvas.height;
+ const panel=document.querySelector('.control-panel');
+ const panelBottom=panel?panel.getBoundingClientRect().height:0;
+ const horizonY=h*.835;
+ const zenithY=Math.max(h*.07,panelBottom+24);
+ const skyHeight=Math.max(100,horizonY-zenithY);
+ const hor=raDecToHorizontal(ra,dec,(date.getTime()/86400000)+2440587.5-2451545.0);
+ const rad=Math.PI/180;
+ if(viewMode==='zenith'){
+   // 星座・恒星と同じドーム寸法、ズーム、パンを使用する
+   const availTop=zenithY+18;
+   const availBottom=h-22;
+   const availH=Math.max(120,availBottom-availTop);
+   const availW=Math.max(120,w-100);
+   const baseCircleR=Math.max(70,Math.min(availH,availW)*.49);
+   const circleR=baseCircleR*zenithZoom;
+   const baseCircleY=availTop+availH*.5;
+   const cx=w/2+zenithPanX;
+   const cy=baseCircleY+zenithPanY;
+   const clampedAlt=Math.max(0,Math.min(90,hor.alt));
+   const dist=circleR*((90-clampedAlt)/90);
+   const theta=-Math.PI/2+(hor.az-zenithTopAz)*rad;
+   return {x:cx+dist*Math.cos(theta),y:cy+dist*Math.sin(theta),visible:hor.alt>=-2&&hor.alt<=90,alt:hor.alt};
+ }
+ const centerAz=({north:0,east:90,south:180,west:270})[viewMode]??180;
+ let rel=((hor.az-centerAz+540)%360)-180;
+ const visible=Math.abs(rel)<=135;
+ const u=Math.max(-1,Math.min(1,rel/135));
+ const safeAlt=Math.max(-5,Math.min(90,hor.alt));
+ const a=Math.max(0,safeAlt)/90;
+ const convergence=.04+(1-.04)*(1-Math.pow(a,1.30));
+ const x=w/2+u*Math.max(1,w/2-12)*convergence;
+ const vertical=a+.90*u*u*a*(1-a);
+ const y=horizonY-skyHeight*(safeAlt<0?safeAlt/90:vertical);
+ return{x,y,visible,alt:hor.alt};
+}
+function astroDrawFlare(ctx,x,y,color,r,intensity,spread){if(intensity<=0)return;ctx.save();ctx.globalAlpha=Math.min(.9,intensity);const rr=r*(2.2+spread*2.2);const g=ctx.createRadialGradient(x,y,r*.2,x,y,rr);g.addColorStop(0,color+'aa');g.addColorStop(.25,color+'55');g.addColorStop(1,color+'00');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,rr,0,Math.PI*2);ctx.fill();ctx.strokeStyle=color+'88';ctx.lineWidth=Math.max(.5,intensity*1.5);ctx.beginPath();ctx.arc(x,y,r*(1.2+spread),0,Math.PI*2);ctx.stroke();ctx.restore();}
+
+    function astroDrawDeepSky(date) {
+            if (!astroVisibility || !astroVisibility.deepSky) return;
+            const ctx = skyCtx;
+            if (!ctx || !Array.isArray(astroDeepSky)) return;
+
+            astroDeepSky.forEach(o => {
+                const p = astroProject(o.ra, o.dec, date);
+                if (!p || !p.visible || p.alt < 0) return;
+                const r = Math.max(3, (o.size || 20) * 0.5);
+                if (typeof astroDrawFlare === 'function') {
+                    astroDrawFlare(ctx, p.x, p.y, o.color, r, o.flare || 0, o.spread || 1);
+                }
+                ctx.save();
+                ctx.globalAlpha = Math.min(1, o.brightness || 0.8);
+                ctx.fillStyle = o.color || '#ffffff';
+                ctx.shadowColor = o.color || '#ffffff';
+                ctx.shadowBlur = 8 + (o.flare || 0) * 15;
+                ctx.beginPath();
+                if (o.type === '銀河') { ctx.ellipse(p.x, p.y, r * 1.5, r * 0.55, -0.4, 0, Math.PI * 2); }
+                else if (o.type === '球状星団') { ctx.arc(p.x, p.y, r * 0.72, 0, Math.PI * 2); }
+                else if (o.type === '惑星状星雲') { ctx.arc(p.x, p.y, r * 0.65, 0, Math.PI * 2); }
+                else { ctx.ellipse(p.x, p.y, r, r * 0.72, 0.2, 0, Math.PI * 2); }
+                ctx.fill();
+                ctx.restore();
+
+                if (showLabels && astroVisibility.constellationNames) {
+                    ctx.fillStyle = '#e9f5ff';
+                    ctx.font = '11px sans-serif';
+                    ctx.textAlign = 'left';
+
+                    // 安全ガード：辞書が存在しない場合でも絶対にエラー落ちしない
+                    let name = o.name;
+                    if (currentLang === 'en') {
+                        if (typeof DEEP_SKY_NAMES_EN !== 'undefined' && DEEP_SKY_NAMES_EN[o.name]) {
+                            name = DEEP_SKY_NAMES_EN[o.name];
+                        }
+                    }
+                    const magLabel = currentLang === 'en' ? `Mag ${o.mag}` : `等級 ${o.mag}`;
+                    ctx.fillText(`${o.id} ${name} (${magLabel})`, p.x + r + 4, p.y - 3);
+                }
             });
         }
 
+function astroProjectFromHorizontal(az,alt){
+ const w=skyCanvas.width,h=skyCanvas.height;
+ const panel=document.querySelector('.control-panel');
+ const pb=panel?panel.getBoundingClientRect().height:0;
+ const hz=h*.835,zy=Math.max(h*.07,pb+24),sh=Math.max(100,hz-zy),rad=Math.PI/180;
+ if(viewMode==='zenith'){
+   // 衛星も星座・星雲と同じズーム／パン変換にそろえる
+   const availTop=zy+18,availBottom=h-22;
+   const availH=Math.max(120,availBottom-availTop),availW=Math.max(120,w-100);
+   const baseR=Math.max(70,Math.min(availH,availW)*.49),cr=baseR*zenithZoom;
+   const cx=w/2+zenithPanX,cy=availTop+availH*.5+zenithPanY;
+   const dist=cr*((90-Math.max(0,Math.min(90,alt)))/90);
+   const th=-Math.PI/2+(az-zenithTopAz)*rad;
+   return{x:cx+dist*Math.cos(th),y:cy+dist*Math.sin(th),visible:alt>=-2,alt};
+ }
+ const ca=({north:0,east:90,south:180,west:270})[viewMode]??180;
+ const rel=((az-ca+540)%360)-180,visible=Math.abs(rel)<=135,u=Math.max(-1,Math.min(1,rel/135)),sa=Math.max(-5,Math.min(90,alt)),a=Math.max(0,sa)/90,conv=.04+.96*(1-Math.pow(a,1.3)),x=w/2+u*Math.max(1,w/2-12)*conv,vertical=a+.90*u*u*a*(1-a),y=hz-sh*(sa<0?sa/90:vertical);
+ return{x,y,visible,alt};
+}
+const ASTRO_LINEWORK={
+ 'ふたご座':{stars:{Castor:[113.65,31.89],Pollux:[116.33,28.03],Alhena:[99.43,16.40],Wasat:[110.03,21.98],Mebsuta:[100.98,25.13],Tejat:[95.74,22.51],Propus:[93.72,22.51]},lines:[['Castor','Mebsuta'],['Mebsuta','Tejat'],['Tejat','Propus'],['Castor','Pollux'],['Pollux','Wasat'],['Wasat','Alhena']]},
+ 'おとめ座':{stars:{Spica:[201.30,-11.16],Vindemiatrix:[195.54,10.96],Porrima:[190.42,-1.45],Zaniah:[183.95,-0.67],Heze:[203.67,-0.60],Zavijava:[177.67,1.76]},lines:[['Vindemiatrix','Porrima'],['Porrima','Zaniah'],['Zaniah','Zavijava'],['Porrima','Spica'],['Spica','Heze']]},
+ 'はくちょう座':{stars:{Deneb:[310.36,45.28],Sadr:[305.56,40.26],Gienah:[311.55,33.97],Albireo:[292.68,27.96],Delta:[296.24,45.13],Epsilon:[299.08,33.97]},lines:[['Deneb','Sadr'],['Sadr','Gienah'],['Gienah','Albireo'],['Sadr','Delta'],['Sadr','Epsilon']]},
+ 'こと座':{stars:{Vega:[279.23,38.78],Sheliak:[282.52,33.36],Sulafat:[284.74,32.69],Delta2:[281.19,36.90]},lines:[['Vega','Delta2'],['Delta2','Sheliak'],['Sheliak','Sulafat'],['Sulafat','Delta2']]},
+ 'わし座':{stars:{Altair:[297.70,8.87],Tarazed:[296.56,10.61],Alshain:[298.83,6.40]},lines:[['Tarazed','Altair'],['Altair','Alshain']]},
+ 'いて座':{stars:{KausAustralis:[276.04,-34.38],KausMedia:[275.25,-29.83],KausBorealis:[276.99,-25.42],Nunki:[283.82,-26.30],Ascella:[286.17,-29.88],Tau:[286.17,-27.67]},lines:[['KausAustralis','KausMedia'],['KausMedia','KausBorealis'],['KausBorealis','Nunki'],['Nunki','Ascella'],['Ascella','Tau']]},
+ 'ケンタウルス座':{stars:{AlphaCen:[219.90,-60.83],Hadar:[210.96,-60.37],Menkent:[211.67,-36.37],Muhlifain:[190.38,-48.96],Epsilon:[204.97,-53.47]},lines:[['Menkent','Muhlifain'],['Muhlifain','Hadar'],['Hadar','AlphaCen'],['Hadar','Epsilon']]},
+ 'りゅうこつ座':{stars:{Canopus:[95.99,-52.70],Miaplacidus:[138.30,-69.72],Avior:[125.63,-59.51],Aspidiske:[139.27,-59.28]},lines:[['Canopus','Avior'],['Avior','Miaplacidus'],['Miaplacidus','Aspidiske']]},
+ 'ほ座':{stars:{Suhail:[136.99,-43.43],Markeb:[140.53,-55.01],Alsephina:[127.60,-55.01],Delta:[131.18,-54.71]},lines:[['Suhail','Alsephina'],['Alsephina','Markeb'],['Markeb','Delta']]},
+ 'ヘルクレス座':{stars:{Rasalgethi:[258.66,14.39],Kornephoros:[247.55,21.49],Zeta:[250.32,31.60],Eta:[250.72,39.39],Pi:[258.76,36.81],Epsilon:[255.07,30.93]},lines:[['Rasalgethi','Kornephoros'],['Kornephoros','Zeta'],['Zeta','Eta'],['Eta','Pi'],['Pi','Epsilon'],['Epsilon','Zeta']]},
+ 'ペガスス座':{stars:{Markab:[346.19,15.21],Scheat:[345.94,28.08],Algenib:[3.31,15.18],Enif:[326.05,9.88],Matar:[340.37,24.60]},lines:[['Markab','Scheat'],['Scheat','Algenib'],['Algenib','Markab'],['Markab','Enif'],['Scheat','Matar']]}
+};
+function astroDrawConstellationLines(date){}
+    function astroRenderOverlay(date) { if (!isSkyMode) return; astroDrawDeepSky(date); }
+const astroBaseRenderTokyoSky=renderTokyoSky;
+renderTokyoSky=function(date){astroBaseRenderTokyoSky(date);astroRenderOverlay(date);};
+astroInitWorkbench();
+
+    // ==========================================
+    // カスタム地域マップ専用 リアルタイム雨雲レーダー
+    // ==========================================
+    let customRadarLayer = null;
+
+    async function loadCustomMapRainRadar(mapInstance) {
+        if (!mapInstance) return;
+        try {
+            const resp = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+            if (!resp.ok) return;
+            const data = await resp.json();
+            const radar = data?.radar;
+            const latest = radar?.nowcast?.[0] || radar?.past?.[radar.past.length - 1];
+            if (latest && latest.path) {
+                const url = `https://tilecache.rainviewer.com${latest.path}/256/{z}/{x}/{y}/2/1_1.png`;
+
+                // 既存の雨雲があれば削除
+                if (customRadarLayer && mapInstance.hasLayer(customRadarLayer)) {
+                    mapInstance.removeLayer(customRadarLayer);
+                }
+
+                // 新しい雨雲タイルを生成（zIndex: 9999 で最前面に指定）
+                customRadarLayer = L.tileLayer(url, { opacity: 0.75, zIndex: 9999 });
+                customRadarLayer.addTo(mapInstance);
+
+                // 国境などのベクターデータのさらに手前に強制移動
+                customRadarLayer.bringToFront();
+            }
+        } catch (_) { }
+    }
+
+    // カスタム地域マップが開かれたときに雨雲をロードするフック
+    const origEnsureCustomRegionMap = window.ensureCustomRegionMap;
+    if (typeof origEnsureCustomRegionMap === 'function') {
+        window.ensureCustomRegionMap = function () {
+            origEnsureCustomRegionMap();
+            if (typeof customRegionMap !== 'undefined' && customRegionMap) {
+                setTimeout(() => {
+                    loadCustomMapRainRadar(customRegionMap);
+                }, 300);
+            }
+        };
+    }
+
+    // もしすでにカスタムマップが開かれて初期化されている場合の対策
+    document.addEventListener('click', (e) => {
+        if (e.target && (e.target.id === 'btnCustomRegion' || e.target.closest('#btnCustomRegion'))) {
+            setTimeout(() => {
+                if (typeof customRegionMap !== 'undefined' && customRegionMap) {
+                    loadCustomMapRainRadar(customRegionMap);
+                }
+            }, 400);
+        }
+    });
+    
         // ==========================================
-        // 9. アニメーションループ & 起動
+        // 9. アニメーションループ開始
         // ==========================================
         let lastTime = performance.now();
-        function animate(currentTime) {
+        function animate(now) {
             requestAnimationFrame(animate);
+            const dt = (now - lastTime) / 1000;
+            lastTime = now;
+            cloudAnimTime += dt * 1000;
 
-            const frameDt = Math.min(0.1, Math.max(0, (currentTime - lastTime) / 1000));
             if (isPlaying) {
-                const addMs = stepHours * 3600 * 1000 * frameDt;
-                simDate = new Date(simDate.getTime() + addMs);
+                simDate = new Date(simDate.getTime() + stepHours * 3600000 * dt);
                 updateSimulation(simDate);
-            }
-            // 星空表示中は一時停止／「現在」表示でも天気の雲・雨・雪を動かす
-            if (isSkyMode) {
-                cloudAnimTime += frameDt * 1000;
+            } else if (isRealtimeMode) {
+                simDate = new Date();
+                updateSimulation(simDate);
+            } else if (isSkyMode && showWeather && weatherAvailable) {
                 renderTokyoSky(simDate);
             }
-            lastTime = currentTime;
 
-            sun.rotation.y += 0.002;
-            controls.update();
-            renderer.render(scene, camera);
-            renderSpaceLabels3D();
+            if (!isSkyMode) {
+                controls.update();
+                renderer.render(scene, camera);
+                renderSpaceLabels3D();
+            }
         }
-        requestAnimationFrame(animate);
-
-        let spacePointerDownX = 0;
-        let spacePointerDownY = 0;
-        let spaceDidDrag = false;
-        const spaceContainer = document.getElementById('canvas-container');
-        spaceContainer.addEventListener('pointerdown', (e) => {
-            if (isSkyMode || e.button !== 0) return;
-            spacePointerDownX = e.clientX;
-            spacePointerDownY = e.clientY;
-            spaceDidDrag = false;
-        });
-        spaceContainer.addEventListener('pointermove', (e) => {
-            if (isSkyMode) return;
-            if (Math.hypot(e.clientX - spacePointerDownX, e.clientY - spacePointerDownY) > 4) {
-                spaceDidDrag = true;
-            }
-        });
-        spaceContainer.addEventListener('click', (e) => {
-            if (isSkyMode || e.button !== 0) return;
-            if (spaceDidDrag) {
-                spaceDidDrag = false;
-                return;
-            }
-            togglePlayPause();
-        });
 
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
@@ -4098,25 +5785,13 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // 1分毎の現在時刻自動更新（再生中ではなく現在表示中の場合のみ）
-        function scheduleNextMinuteUpdate() {
-            const now = new Date();
-            const msUntilNextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
-            setTimeout(() => {
-                if (!isPlaying && isRealtimeMode) {
-                    simDate = new Date();
-                    updateSimulation(simDate);
-                }
-                scheduleNextMinuteUpdate();
-            }, Math.max(200, msUntilNextMinute));
-        }
-        scheduleNextMinuteUpdate();
-
-        // 起動時初期化 (南の空からスタート)
-        updateLanguageUI();
-        ensureWeatherData();
         setViewMode('south');
+        btnToggleConst.style.background = '#5522aa';
+        btnToggleConst.style.color = '#fff';
+        updateLanguageUI();
         updateSimulation(simDate);
+        ensureWeatherData();
+        animate(performance.now());
     </script>
 </body>
 
