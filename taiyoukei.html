@@ -983,6 +983,8 @@
                 <input id="customRegionLon" type="number" min="-180" max="180" step="0.0001" placeholder="130.9969">
             </label>
             <div class="custom-region-actions">
+                <button id="btnToggleCustomRadar" type="button" style="background:#13355a; border-color:#3a72b0; color:#8fe5ff;">🌧️
+                    雨雲: ON</button>
                 <button id="btnSaveCustomRegion" type="button">登録</button>
                 <button id="btnCloseCustomRegion" type="button">閉じる</button>
             </div>
@@ -5752,6 +5754,30 @@ astroInitWorkbench();
         }
     });
     
+    // カスタム地域マップの雨雲ON/OFFボタン制御
+        let showCustomRadar = true;
+        const btnToggleCustomRadar = document.getElementById('btnToggleCustomRadar');
+
+        if (btnToggleCustomRadar) {
+            btnToggleCustomRadar.addEventListener('click', () => {
+                showCustomRadar = !showCustomRadar;
+                btnToggleCustomRadar.textContent = showCustomRadar
+                    ? (currentLang === 'en' ? '🌧️ Radar: ON' : '🌧️ 雨雲: ON')
+                    : (currentLang === 'en' ? '🌧️ Radar: OFF' : '🌧️ 雨雲: OFF');
+                btnToggleCustomRadar.style.background = showCustomRadar ? '#13355a' : '#222';
+                btnToggleCustomRadar.style.color = showCustomRadar ? '#8fe5ff' : '#888';
+
+                if (typeof customRadarLayer !== 'undefined' && customRadarLayer && typeof customRegionMap !== 'undefined' && customRegionMap) {
+                    if (showCustomRadar) {
+                        if (!customRegionMap.hasLayer(customRadarLayer)) customRadarLayer.addTo(customRegionMap);
+                        customRadarLayer.bringToFront();
+                    } else {
+                        if (customRegionMap.hasLayer(customRadarLayer)) customRegionMap.removeLayer(customRadarLayer);
+                    }
+                }
+            });
+        }
+        
         // ==========================================
         // 9. アニメーションループ開始
         // ==========================================
