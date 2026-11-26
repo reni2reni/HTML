@@ -947,6 +947,43 @@ button { min-height:34px; }
   .clock-row { font-size: 8px; }
 }
 
+
+/* ホーム/カスタム地域設定は操作バーのスクロール領域から独立させる */
+body > #homeSettingsPanel,
+body > #customRegionPanel {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: translate(-50%, -50%) !important;
+    width: min(1000px, calc(100vw - 32px)) !important;
+    max-width: calc(100vw - 32px) !important;
+    max-height: min(88vh, 820px) !important;
+    overflow: auto !important;
+    box-sizing: border-box !important;
+    z-index: 1200 !important;
+}
+body > #homeSettingsPanel[hidden],
+body > #customRegionPanel[hidden] {
+    display: none !important;
+}
+@media (max-width: 700px) {
+    body > #homeSettingsPanel,
+    body > #customRegionPanel {
+        left: 8px !important;
+        right: 8px !important;
+        width: auto !important;
+        max-width: none !important;
+        max-height: 82dvh !important;
+        transform: translateY(-50%) !important;
+        padding: 10px !important;
+    }
+    #homeRegionMap, #customRegionMap {
+        height: min(30dvh, 230px) !important;
+    }
+}
+
 </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -6015,6 +6052,26 @@ astroInitWorkbench();
         ensureWeatherData();
         animate(performance.now());
     </script>
+
+<script>
+/* 設定パネルをスクロールする操作バーの外へ移動し、PC/スマホで全体を表示 */
+(() => {
+    const detachSettingsPanels = () => {
+        ['homeSettingsPanel', 'customRegionPanel'].forEach((id) => {
+            const panel = document.getElementById(id);
+            if (panel && panel.parentElement !== document.body) {
+                document.body.appendChild(panel);
+            }
+        });
+    };
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', detachSettingsPanels, { once: true });
+    } else {
+        detachSettingsPanels();
+    }
+})();
+</script>
+
 </body>
 
 </html>
