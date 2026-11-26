@@ -3380,11 +3380,11 @@ body > #customRegionPanel[hidden] {
 
             ctx.globalAlpha = weatherOpacity;
             if (isRaining) {
-                ctx.strokeStyle = 'rgba(20, 20, 255, 0.62)';
+                ctx.strokeStyle = 'rgba(80, 80, 255, 0.62)';
                 ctx.lineWidth = 2.0;
                 rainParticles.forEach(p => {
                     p.y += p.speed;
-                    p.x += p.speed * 0.22;
+                    p.x += p.speed * 0.1;
                     if (p.y > 1) { p.y = 0; p.x = Math.random(); }
                     if (p.x > 1) { p.x = 0; }
 
