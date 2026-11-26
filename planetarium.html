@@ -804,6 +804,149 @@
 .const-list-row.active{background:rgba(30,90,145,.65)}
 @media(max-width:700px){.const-editor-modal{max-height:calc(100vh - 12px);width:calc(100vw - 12px)}.astro-edit-layout{grid-template-columns:110px minmax(0,1fr);padding:8px;gap:8px}.astro-edit-layout .astro-list{max-height:160px}.astro-editor{grid-template-columns:1fr}.astro-preview{height:180px}#editorPaneConstellation .const-editor-body{grid-template-columns:120px minmax(0,1fr);padding:8px;gap:8px}}
 
+
+/* === Responsive/mobile usability enhancement === */
+:root { color-scheme: dark; }
+html, body { width:100%; height:100%; min-height:100%; }
+body { overscroll-behavior:none; -webkit-text-size-adjust:100%; }
+#canvas-container, #skyCanvas { width:100%; height:100%; height:100dvh; }
+#canvas-container canvas { display:block; touch-action:none; }
+#skyCanvas { touch-action:pan-y; }
+button, select, input { touch-action:manipulation; }
+button { min-height:34px; }
+.control-panel { max-height: min(42vh, 360px); overflow-y:auto; overscroll-behavior:contain; }
+.toolbar-row { min-width:0; }
+.primary-actions { min-width:0; }
+#citySelect { max-width:100%; }
+.home-settings, .custom-region-settings { left:50%; transform:translate(-50%,-50%); top:50%; }
+.const-editor-modal { padding-bottom:env(safe-area-inset-bottom); }
+@media (max-width: 700px) {
+  .control-panel {
+    max-height: 38dvh;
+    padding: calc(6px + env(safe-area-inset-top)) 8px 7px;
+    gap:5px;
+  }
+  .toolbar-primary, .toolbar-secondary { gap:6px; }
+  .date-home-group { flex-wrap:wrap; gap:5px; }
+  #dateInput { flex:1 1 100%; width:100%; font-size:16px; min-height:36px; }
+  .date-home-group button { flex:1 1 auto; }
+  .primary-actions { display:flex; flex-wrap:wrap; gap:4px; }
+  .primary-actions button { min-height:36px; padding:6px 8px; font-size:12px; }
+  .speed-control { flex:1 1 100%; gap:6px; }
+  .speed-control input[type=range] { flex:1; width:auto; min-width:70px; }
+  .toolbar-secondary { flex-direction:column; align-items:stretch; }
+  .clock-row { font-size:11px; line-height:1.25; }
+  #localTimeDisplay { font-size:15px !important; }
+  .location-speed-group { justify-content:flex-start; gap:5px; }
+  .location-speed-group button { flex:1 1 auto; min-height:35px; font-size:11px; padding:5px 7px; }
+  #citySelect { width:100%; min-width:0; flex:1 1 100%; min-height:38px; font-size:16px; }
+  #worldMapMiniPanel { display:none; }
+  .sky-edge-btn, #btnSkyEdgeLeft, #btnSkyEdgeRight {
+    top:auto; bottom:calc(12px + env(safe-area-inset-bottom));
+    padding:10px 9px; font-size:12px; min-height:40px;
+    max-width:34vw; white-space:normal;
+  }
+  #btnSkyEdgeLeft { left:8px; }
+  #btnSkyEdgeRight { right:8px; }
+  .home-settings, .custom-region-settings {
+    top:50%; left:8px; right:8px; width:auto; max-width:none;
+    max-height:78dvh; transform:translateY(-50%);
+    padding:12px; gap:8px; z-index:260;
+  }
+  #homeRegionMap, #customRegionMap { height: min(32dvh,240px); }
+  #homeTimeZone { max-width:100%; }
+  .const-editor-modal { width:calc(100vw - 10px); max-height:calc(100dvh - 10px); }
+  .const-editor-header { padding:8px 10px; }
+  .const-editor-body { padding:8px; gap:8px; }
+  .const-editor-guide { font-size:11px; }
+  .const-editor-controls { align-items:stretch; }
+  .star-nudge-group, .const-editor-actions { flex-wrap:wrap; }
+  .const-editor-actions button { flex:1 1 auto; }
+  .astro-edit-layout { grid-template-columns: minmax(90px, 30%) minmax(0,1fr); }
+  .astro-editor label { grid-template-columns:1fr; gap:3px; }
+}
+@media (max-width: 390px) {
+  .primary-actions button { font-size:11px; padding:5px 6px; }
+  .location-speed-group button { font-size:10px; }
+  .astro-tabs button { flex-basis:120px; font-size:11px; }
+}
+@media (orientation:landscape) and (max-height:500px) {
+  .control-panel { max-height:48dvh; }
+  .toolbar-primary, .toolbar-secondary { flex-direction:row; flex-wrap:wrap; }
+  .date-home-group { width:auto; }
+  #dateInput { flex:0 1 190px; }
+  .sky-edge-btn { top:50%; bottom:auto; transform:translateY(-50%); }
+  #worldMapMiniPanel { display:none; }
+}
+
+
+/* スマートフォンでは操作パネルを圧縮し、3D/星空の表示領域を優先 */
+@media (max-width: 700px) and (orientation: portrait) {
+  .control-panel {
+    max-height: 27dvh;
+    padding: calc(3px + env(safe-area-inset-top)) 5px 4px;
+    gap: 3px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .toolbar-primary, .toolbar-secondary { gap: 3px; }
+  .date-home-group { gap: 3px; flex-wrap: nowrap; }
+  #dateInput {
+    flex: 1 1 42%;
+    width: 42%;
+    min-width: 0;
+    min-height: 25px;
+    height: 25px;
+    padding: 2px 3px;
+    font-size: 11px;
+  }
+  .date-home-group button,
+  .primary-actions button,
+  .location-speed-group button {
+    min-height: 24px;
+    height: auto;
+    padding: 3px 5px;
+    font-size: 10px;
+    line-height: 1.15;
+    border-radius: 4px;
+  }
+  .primary-actions { gap: 2px; }
+  .primary-actions button { padding: 3px 4px; }
+  #btnPlayPause { font-size: 15px !important; }
+  .speed-control {
+    flex: 1 1 100%;
+    gap: 4px;
+    font-size: 10px;
+    line-height: 1.1;
+  }
+  .speed-control input[type="range"] { min-width: 45px; height: 14px; }
+  #speedVal { width: auto !important; font-size: 9px; }
+  .toolbar-secondary {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .clock-row { font-size: 9px; line-height: 1.15; gap: 2px 8px; }
+  #localTimeDisplay { font-size: 11px !important; }
+  .location-speed-group { gap: 3px; }
+  .location-speed-group button { font-size: 9px; padding: 3px 4px; }
+  #citySelect { min-height: 25px; height: 25px; font-size: 11px; padding: 2px 4px; }
+  .sky-edge-btn, #btnSkyEdgeLeft, #btnSkyEdgeRight {
+    bottom: calc(5px + env(safe-area-inset-bottom));
+    min-height: 25px;
+    padding: 4px 6px;
+    font-size: 9px;
+    max-width: 27vw;
+    opacity: .82;
+  }
+}
+@media (max-width: 390px) and (orientation: portrait) {
+  .control-panel { max-height: 25dvh; }
+  .date-home-group button { font-size: 9px; padding: 3px 4px; }
+  .primary-actions button { font-size: 9px; padding: 3px; }
+  .clock-row { font-size: 8px; }
+}
+
 </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -1096,10 +1239,11 @@
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.matchMedia('(max-width: 700px)').matches ? 1.5 : 2));
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        renderer.domElement.style.touchAction = 'none';
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.maxDistance = 2500;
@@ -2947,7 +3091,8 @@
             skyCanvas.height = window.innerHeight;
             if (isSkyMode) renderTokyoSky(simDate);
         }
-        window.addEventListener('resize', resizeSkyCanvas);
+        window.addEventListener('resize', resizeSkyCanvas, { passive: true });
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', resizeSkyCanvas, { passive: true });
         resizeSkyCanvas();
 
         function getAzimuthAtLocation(phi, dec, H, alt) {
@@ -5848,11 +5993,19 @@ astroInitWorkbench();
             }
         }
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
+        function resizeMainRenderer() {
+            const width = Math.max(1, window.visualViewport ? window.visualViewport.width : window.innerWidth);
+            const height = Math.max(1, window.visualViewport ? window.visualViewport.height : window.innerHeight);
+            camera.aspect = width / height;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.matchMedia('(max-width: 700px)').matches ? 1.5 : 2));
+            renderer.setSize(width, height, false);
+            renderer.domElement.style.width = '100%';
+            renderer.domElement.style.height = '100%';
+        }
+        window.addEventListener('resize', resizeMainRenderer, { passive: true });
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', resizeMainRenderer, { passive: true });
+        resizeMainRenderer();
 
         setViewMode('south');
         btnToggleConst.style.background = '#5522aa';
