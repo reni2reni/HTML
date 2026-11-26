@@ -1030,13 +1030,12 @@
                 <label><input id="astroConstLines" type="checkbox" checked> 星座線</label>
                 <label><input id="astroConstNames" type="checkbox" checked> 星座名</label>
                 <label><input id="astroDeepSky" type="checkbox" checked> 星雲・星団</label>
-                <label><input id="astroSolar" type="checkbox" checked> 太陽・惑星</label>
             </div>
             <div class="astro-tabs" id="unifiedEditorTabs">
                 <button type="button" class="active" data-editor-tab="constellation">✦ 星座エディタ（88星座）</button>
                 <button type="button" data-editor-tab="nebula">☄ 星雲・星団</button>
-                <button type="button" data-editor-tab="planet">🪐 太陽・惑星</button>
             </div>
+
         </div>
         <section class="editor-tab-pane active" id="editorPaneConstellation">
         <div class="const-editor-body">
@@ -5244,12 +5243,11 @@ const ASTRO_DEEP_SKY_DEFAULTS = [{"id": "M42", "name": "オリオン大星雲", 
     });
 
     document.querySelectorAll('[data-editor-tab]').forEach(b => b.addEventListener('click', () => {
-        document.querySelectorAll('[data-editor-tab]').forEach(x => x.classList.toggle('active', x === b));
-        document.querySelectorAll('.editor-tab-pane').forEach(x => x.classList.toggle('active', x.id === 'editorPane' + b.dataset.editorTab[0].toUpperCase() + b.dataset.editorTab.slice(1)));
-        if (b.dataset.editorTab === 'constellation') { resizeConstEditorCanvas(); renderConstEditorCanvas(); }
-        if (b.dataset.editorTab === 'nebula') astroDrawNebulaPreview();
-        if (b.dataset.editorTab === 'planet') astroDrawPlanetPreview();
-    }));
+            document.querySelectorAll('[data-editor-tab]').forEach(x => x.classList.toggle('active', x === b));
+            document.querySelectorAll('.editor-tab-pane').forEach(x => x.classList.toggle('active', x.id === 'editorPane' + b.dataset.editorTab[0].toUpperCase() + b.dataset.editorTab.slice(1)));
+            if (b.dataset.editorTab === 'constellation') { resizeConstEditorCanvas(); renderConstEditorCanvas(); }
+            if (b.dataset.editorTab === 'nebula') astroDrawNebulaPreview();
+        }));
 
     function astroField(label, id, type, value, min, max, step) {
         return `<label>${label}<input id="${id}" type="${type}" value="${value}" ${min !== undefined ? `min="${min}"` : ''} ${max !== undefined ? `max="${max}"` : ''} ${step !== undefined ? `step="${step}"` : ''}></label>`;
