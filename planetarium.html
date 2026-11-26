@@ -3409,12 +3409,12 @@ body > #customRegionPanel[hidden] {
                     MAX_RAIN_PARTICLES,
                     Math.round(5 + Math.pow(rainRatio, 0.80) * (MAX_RAIN_PARTICLES - 5))
                 );
-                ctx.strokeStyle = 'rgba(80, 80, 255, 0.62)';
+                ctx.strokeStyle = 'rgba(60, 60, 255, 0.62)';
                 ctx.lineWidth = 2.0;
                 for (let i = 0; i < activeRainCount; i++) {
                     const p = rainParticles[i];
                     p.y += p.speed;
-                    p.x += p.speed * 0.10;
+                    p.x += p.speed * 0.08;
                     if (p.y > 1) { p.y = 0; p.x = Math.random(); }
                     if (p.x > 1) { p.x = 0; }
 
