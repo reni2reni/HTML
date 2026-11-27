@@ -3411,18 +3411,17 @@
 
                 // 開いたときのサイズ再計算と雨雲の同期
                 setTimeout(() => {
-                    if (!customRegionMap) return;
-                    customRegionMap.invalidateSize();
-                    const lat = Number(customRegionLatInput.value);
-                    const lon = Number(customRegionLonInput.value);
-                    if (customRegionLatInput.value.trim() !== '' && customRegionLonInput.value.trim() !== '') {
-                        syncCustomRegionMapMarker(lat, lon, false);
-                    }
-                    // 雨雲レイヤーを重ねる
-                    if (typeof loadCustomMapRainRadar === 'function') {
-                        loadCustomMapRainRadar(customRegionMap);
-                    }
-                }, 80);
+                if (!customRegionMap) return;
+                customRegionMap.invalidateSize();
+                const lat = Number(customRegionLatInput.value);
+                const lon = Number(customRegionLonInput.value);
+                if (customRegionLatInput.value.trim() !== '' && customRegionLonInput.value.trim() !== '') {
+                    syncCustomRegionMapMarker(lat, lon, false);
+                }
+                if (showCustomRadar && typeof loadCustomMapRainRadar === 'function') {
+                    loadCustomMapRainRadar(customRegionMap);
+                }
+            }, 80);
             }
 
         customRegionLatInput.addEventListener('input', () => {
@@ -3787,15 +3786,7 @@
                 });
             }
 
-            setTimeout(() => {
-                if (!homeRegionMap) return;
-                homeRegionMap.invalidateSize();
-                const lat = Number(homeLatInput.value);
-                const lon = Number(homeLonInput.value);
-                if (homeLatInput.value.trim() !== '' && homeLonInput.value.trim() !== '') {
-                    syncHomeRegionMapMarker(lat, lon, true);
-                }
-            }, 40);
+
         }
 
         homeLatInput.addEventListener('input', () => {
@@ -6762,7 +6753,13 @@
                     if (customRadarLayer && mapInstance.hasLayer(customRadarLayer)) {
                         mapInstance.removeLayer(customRadarLayer);
                     }
-                    customRadarLayer = L.tileLayer(url, { opacity: 0.75, zIndex: 9999 });
+                    customRadarLayer = L.tileLayer(url, {
+                        opacity: 0.75,
+                        zIndex: 9999,
+                        tileSize: 256,
+                        maxNativeZoom: 7,
+                        maxZoom: 16
+                    });
                     customRadarLayer.addTo(mapInstance);
                     customRadarLayer.bringToFront();
                 }
@@ -6818,11 +6815,10 @@
                 btnToggleCustomRadar.style.color = showCustomRadar ? '#8fe5ff' : '#888';
 
                 if (typeof customRadarLayer !== 'undefined' && customRadarLayer && typeof customRegionMap !== 'undefined' && customRegionMap) {
-                    if (showCustomRadar) {
-                        if (!customRegionMap.hasLayer(customRadarLayer)) customRadarLayer.addTo(customRegionMap);
-                        customRadarLayer.bringToFront();
-                    } else {
-                        if (customRegionMap.hasLayer(customRadarLayer)) customRegionMap.removeLayer(customRadarLayer);
+                   if (showCustomRadar) {
+                        loadCustomMapRainRadar(customRegionMap);
+                    } else if (customRadarLayer && customRegionMap && customRegionMap.hasLayer(customRadarLayer)) {
+                        customRegionMap.removeLayer(customRadarLayer);
                     }
                 }
             });
