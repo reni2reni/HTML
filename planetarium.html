@@ -3378,73 +3378,52 @@
         }
 
         function ensureCustomRegionMap() {
-            const mapEl = document.getElementById('customRegionMap');
-            if (!mapEl || typeof L === 'undefined') return;
+                const mapEl = document.getElementById('customRegionMap');
+                if (!mapEl || typeof L === 'undefined') return;
 
-            if (!customRegionMap) {
-                customRegionMap = L.map(mapEl, { worldCopyJump: true, minZoom: 1, maxZoom: 8 }).setView([20, 0], 1);
-                const GridLayer = L.GridLayer.extend({
-                    createTile: function () {
-                        const tile = document.createElement('canvas');
-                        const size = this.getTileSize();
-                        tile.width = size.x;
-                        tile.height = size.y;
-                        const ctx = tile.getContext('2d');
-                        ctx.fillStyle = '#09182e';
-                        ctx.fillRect(0, 0, size.x, size.y);
-                        ctx.strokeStyle = 'rgba(95, 165, 240, 0.22)';
-                        ctx.lineWidth = 1;
-                        ctx.strokeRect(0.5, 0.5, size.x - 1, size.y - 1);
-                        return tile;
-                    }
-                });
-                new GridLayer().addTo(customRegionMap);
+                if (!customRegionMap) {
+                    // 雨雲レーダーと同じ標準Webメルカトル投影で初期化
+                    customRegionMap = L.map(mapEl, {
+                        worldCopyJump: true,
+                        minZoom: 1,
+                        maxZoom: 16
+                    }).setView([35.68, 139.76], 4);
 
-                fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
-                    .then(r => r.ok ? r.json() : null)
-                    .then(topo => {
-                        if (!topo || !topo.objects || !topo.objects.countries || !customRegionMap) return;
-                        const arcs = topo.arcs || [];
-                        const tf = topo.transform || { scale: [1, 1], translate: [0, 0] };
-                        const decodeArc = (idx) => {
-                            const rev = idx < 0;
-                            const arc = arcs[rev ? ~idx : idx];
-                            let x = 0, y = 0;
-                            const pts = arc.map(([dx, dy]) => {
-                                x += dx; y += dy;
-                                return [x * tf.scale[0] + tf.translate[0], y * tf.scale[1] + tf.translate[1]];
-                            });
-                            return rev ? pts.reverse() : pts;
-                        };
+                    // 403ブロックが一切起きない、公式Esriダーク世界地図タイル（APIキー不要）
+                    // ※注意: Esriは {z}/{y}/{x} の並び順です
+                    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+                        attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+                        maxZoom: 16
+                    }).addTo(customRegionMap);
 
-                        const polys = decodeTopoToUnwrappedPolys(topo, decodeArc);
-                        L.polygon(polys, { color: '#5ca8e6', weight: 0.8, fillColor: '#1d4675', fillOpacity: 0.1, interactive: false }).addTo(customRegionMap);
-                        if (customRegionMarker && typeof customRegionMarker.bringToFront === 'function') customRegionMarker.bringToFront();
-                    })
-                    .catch(() => { });
-
-                customRegionMap.on('click', (e) => {
-                    const lat = Number(e.latlng.lat.toFixed(4));
-                    let lon = Number(e.latlng.lng.toFixed(4));
-                    if (lon > 180) lon = ((lon + 180) % 360 + 360) % 360 - 180;
-                    if (lon < -180) lon = -(((-lon + 180) % 360 + 360) % 360 - 180);
-                    lon = Number(lon.toFixed(4));
-                    customRegionLatInput.value = lat;
-                    customRegionLonInput.value = lon;
-                    applyTempObservationLocation(lat, lon, false);
-                });
-            }
-
-            setTimeout(() => {
-                if (!customRegionMap) return;
-                customRegionMap.invalidateSize();
-                const lat = Number(customRegionLatInput.value);
-                const lon = Number(customRegionLonInput.value);
-                if (customRegionLatInput.value.trim() !== '' && customRegionLonInput.value.trim() !== '') {
-                    syncCustomRegionMapMarker(lat, lon, false);
+                    // 地図クリックで観測位置を指定
+                    customRegionMap.on('click', (e) => {
+                        const lat = Number(e.latlng.lat.toFixed(4));
+                        let lon = Number(e.latlng.lng.toFixed(4));
+                        if (lon > 180) lon = ((lon + 180) % 360 + 360) % 360 - 180;
+                        if (lon < -180) lon = -(((-lon + 180) % 360 + 360) % 360 - 180);
+                        lon = Number(lon.toFixed(4));
+                        customRegionLatInput.value = lat;
+                        customRegionLonInput.value = lon;
+                        applyTempObservationLocation(lat, lon, false);
+                    });
                 }
-            }, 40);
-        }
+
+                // 開いたときのサイズ再計算と雨雲の同期
+                setTimeout(() => {
+                    if (!customRegionMap) return;
+                    customRegionMap.invalidateSize();
+                    const lat = Number(customRegionLatInput.value);
+                    const lon = Number(customRegionLonInput.value);
+                    if (customRegionLatInput.value.trim() !== '' && customRegionLonInput.value.trim() !== '') {
+                        syncCustomRegionMapMarker(lat, lon, false);
+                    }
+                    // 雨雲レイヤーを重ねる
+                    if (typeof loadCustomMapRainRadar === 'function') {
+                        loadCustomMapRainRadar(customRegionMap);
+                    }
+                }, 80);
+            }
 
         customRegionLatInput.addEventListener('input', () => {
             if (customRegionLatInput.value.trim() === '' || customRegionLonInput.value.trim() === '') return;
