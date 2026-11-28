@@ -4890,35 +4890,7 @@
 
             
 
-            // 方角ラベル
-            {
-                const dirText = tr(viewMode);
-                const baseFontPx = parseFloat(getComputedStyle(document.body).fontSize) || 16;
-                const labelFontPx = Math.round(baseFontPx * 0.95 * 10) / 10;
-                const labelY = Math.min(h - 22, horizonY - 20);
-                skyCtx.save();
-                skyCtx.font = `bold ${labelFontPx}px 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`;
-                const textWidth = skyCtx.measureText(dirText).width;
-                const padX = 14;
-                const boxW = textWidth + padX * 2;
-                const boxH = Math.round(labelFontPx * 1.85);
-                const boxX = centerX - boxW / 2;
-                const boxY = labelY - boxH / 2;
-
-                skyCtx.fillStyle = 'rgba(10, 20, 42, 0.88)';
-                skyCtx.strokeStyle = 'rgba(110, 175, 255, 0.85)';
-                skyCtx.lineWidth = 1.2;
-                skyCtx.beginPath();
-                skyCtx.roundRect ? skyCtx.roundRect(boxX, boxY, boxW, boxH, 8) : skyCtx.rect(boxX, boxY, boxW, boxH);
-                skyCtx.fill();
-                skyCtx.stroke();
-
-                skyCtx.fillStyle = '#d8f1ff';
-                skyCtx.textAlign = 'center';
-                skyCtx.textBaseline = 'middle';
-                skyCtx.fillText(dirText, centerX, labelY + 0.5);
-                skyCtx.restore();
-            }
+           
 
             // 真上ドームモード
             if (viewMode === 'zenith') {
@@ -4973,7 +4945,7 @@
                     skyCtx.stroke();
 
                     skyCtx.fillStyle = 'rgba(255, 255, 255, 0.72)';
-                    skyCtx.font = '11px sans-serif';
+                    skyCtx.font = '20px sans-serif';
                     skyCtx.textAlign = 'left';
                     skyCtx.fillText(`${altVal}°`, circleX + 4, circleY - rAlt + 11);
                 });
@@ -5167,9 +5139,9 @@
                 const pt = azAltToXY(Number(azText), 0);
                 if (!pt.visible) return;
                 skyCtx.fillStyle = 'rgba(255,255,255,0.88)';
-                skyCtx.font = 'bold 13px sans-serif';
+                skyCtx.font = 'bold 20px sans-serif';
                 skyCtx.textAlign = 'center';
-                skyCtx.fillText(name, pt.x, Math.min(h - 4, horizonY + 20));
+                skyCtx.fillText(name, pt.x, Math.min(h - 4, horizonY + 24));
             });
 
             // 4. 星座
