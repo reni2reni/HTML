@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML App Launcher</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #0f172a;
+            color: #f8fafc;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #334155;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: #38bdf8;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            background: #1e293b;
+            color: #e2e8f0;
+            border: 1px solid #475569;
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #334155;
+            border-color: #38bdf8;
+        }
+
+        #status {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: #38bdf8;
+            box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.2);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #f1f5f9;
+            word-break: break-all;
+        }
+
+        .card-file {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            font-family: monospace;
+        }
+
+        .badge {
+            display: inline-block;
+            margin-top: 14px;
+            font-size: 0.75rem;
+            color: #38bdf8;
+            font-weight: 500;
+        }
+
+        .fallback-box {
+            background: #1e293b;
+            border: 1px dashed #64748b;
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .fallback-box h2 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #fbbf24;
+        }
+
+        .fallback-box p {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>HTML APP LAUNCHER</h1>
+            <div class="controls">
+                <button id="reloadBtn">再読み込み</button>
+                <button id="folderBtn">フォルダを選択して一覧化</button>
+            </div>
+        </header>
+
+        <div id="status">サーバー内のHTMLファイルを検索中...</div>
+        <div id="grid" class="grid"></div>
+
+        <!-- サーバーのディレクトリ一覧が無効な場合の案内 -->
+        <div id="fallbackBox" class="fallback-box">
+            <h2>自動取得が制限されています</h2>
+            <p>
+                お使いのサーバー設定（Directory Listing無効）またはローカルファイル直接開き（file://）のため、フォルダ内の自動スキャンがブロックされました。<br>
+                上の<strong>「フォルダを選択して一覧化」</strong>ボタンを押してこのフォルダを選ぶと、中のHTMLファイルをすべて自動リスト化できます。
+            </p>
+        </div>
+    </div>
+
+    <input type="file" id="dirInput" webkitdirectory directory multiple style="display:none;">
+
+    <script>
+        const grid = document.getElementById('grid');
+        const statusEl = document.getElementById('status');
+        const fallbackBox = document.getElementById('fallbackBox');
+        const dirInput = document.getElementById('dirInput');
+
+        // 自分自身のファイル名を取得（リストから除外するため）
+        const currentFile = decodeURIComponent(location.pathname.split('/').pop()) || 'index.html';
+
+        // 各HTMLファイルの中身から <title> タグを読み取る関数
+        async function fetchPageTitle(url, fallbackName) {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) return fallbackName;
+                const text = await res.text();
+                const match = text.match(/<title[^>]*>([^<]+)<\/title>/i);
+                return match ? match[1].trim() : fallbackName;
+            } catch {
+                return fallbackName;
+            }
+        }
+
+        // カードを生成して画面に追加
+        async function renderCards(fileList) {
+            grid.innerHTML = '';
+            fallbackBox.style.display = 'none';
+
+            // 自分自身を除外して .html / .htm のみ抽出
+            const targets = fileList.filter(name => {
+                const cleanName = decodeURIComponent(name.split('/').pop());
+                return /\.(html|htm)$/i.test(cleanName) && cleanName !== currentFile && cleanName !== 'index.html';
+            });
+
+            if (targets.length === 0) {
+                statusEl.textContent = '表示できるHTMLファイルが見つかりませんでした。';
+                return;
+            }
+
+            statusEl.textContent = `${targets.length} 件のHTMLアプリが見つかりました`;
+
+            for (const href of targets) {
+                const fileName = decodeURIComponent(href.split('/').pop());
+                const title = await fetchPageTitle(href, fileName);
+
+                const card = document.createElement('a');
+                card.className = 'card';
+                card.href = href;
+                card.target = '_blank'; // 新しいタブで開く（同じタブで開く場合はこの行を削除）
+                card.innerHTML = `
+      <div>
+        <div class="card-title">${escapeHtml(title)}</div>
+        <div class="card-file">${escapeHtml(fileName)}</div>
+      </div>
+      <div class="badge">クリックして起動 →</div>
+    `;
+                grid.appendChild(card);
+            }
+        }
+
+        // サーバーのディレクトリインデックス（./）を取得してHTMLを自動抽出
+        async function scanServerDirectory() {
+            statusEl.textContent = 'サーバー内のHTMLファイルを検索中...';
+            try {
+                // サーバーのディレクトリ一覧を取得（index.html自身が返る場合は404的なダミーや親パスではなくディレクトリインデックスを期待）
+                const res = await fetch('./?t=' + Date.now());
+                const html = await res.text();
+
+                // 自分自身のランチャーHTMLが返ってきた場合（サーバーがindex.htmlを自動配信している場合）
+                if (html.includes('HTML APP LAUNCHER')) {
+                    throw new Error('Directory listing is disabled because index.html is served.');
+                }
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const links = Array.from(doc.querySelectorAll('a'))
+                    .map(a => a.getAttribute('href'))
+                    .filter(href => href && !href.startsWith('?') && !href.startsWith('/') && !href.startsWith('http'));
+
+                const uniqueFiles = [...new Set(links)];
+                await renderCards(uniqueFiles);
+            } catch (err) {
+                statusEl.textContent = '自動スキャンできませんでした。';
+                fallbackBox.style.display = 'block';
+            }
+        }
+
+        // フォルダ選択ダイアログからの手動スキャン（ローカル環境やListing無効サーバー用）
+        dirInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files)
+                // 直下のファイルのみ対象にする
+                .filter(f => f.webkitRelativePath.split('/').length === 2)
+                .map(f => f.name);
+            renderCards(files);
+        });
+
+        document.getElementById('folderBtn').addEventListener('click', () => dirInput.click());
+        document.getElementById('reloadBtn').addEventListener('click', scanServerDirectory);
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, m => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[m]);
+        }
+
+        // 起動時にスキャン実行
+        scanServerDirectory();
+    </script>
+</body>
+
+</html>
