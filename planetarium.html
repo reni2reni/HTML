@@ -1828,7 +1828,7 @@
                 <button id="btnToggleLabels" type="button"
                     style="background: #182247; border: 1px solid #3c78b8; color: #b8dcff; font-weight: bold;">🏷️ 名称:
                     ON</button>
-                
+
                 <button id="btnLanguage" type="button" title="Language">🌐 English</button>
 
             </div>
@@ -2417,7 +2417,7 @@
         const WEATHER_FADE_HOURS = 6;
         let cameraAzimuth = 180;
         let cameraAltitude = 0;
-        
+
         let currentWeather = {
             weatherCode: 0,
             cloudCover: 0,
@@ -3291,48 +3291,48 @@
         }
 
         function ensureCustomRegionMap() {
-                const mapEl = document.getElementById('customRegionMap');
-                if (!mapEl || typeof L === 'undefined') return;
+            const mapEl = document.getElementById('customRegionMap');
+            if (!mapEl || typeof L === 'undefined') return;
 
-                if (!customRegionMap) {
-                    // 標準Webメルカトル投影で初期化
-                    customRegionMap = L.map(mapEl, {
-                        worldCopyJump: true,
-                        minZoom: 1,
-                        maxZoom: 16
-                    }).setView([35.68, 139.76], 4);
+            if (!customRegionMap) {
+                // 標準Webメルカトル投影で初期化
+                customRegionMap = L.map(mapEl, {
+                    worldCopyJump: true,
+                    minZoom: 1,
+                    maxZoom: 16
+                }).setView([35.68, 139.76], 4);
 
-                    // 403ブロックが一切起きない、公式Esriダーク世界地図タイル（APIキー不要）
-                    // ※注意: Esriは {z}/{y}/{x} の並び順です
-                    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-                        attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
-                        maxZoom: 16
-                    }).addTo(customRegionMap);
+                // 403ブロックが一切起きない、公式Esriダーク世界地図タイル（APIキー不要）
+                // ※注意: Esriは {z}/{y}/{x} の並び順です
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+                    maxZoom: 16
+                }).addTo(customRegionMap);
 
-                    // 地図クリックで観測位置を指定
-                    customRegionMap.on('click', (e) => {
-                        const lat = Number(e.latlng.lat.toFixed(4));
-                        let lon = Number(e.latlng.lng.toFixed(4));
-                        if (lon > 180) lon = ((lon + 180) % 360 + 360) % 360 - 180;
-                        if (lon < -180) lon = -(((-lon + 180) % 360 + 360) % 360 - 180);
-                        lon = Number(lon.toFixed(4));
-                        customRegionLatInput.value = lat;
-                        customRegionLonInput.value = lon;
-                        applyTempObservationLocation(lat, lon, false);
-                    });
-                }
-
-                // 開いたときに地図サイズと観測地点マーカーを同期
-                setTimeout(() => {
-                    if (!customRegionMap) return;
-                    customRegionMap.invalidateSize();
-                    const lat = Number(customRegionLatInput.value);
-                    const lon = Number(customRegionLonInput.value);
-                    if (customRegionLatInput.value.trim() !== '' && customRegionLonInput.value.trim() !== '') {
-                        syncCustomRegionMapMarker(lat, lon, false);
-                    }
-                }, 80);
+                // 地図クリックで観測位置を指定
+                customRegionMap.on('click', (e) => {
+                    const lat = Number(e.latlng.lat.toFixed(4));
+                    let lon = Number(e.latlng.lng.toFixed(4));
+                    if (lon > 180) lon = ((lon + 180) % 360 + 360) % 360 - 180;
+                    if (lon < -180) lon = -(((-lon + 180) % 360 + 360) % 360 - 180);
+                    lon = Number(lon.toFixed(4));
+                    customRegionLatInput.value = lat;
+                    customRegionLonInput.value = lon;
+                    applyTempObservationLocation(lat, lon, false);
+                });
             }
+
+            // 開いたときに地図サイズと観測地点マーカーを同期
+            setTimeout(() => {
+                if (!customRegionMap) return;
+                customRegionMap.invalidateSize();
+                const lat = Number(customRegionLatInput.value);
+                const lon = Number(customRegionLonInput.value);
+                if (customRegionLatInput.value.trim() !== '' && customRegionLonInput.value.trim() !== '') {
+                    syncCustomRegionMapMarker(lat, lon, false);
+                }
+            }, 80);
+        }
 
         customRegionLatInput.addEventListener('input', () => {
             if (customRegionLatInput.value.trim() === '' || customRegionLonInput.value.trim() === '') return;
@@ -3396,14 +3396,16 @@
             } else if (isSkyMode && viewMode === 'zenith') {
                 btnSkyEdgeLeft.style.display = 'block';
                 btnSkyEdgeRight.style.display = 'block';
-                const ccwDeg = (((zenithTopAz - 45) % 360) + 360) % 360;
-                const cwDeg = (((zenithTopAz + 45) % 360) + 360) % 360;
-                const degLabel = (deg) => {
-                    const map = { 0: tr('northLabel'), 45: tr('northeast'), 90: tr('eastLabel'), 135: tr('southeast'), 180: tr('southLabel'), 225: tr('southwest'), 270: tr('westLabel'), 315: tr('northwest') };
-                    return map[deg] || `${deg}°`;
+                // 一番近い4方位を基準にして次の方位ラベルを生成
+                const baseAz = Math.round(zenithTopAz / 90) * 90;
+                const leftAz = (((baseAz - 90) % 360) + 360) % 360;
+                const rightAz = (((baseAz + 90) % 360) + 360) % 360;
+                const cardinalName = (az) => {
+                    const map = { 0: tr('northLabel'), 90: tr('eastLabel'), 180: tr('southLabel'), 270: tr('westLabel') };
+                    return map[az] || `${az}°`;
                 };
-                btnSkyEdgeLeft.textContent = `↺ ${degLabel(ccwDeg)}`;
-                btnSkyEdgeRight.textContent = `${degLabel(cwDeg)} ↻`;
+                btnSkyEdgeLeft.textContent = `◀ ${cardinalName(leftAz)}`;
+                btnSkyEdgeRight.textContent = `${cardinalName(rightAz)} ▶`;
             } else {
                 btnSkyEdgeLeft.style.display = 'none';
                 btnSkyEdgeRight.style.display = 'none';
@@ -3489,7 +3491,7 @@
                 btnToggleLabels.style.background = showLabels ? '#1e4678' : '#182247';
                 btnToggleLabels.style.color = showLabels ? '#ffffff' : '#9ec4e8';
             }
-            
+
             updateSpaceLabelsVisibility();
             document.getElementById('speedVal').textContent = `${stepHours.toFixed(0)} ${tr('speedUnit')}`;
             dateInput.title = currentLang === 'ja' ? 'クリックして日時を直接変更' : 'Click to change date and time';
@@ -3888,6 +3890,101 @@
             ctx.fill();
             ctx.restore();
         }
+
+        // ==========================================
+            // 4.5 ISS (国際宇宙ステーション) 軌道計算 & アイコン描画
+            // ==========================================
+            function getISSPosition(dDays) {
+                const rad = Math.PI / 180;
+                const a = 6791; // 軌道半径 (地球半径6371km + 高度420km)
+                const inc = 51.64 * rad; // 軌道傾斜角
+                // 2024-01-01 00:00 UTC を基準エポック
+                const t = dDays - 8765.5;
+                const n = 360 / 0.064514; // 1日の周回速度 (~15.5周/日)
+                const u = ((120.0 + n * t) % 360 + 360) % 360 * rad;
+                const node = ((310.0 - 5.0 * t) % 360 + 360) % 360 * rad; // 昇交点の歳差
+
+                // 地心慣性座標 (ECI)
+                const xEci = a * (Math.cos(node) * Math.cos(u) - Math.sin(node) * Math.sin(u) * Math.cos(inc));
+                const yEci = a * (Math.sin(node) * Math.cos(u) + Math.cos(node) * Math.sin(u) * Math.cos(inc));
+                const zEci = a * (Math.sin(u) * Math.sin(inc));
+
+                // 観測者のECI座標
+                const phi = currentCity.lat * rad;
+                const gmstDeg = (280.46061837 + 360.98564736629 * dDays) % 360;
+                const lmstRad = ((gmstDeg + currentCity.lon) % 360 + 360) % 360 * rad;
+                const rEarth = 6378;
+                const xObs = rEarth * Math.cos(phi) * Math.cos(lmstRad);
+                const yObs = rEarth * Math.cos(phi) * Math.sin(lmstRad);
+                const zObs = rEarth * Math.sin(phi);
+
+                // 観測者から見た相対ベクトル
+                const dx = xEci - xObs;
+                const dy = yEci - yObs;
+                const dz = zEci - zObs;
+                const dist = Math.hypot(dx, dy, dz);
+
+                const ra = Math.atan2(dy, dx);
+                const dec = Math.atan2(dz, Math.hypot(dx, dy));
+                const H = lmstRad - ra;
+
+                const sinAlt = Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(H);
+                const alt = Math.asin(Math.max(-1, Math.min(1, sinAlt))) * (180 / Math.PI);
+                const az = getAzimuthAtLocation(phi, dec, H, alt * rad) * (180 / Math.PI);
+
+                return { alt, az, dist };
+            }
+
+            function drawISSSatelliteIcon(ctx, x, y, scale = 1.0) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.scale(scale, scale);
+
+                // 左右のソーラーパネル（青色グリッド）
+                ctx.fillStyle = '#0a84ff';
+                ctx.strokeStyle = '#70d7ff';
+                ctx.lineWidth = 1;
+
+                // 左パネル
+                ctx.fillRect(-16, -6, 11, 12);
+                ctx.strokeRect(-16, -6, 11, 12);
+                ctx.beginPath();
+                ctx.moveTo(-10.5, -6); ctx.lineTo(-10.5, 6);
+                ctx.moveTo(-16, 0); ctx.lineTo(-5, 0);
+                ctx.stroke();
+
+                // 右パネル
+                ctx.fillRect(5, -6, 11, 12);
+                ctx.strokeRect(5, -6, 12, 12);
+                ctx.beginPath();
+                ctx.moveTo(10.5, -6); ctx.lineTo(10.5, 6);
+                ctx.moveTo(5, 0); ctx.lineTo(16, 0);
+                ctx.stroke();
+
+                // パネル連結トラス棒
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.8;
+                ctx.beginPath();
+                ctx.moveTo(-5, 0); ctx.lineTo(5, 0);
+                ctx.stroke();
+
+                // 中央モジュール本体（金色）
+                ctx.fillStyle = '#ffd60a';
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.2;
+                ctx.fillRect(-4, -4, 8, 8);
+                ctx.strokeRect(-4, -4, 8, 8);
+
+                // 通信アンテナ
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(0, -4); ctx.lineTo(0, -8);
+                ctx.arc(0, -8, 1.5, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.restore();
+            }
 
         // ==========================================
         // 5. 星座データ & 星座エディタ永続化
@@ -4888,9 +4985,9 @@
             }
             skyCanvas._zenithBtnRect = zenithBtnRect;
 
-            
 
-           
+
+
 
             // 真上ドームモード
             if (viewMode === 'zenith') {
@@ -4903,7 +5000,7 @@
                 const baseCircleY = availTop + availH * 0.5;
                 const circleX = centerX + zenithPanX;
                 const circleY = baseCircleY + zenithPanY;
-
+                skyCanvas._zenithCenter = { x: circleX, y: circleY };
                 skyCtx.save();
                 skyCtx.beginPath();
                 skyCtx.rect(0, availTop, w, Math.max(40, availBottom - availTop));
@@ -4936,24 +5033,12 @@
                 skyCtx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
                 skyCtx.stroke();
 
-                [75, 60, 45, 30, 15].forEach(altVal => {
-                    const rAlt = circleR * ((90 - altVal) / 90);
-                    skyCtx.beginPath();
-                    skyCtx.arc(circleX, circleY, rAlt, 0, Math.PI * 2);
-                    skyCtx.strokeStyle = 'rgba(230, 240, 255, 0.24)';
-                    skyCtx.lineWidth = 0.9;
-                    skyCtx.stroke();
 
-                    skyCtx.fillStyle = 'rgba(255, 255, 255, 0.72)';
-                    skyCtx.font = '20px sans-serif';
-                    skyCtx.textAlign = 'left';
-                    skyCtx.fillText(`${altVal}°`, circleX + 4, circleY - rAlt + 11);
-                });
 
                 const azToZenithXY = (az, alt) => {
                     const clampedAlt = Math.max(0, Math.min(90, alt));
                     const distR = circleR * ((90 - clampedAlt) / 90);
-                    const theta = -Math.PI / 2 + (az - zenithTopAz) * rad;
+                    const theta = Math.PI / 2 - (az - zenithTopAz) * rad;
                     return { x: circleX + distR * Math.cos(theta), y: circleY + distR * Math.sin(theta), visible: alt >= -2 };
                 };
 
@@ -4974,7 +5059,7 @@
                 };
                 Object.entries(zCompass).forEach(([azStr, label]) => {
                     const azVal = Number(azStr);
-                    const theta = -Math.PI / 2 + (azVal - zenithTopAz) * rad;
+                    const theta = Math.PI / 2 - (azVal - zenithTopAz) * rad;
                     const labelR = circleR + 14 * zenithZoom;
                     const lx = circleX + labelR * Math.cos(theta);
                     const ly = circleY + labelR * Math.sin(theta);
@@ -5308,6 +5393,37 @@
                     }
                 }
             });
+            // 6. ISS (国際宇宙ステーション) の描画
+            const iss = getISSPosition(dDays);
+            if (iss.alt >= 0) {
+                let issPt = null;
+                if (viewMode === 'zenith') {
+                    // 天頂表示時の座標
+                    const circleR = (Math.max(70, Math.min(Math.max(120, h - 22 - (zenithY + 18)), Math.max(120, w - 100)) * 0.49)) * zenithZoom;
+                    const circleX = centerX + zenithPanX;
+                    const baseCircleY = (zenithY + 18) + Math.max(120, h - 22 - (zenithY + 18)) * 0.5;
+                    const circleY = baseCircleY + zenithPanY;
+                    const distR = circleR * ((90 - Math.min(90, iss.alt)) / 90);
+                    const theta = Math.PI / 2 - (iss.az - zenithTopAz) * rad;
+                    issPt = { x: circleX + distR * Math.cos(theta), y: circleY + distR * Math.sin(theta), visible: true };
+                } else {
+                    // 通常方位表示時の座標
+                    issPt = azAltToXY(iss.az, iss.alt);
+                }
+
+                if (issPt && issPt.visible) {
+                    // 人工衛星アイコンを描画
+                    drawISSSatelliteIcon(skyCtx, issPt.x, issPt.y, 1.1);
+
+                    if (showLabels) {
+                        skyCtx.fillStyle = '#68d4ff';
+                        skyCtx.font = 'bold 11px sans-serif';
+                        skyCtx.textAlign = 'center';
+                        const issLabel = currentLang === 'en' ? `ISS (${iss.alt.toFixed(0)}°)` : `ISS 宇宙ステーション (${iss.alt.toFixed(0)}°)`;
+                        skyCtx.fillText(issLabel, issPt.x, issPt.y - 14);
+                    }
+                }
+            }
 
         }
 
@@ -5492,8 +5608,11 @@
             lastEdgeSwitchTime = nowMs;
 
             if (viewMode === 'zenith') {
-                const delta = side === 'left' ? -45 : 45;
-                zenithTopAz = (((zenithTopAz + delta) % 360) + 360) % 360;
+                // 一番近い4方位（0, 90, 180, 270度）にスナップし、90度切り替え
+                const nearestCard = Math.round(zenithTopAz / 90) * 90;
+                const delta = (side === 'left') ? -90 : 90;
+                zenithTopAz = (((nearestCard + delta) % 360) + 360) % 360;
+
                 isSkyMode = true;
                 if (skyCanvas.style.display !== 'block') {
                     skyCanvas.style.display = 'block';
@@ -5536,13 +5655,14 @@
         bindEdgeButton(btnSkyEdgeLeft, 'left');
         bindEdgeButton(btnSkyEdgeRight, 'right');
 
-        let isZenithDragging = false;
-        let isSkyPanDragging = false;
+        let zenithDragMode = null; // 'rotate'（左ドラッグ）または 'pan'（右ドラッグ）
+            let zenithDragOriginAz = 0;
+            let isSkyPanDragging = false;
         let skyPanDragStartX = 0;
-            let skyPanDragStartY = 0;
+        let skyPanDragStartY = 0;
 
-            let skyPanDragOriginAzimuth = 0;
-            let skyPanDragOriginVertical = 0;
+        let skyPanDragOriginAzimuth = 0;
+        let skyPanDragOriginVertical = 0;
         let zenithDragStartX = 0;
         let zenithDragStartY = 0;
         let zenithDragOriginX = 0;
@@ -5563,17 +5683,22 @@
         }
 
         skyCanvas.addEventListener('pointerdown', (e) => {
-            if (!isSkyMode || (viewMode !== 'zenith' && !ADJACENT_SKY[viewMode])) return;
-            if (e.button !== undefined && e.button !== 0) return;
-            if (viewMode === 'zenith' && isHitZenithButton(e.clientX, e.clientY)) return;
-            if (viewMode === 'zenith') {
-                isZenithDragging = true;
-                zenithDragMoved = false;
-                zenithDragStartX = e.clientX;
-                zenithDragStartY = e.clientY;
-                zenithDragOriginX = zenithPanX;
-                zenithDragOriginY = zenithPanY;
-            } else {
+                if (!isSkyMode || (viewMode !== 'zenith' && !ADJACENT_SKY[viewMode])) return;
+                // 左クリック(0)または右クリック(2)のみ受け付ける
+                if (e.button !== 0 && e.button !== 2) return;
+                if (viewMode === 'zenith' && isHitZenithButton(e.clientX, e.clientY)) return;
+
+                if (viewMode === 'zenith') {
+                    zenithDragMoved = false;
+                    zenithDragStartX = e.clientX;
+                    zenithDragStartY = e.clientY;
+                    zenithDragOriginX = zenithPanX;
+                    zenithDragOriginY = zenithPanY;
+                    zenithDragOriginAz = zenithTopAz;
+                    // 右クリックなら移動(pan)、左クリックなら回転(rotate)
+                    zenithDragMode = (e.button === 2) ? 'pan' : 'rotate';
+                } else {
+                    if (e.button !== 0) return;
                 isSkyPanDragging = true;
                 skyPanDragMoved = false;
                 skyPanDragStartX = e.clientX;
@@ -5593,12 +5718,26 @@
                 skyCanvas.style.cursor = 'default';
                 return;
             }
-            if (isZenithDragging) {
+            if (zenithDragMode) {
                 const dx = e.clientX - zenithDragStartX;
                 const dy = e.clientY - zenithDragStartY;
                 if (Math.hypot(dx, dy) > 4) zenithDragMoved = true;
-                zenithPanX = zenithDragOriginX + dx;
-                zenithPanY = zenithDragOriginY + dy;
+
+                if (zenithDragMode === 'pan') {
+                    // 【右クリック】平行移動
+                    zenithPanX = zenithDragOriginX + dx;
+                    zenithPanY = zenithDragOriginY + dy;
+                } else if (zenithDragMode === 'rotate') {
+                    // 中心から見たマウスの角度差で自然に回す（ダイヤル操作）
+                    const center = skyCanvas._zenithCenter || { x: skyCanvas.width / 2, y: skyCanvas.height / 2 };
+                    const startAngle = Math.atan2(zenithDragStartY - center.y, zenithDragStartX - center.x);
+                    const currentAngle = Math.atan2(e.clientY - center.y, e.clientX - center.x);
+                    const diffAngle = Math.atan2(Math.sin(currentAngle - startAngle), Math.cos(currentAngle - startAngle));
+                    const diffDeg = diffAngle * (180 / Math.PI);
+
+                    zenithTopAz = (((zenithDragOriginAz + diffDeg) % 360) + 360) % 360;
+                    updateViewButtonsUI();
+                }
                 renderTokyoSky(simDate);
             } else if (isSkyPanDragging) {
                 const dx = e.clientX - skyPanDragStartX;
@@ -5627,8 +5766,8 @@
         });
 
         function endZenithDrag(e) {
-            const wasDragging = isZenithDragging || isSkyPanDragging;
-            isZenithDragging = false;
+                const wasDragging = !!zenithDragMode || isSkyPanDragging;
+                zenithDragMode = null;
             isSkyPanDragging = false;
             skyCanvas.style.cursor = viewMode === 'zenith' || ADJACENT_SKY[viewMode] ? 'grab' : 'default';
             if (e && e.pointerId !== undefined && skyCanvas.releasePointerCapture) {
@@ -5640,9 +5779,17 @@
             }
         }
         skyCanvas.addEventListener('pointerup', endZenithDrag);
-        skyCanvas.addEventListener('pointercancel', endZenithDrag);
+        skyCanvas.addEventListener('pointerup', endZenithDrag);
+            skyCanvas.addEventListener('pointercancel', endZenithDrag);
 
-        skyCanvas.addEventListener('wheel', (e) => {
+            // 天頂モードでの右ドラッグ時にブラウザの右クリックメニューが出るのを防止
+            skyCanvas.addEventListener('contextmenu', (e) => {
+                if (isSkyMode && viewMode === 'zenith') {
+                    e.preventDefault();
+                }
+            });
+
+            skyCanvas.addEventListener('wheel', (e) => {
             if (!isSkyMode || viewMode !== 'zenith') return;
             e.preventDefault();
             const zoomFactor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
@@ -5689,6 +5836,9 @@
                 zenithZoom = 1.0;
                 zenithPanX = 0;
                 zenithPanY = 0;
+                // 今見ている方角を手前（基準方位）にする（南なら180）
+                const currentLookAz = ADJACENT_SKY[viewMode] ? ({ north: 0, east: 90, south: 180, west: 270 })[viewMode] : 180;
+                zenithTopAz = currentLookAz;
                 setViewMode('zenith');
             }
         });
@@ -6314,7 +6464,7 @@
                 const cy = baseCircleY + zenithPanY;
                 const clampedAlt = Math.max(0, Math.min(90, hor.alt));
                 const dist = circleR * ((90 - clampedAlt) / 90);
-                const theta = -Math.PI / 2 + (hor.az - zenithTopAz) * rad;
+                const theta = Math.PI / 2 - (hor.az - zenithTopAz) * rad;
                 return { x: cx + dist * Math.cos(theta), y: cy + dist * Math.sin(theta), visible: hor.alt >= -2 && hor.alt <= 90, alt: hor.alt };
             }
             const centerAz = getSkyCenterAzimuth();
@@ -6390,7 +6540,7 @@
                 const baseR = Math.max(70, Math.min(availH, availW) * .49), cr = baseR * zenithZoom;
                 const cx = w / 2 + zenithPanX, cy = availTop + availH * .5 + zenithPanY;
                 const dist = cr * ((90 - Math.max(0, Math.min(90, alt))) / 90);
-                const th = -Math.PI / 2 + (az - zenithTopAz) * rad;
+                const th = Math.PI / 2 - (az - zenithTopAz) * rad;
                 return { x: cx + dist * Math.cos(th), y: cy + dist * Math.sin(th), visible: alt >= -2, alt };
             }
             const ca = getSkyCenterAzimuth();
