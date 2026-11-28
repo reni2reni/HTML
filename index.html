@@ -1,299 +1,133 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML App Launcher</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background: #0f172a;
-            color: #f8fafc;
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-            padding: 40px 20px;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid #334155;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            color: #38bdf8;
-        }
-
-        .repo-info {
-            font-size: 0.8rem;
-            color: #94a3b8;
-            margin-top: 4px;
-            font-family: monospace;
-        }
-
-        button {
-            background: #1e293b;
-            color: #e2e8f0;
-            border: 1px solid #475569;
-            padding: 8px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-        }
-
-        button:hover {
-            background: #334155;
-            border-color: #38bdf8;
-        }
-
-        #status {
-            font-size: 0.85rem;
-            color: #94a3b8;
-            margin-bottom: 20px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 16px;
-        }
-
-        .card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 20px;
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-4px);
-            border-color: #38bdf8;
-            box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.2);
-        }
-
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #f1f5f9;
-            word-break: break-all;
-        }
-
-        .card-file {
-            font-size: 0.8rem;
-            color: #94a3b8;
-            font-family: monospace;
-        }
-
-        .badge {
-            display: inline-block;
-            margin-top: 14px;
-            font-size: 0.75rem;
-            color: #38bdf8;
-            font-weight: 500;
-        }
-
-        .error-box {
-            background: #1e293b;
-            border: 1px solid #f43f5e;
-            border-radius: 12px;
-            padding: 20px;
-            color: #fecdd3;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            display: none;
-        }
-
-        .error-box code {
-            background: #0f172a;
-            padding: 2px 6px;
-            border-radius: 4px;
-            color: #38bdf8;
-            font-family: monospace;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML App Launcher</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0f172a;
+    color: #f8fafc;
+    font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #334155;
+  }
+  h1 { font-size: 1.5rem; font-weight: 600; color: #38bdf8; }
+  button {
+    background: #1e293b; color: #e2e8f0; border: 1px solid #475569;
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+  }
+  button:hover { background: #334155; border-color: #38bdf8; }
+  #status { font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .card {
+    background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+    padding: 20px; text-decoration: none; color: inherit;
+    display: flex; flex-direction: column; justify-content: space-between;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .card:hover { transform: translateY(-4px); border-color: #38bdf8; }
+  .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; color: #f1f5f9; }
+  .card-file { font-size: 0.8rem; color: #94a3b8; font-family: monospace; }
+  .badge { margin-top: 14px; font-size: 0.75rem; color: #38bdf8; }
+</style>
 </head>
-
 <body>
 
-    <div class="container">
-        <header>
-            <div>
-                <h1>HTML APP LAUNCHER</h1>
-                <div class="repo-info" id="repoInfo"></div>
-            </div>
-            <button id="reloadBtn">再読み込み</button>
-        </header>
+<div class="container">
+  <header>
+    <h1>HTML APP LAUNCHER</h1>
+    <button id="reloadBtn">再読み込み</button>
+  </header>
+  <div id="status">HTMLファイルを読み込み中...</div>
+  <div id="grid" class="grid"></div>
+</div>
 
-        <div id="status">GitHubリポジトリ内のHTMLファイルを検索中...</div>
-        <div id="grid" class="grid"></div>
-        <div id="errorBox" class="error-box"></div>
-    </div>
+<script>
+const grid = document.getElementById('grid');
+const statusEl = document.getElementById('status');
 
-    <script>
-        const grid = document.getElementById('grid');
-        const statusEl = document.getElementById('status');
-        const repoInfoEl = document.getElementById('repoInfo');
-        const errorBox = document.getElementById('errorBox');
+async function fetchPageTitle(url, fallbackName) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return fallbackName;
+    const text = await res.text();
+    const match = text.match(/<title[^>]*>([^<]+)<\/title>/i);
+    return match ? match[1].trim() : fallbackName;
+  } catch {
+    return fallbackName;
+  }
+}
 
-        // URLからユーザー名・リポジトリ名・サブパスを正確に判別
-        function detectGitHubInfo() {
-            const host = location.hostname; // 例: username.github.io
-            const pathParts = location.pathname.split('/').filter(p => p.length > 0);
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[m]);
+}
 
-            // 末尾が .html / .htm の場合はファイル名を除外
-            if (pathParts.length > 0 && /\.html?$/i.test(pathParts[pathParts.length - 1])) {
-                pathParts.pop();
-            }
+async function loadFromSitemap() {
+  grid.innerHTML = '';
+  statusEl.textContent = 'ファイル一覧を読み込み中...';
 
-            const user = host.replace(/\.github\.io$/i, '');
-            const isUserSite = (pathParts.length === 0);
-            // 修正: pathParts[0] で正しくリポジトリ名を取得
-            const repo = isUserSite ? `${user}.github.io` : pathParts[0];
-            const subPath = isUserSite ? '' : pathParts.slice(1).join('/');
+  try {
+    // 同じサーバー内の sitemap.xml を取得（外部APIを使わないためブロックされない）
+    const basePath = location.pathname.replace(/\/[^\/]*$/, '/');
+    const res = await fetch(basePath + 'sitemap.xml?t=' + Date.now());
+    if (!res.ok) throw new Error('sitemap.xml がまだ生成されていません（_config.yml追加後1〜2分お待ちください）');
 
-            return { user, repo, subPath };
-        }
+    const xmlText = await res.text();
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+    const locs = Array.from(xmlDoc.querySelectorAll('loc')).map(el => el.textContent.trim());
 
-        async function fetchPageTitle(url, fallbackName) {
-            try {
-                const res = await fetch(url);
-                if (!res.ok) return fallbackName;
-                const text = await res.text();
-                const match = text.match(/<title[^>]*>([^<]+)<\/title>/i);
-                return match ? match[1].trim() : fallbackName;
-            } catch {
-                return fallbackName;
-            }
-        }
+    const currentUrl = location.origin + location.pathname;
+    const htmlUrls = locs.filter(url =>
+      /\.html?$/i.test(url) &&
+      url !== currentUrl &&
+      !url.endsWith('/index.html')
+    );
 
-        function escapeHtml(str) {
-            return String(str).replace(/[&<>"']/g, m => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-            })[m]);
-        }
+    if (htmlUrls.length === 0) {
+      statusEl.textContent = '表示できる他のHTMLファイルが見つかりませんでした。';
+      return;
+    }
 
-        async function loadGitHubFiles() {
-            grid.innerHTML = '';
-            errorBox.style.display = 'none';
-            statusEl.textContent = 'GitHubリポジトリ内のHTMLファイルを検索中...';
+    statusEl.textContent = `${htmlUrls.length} 件のHTMLアプリが見つかりました`;
 
-            const { user, repo, subPath } = detectGitHubInfo();
-            const displayPath = `${user}/${repo}${subPath ? '/' + subPath : ''}`;
-            repoInfoEl.textContent = `Target: ${displayPath}`;
+    for (const url of htmlUrls) {
+      const fileName = decodeURIComponent(url.split('/').pop());
+      const title = await fetchPageTitle(url, fileName);
 
-            // 通常のパスと、GitHub Pagesでよくある docs/ フォルダ内の両方を候補にする
-            const candidatePaths = [subPath];
-            if (!subPath.startsWith('docs')) {
-                candidatePaths.push(subPath ? `docs/${subPath}` : 'docs');
-            }
+      const card = document.createElement('a');
+      card.className = 'card';
+      card.href = url;
+      card.target = '_blank';
+      card.innerHTML = `
+        <div>
+          <div class="card-title">${escapeHtml(title)}</div>
+          <div class="card-file">${escapeHtml(fileName)}</div>
+        </div>
+        <div class="badge">クリックして起動 →</div>
+      `;
+      grid.appendChild(card);
+    }
+  } catch (err) {
+    statusEl.textContent = err.message;
+  }
+}
 
-            let items = null;
-            let lastStatus = '';
-            let lastApiUrl = '';
-
-            for (const path of candidatePaths) {
-                const apiUrl = `https://github.com{user}/${repo}/contents/${path}`;
-                lastApiUrl = apiUrl;
-                try {
-                    const res = await fetch(apiUrl);
-                    lastStatus = res.status;
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (Array.isArray(data)) {
-                            // そのフォルダ内に index.html または他のHTMLがあるか確認
-                            const hasHtml = data.some(f => f.type === 'file' && /\.html?$/i.test(f.name));
-                            if (hasHtml) {
-                                items = data;
-                                break;
-                            }
-                        }
-                    }
-                } catch (e) {
-                    lastStatus = e.message;
-                }
-            }
-
-            if (!items) {
-                statusEl.textContent = '一覧の取得に失敗しました。';
-                errorBox.style.display = 'block';
-                errorBox.innerHTML = `
-      <strong>詳細診断（HTTPステータス: ${escapeHtml(lastStatus)}）</strong><br>
-      問い合わせ先URL: <code>${escapeHtml(lastApiUrl)}</code><br><br>
-      <strong>考えられる原因：</strong><br>
-      1. <strong>リポジトリが「Private（非公開）」になっている</strong><br>
-      → GitHubのリポジトリ設定（Settings &gt; Danger Zone）で「Public（公開）」にする必要があります。<br>
-      2. <strong>GitHubのAPI回数制限（1時間に60回まで）に達した</strong><br>
-      → 短時間に何度も再読み込みすると一時制限がかかります（ステータス403）。<br>
-      3. <strong>HTMLファイルをアップロードした直後</strong><br>
-      → GitHubへの反映まで数十秒かかることがあります。
-    `;
-                return;
-            }
-
-            const currentFile = decodeURIComponent(location.pathname.split('/').pop()) || 'index.html';
-
-            const htmlFiles = items.filter(item =>
-                item.type === 'file' &&
-                /\.(html|htm)$/i.test(item.name) &&
-                item.name !== currentFile &&
-                item.name.toLowerCase() !== 'index.html'
-            );
-
-            if (htmlFiles.length === 0) {
-                statusEl.textContent = 'このフォルダ内に他のHTMLファイルが見つかりませんでした。';
-                return;
-            }
-
-            statusEl.textContent = `${htmlFiles.length} 件のHTMLアプリが見つかりました`;
-
-            for (const file of htmlFiles) {
-                const title = await fetchPageTitle(file.name, file.name);
-
-                const card = document.createElement('a');
-                card.className = 'card';
-                card.href = encodeURI(file.name);
-                card.target = '_blank';
-                card.innerHTML = `
-      <div>
-        <div class="card-title">${escapeHtml(title)}</div>
-        <div class="card-file">${escapeHtml(file.name)}</div>
-      </div>
-      <div class="badge">クリックして起動 →</div>
-    `;
-                grid.appendChild(card);
-            }
-        }
-
-        document.getElementById('reloadBtn').addEventListener('click', loadGitHubFiles);
-        loadGitHubFiles();
-    </script>
+document.getElementById('reloadBtn').addEventListener('click', loadFromSitemap);
+loadFromSitemap();
+</script>
 </body>
-
 </html>
