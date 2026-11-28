@@ -1702,7 +1702,7 @@
                 <button id="btnNextDay">1日 ▷</button>
                 <div class="speed-control">
                     <span id="speedLabel">速度:</span>
-                    <input type="range" id="speedSlider" min="1" max="24" step="1" value="1">
+                    <input type="range" id="speedSlider" min="0.1" max="24" step="1" value="1">
                     <span id="speedVal" style="width: 50px;">1 h/s</span>
                 </div>
             </div>
@@ -3892,99 +3892,99 @@
         }
 
         // ==========================================
-            // 4.5 ISS (国際宇宙ステーション) 軌道計算 & アイコン描画
-            // ==========================================
-            function getISSPosition(dDays) {
-                const rad = Math.PI / 180;
-                const a = 6791; // 軌道半径 (地球半径6371km + 高度420km)
-                const inc = 51.64 * rad; // 軌道傾斜角
-                // 2024-01-01 00:00 UTC を基準エポック
-                const t = dDays - 8765.5;
-                const n = 360 / 0.064514; // 1日の周回速度 (~15.5周/日)
-                const u = ((120.0 + n * t) % 360 + 360) % 360 * rad;
-                const node = ((310.0 - 5.0 * t) % 360 + 360) % 360 * rad; // 昇交点の歳差
+        // 4.5 ISS (国際宇宙ステーション) 軌道計算 & アイコン描画
+        // ==========================================
+        function getISSPosition(dDays) {
+            const rad = Math.PI / 180;
+            const a = 6791; // 軌道半径 (地球半径6371km + 高度420km)
+            const inc = 51.64 * rad; // 軌道傾斜角
+            // 2024-01-01 00:00 UTC を基準エポック
+            const t = dDays - 8765.5;
+            const n = 360 / 0.064514; // 1日の周回速度 (~15.5周/日)
+            const u = ((120.0 + n * t) % 360 + 360) % 360 * rad;
+            const node = ((310.0 - 5.0 * t) % 360 + 360) % 360 * rad; // 昇交点の歳差
 
-                // 地心慣性座標 (ECI)
-                const xEci = a * (Math.cos(node) * Math.cos(u) - Math.sin(node) * Math.sin(u) * Math.cos(inc));
-                const yEci = a * (Math.sin(node) * Math.cos(u) + Math.cos(node) * Math.sin(u) * Math.cos(inc));
-                const zEci = a * (Math.sin(u) * Math.sin(inc));
+            // 地心慣性座標 (ECI)
+            const xEci = a * (Math.cos(node) * Math.cos(u) - Math.sin(node) * Math.sin(u) * Math.cos(inc));
+            const yEci = a * (Math.sin(node) * Math.cos(u) + Math.cos(node) * Math.sin(u) * Math.cos(inc));
+            const zEci = a * (Math.sin(u) * Math.sin(inc));
 
-                // 観測者のECI座標
-                const phi = currentCity.lat * rad;
-                const gmstDeg = (280.46061837 + 360.98564736629 * dDays) % 360;
-                const lmstRad = ((gmstDeg + currentCity.lon) % 360 + 360) % 360 * rad;
-                const rEarth = 6378;
-                const xObs = rEarth * Math.cos(phi) * Math.cos(lmstRad);
-                const yObs = rEarth * Math.cos(phi) * Math.sin(lmstRad);
-                const zObs = rEarth * Math.sin(phi);
+            // 観測者のECI座標
+            const phi = currentCity.lat * rad;
+            const gmstDeg = (280.46061837 + 360.98564736629 * dDays) % 360;
+            const lmstRad = ((gmstDeg + currentCity.lon) % 360 + 360) % 360 * rad;
+            const rEarth = 6378;
+            const xObs = rEarth * Math.cos(phi) * Math.cos(lmstRad);
+            const yObs = rEarth * Math.cos(phi) * Math.sin(lmstRad);
+            const zObs = rEarth * Math.sin(phi);
 
-                // 観測者から見た相対ベクトル
-                const dx = xEci - xObs;
-                const dy = yEci - yObs;
-                const dz = zEci - zObs;
-                const dist = Math.hypot(dx, dy, dz);
+            // 観測者から見た相対ベクトル
+            const dx = xEci - xObs;
+            const dy = yEci - yObs;
+            const dz = zEci - zObs;
+            const dist = Math.hypot(dx, dy, dz);
 
-                const ra = Math.atan2(dy, dx);
-                const dec = Math.atan2(dz, Math.hypot(dx, dy));
-                const H = lmstRad - ra;
+            const ra = Math.atan2(dy, dx);
+            const dec = Math.atan2(dz, Math.hypot(dx, dy));
+            const H = lmstRad - ra;
 
-                const sinAlt = Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(H);
-                const alt = Math.asin(Math.max(-1, Math.min(1, sinAlt))) * (180 / Math.PI);
-                const az = getAzimuthAtLocation(phi, dec, H, alt * rad) * (180 / Math.PI);
+            const sinAlt = Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(H);
+            const alt = Math.asin(Math.max(-1, Math.min(1, sinAlt))) * (180 / Math.PI);
+            const az = getAzimuthAtLocation(phi, dec, H, alt * rad) * (180 / Math.PI);
 
-                return { alt, az, dist };
-            }
+            return { alt, az, dist };
+        }
 
-            function drawISSSatelliteIcon(ctx, x, y, scale = 1.0) {
-                ctx.save();
-                ctx.translate(x, y);
-                ctx.scale(scale, scale);
+        function drawISSSatelliteIcon(ctx, x, y, scale = 1.0) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
 
-                // 左右のソーラーパネル（青色グリッド）
-                ctx.fillStyle = '#0a84ff';
-                ctx.strokeStyle = '#70d7ff';
-                ctx.lineWidth = 1;
+            // 左右のソーラーパネル（青色グリッド）
+            ctx.fillStyle = '#0a84ff';
+            ctx.strokeStyle = '#70d7ff';
+            ctx.lineWidth = 1;
 
-                // 左パネル
-                ctx.fillRect(-16, -6, 11, 12);
-                ctx.strokeRect(-16, -6, 11, 12);
-                ctx.beginPath();
-                ctx.moveTo(-10.5, -6); ctx.lineTo(-10.5, 6);
-                ctx.moveTo(-16, 0); ctx.lineTo(-5, 0);
-                ctx.stroke();
+            // 左パネル
+            ctx.fillRect(-16, -6, 11, 12);
+            ctx.strokeRect(-16, -6, 11, 12);
+            ctx.beginPath();
+            ctx.moveTo(-10.5, -6); ctx.lineTo(-10.5, 6);
+            ctx.moveTo(-16, 0); ctx.lineTo(-5, 0);
+            ctx.stroke();
 
-                // 右パネル
-                ctx.fillRect(5, -6, 11, 12);
-                ctx.strokeRect(5, -6, 12, 12);
-                ctx.beginPath();
-                ctx.moveTo(10.5, -6); ctx.lineTo(10.5, 6);
-                ctx.moveTo(5, 0); ctx.lineTo(16, 0);
-                ctx.stroke();
+            // 右パネル
+            ctx.fillRect(5, -6, 11, 12);
+            ctx.strokeRect(5, -6, 12, 12);
+            ctx.beginPath();
+            ctx.moveTo(10.5, -6); ctx.lineTo(10.5, 6);
+            ctx.moveTo(5, 0); ctx.lineTo(16, 0);
+            ctx.stroke();
 
-                // パネル連結トラス棒
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 1.8;
-                ctx.beginPath();
-                ctx.moveTo(-5, 0); ctx.lineTo(5, 0);
-                ctx.stroke();
+            // パネル連結トラス棒
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.8;
+            ctx.beginPath();
+            ctx.moveTo(-5, 0); ctx.lineTo(5, 0);
+            ctx.stroke();
 
-                // 中央モジュール本体（金色）
-                ctx.fillStyle = '#ffd60a';
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 1.2;
-                ctx.fillRect(-4, -4, 8, 8);
-                ctx.strokeRect(-4, -4, 8, 8);
+            // 中央モジュール本体（金色）
+            ctx.fillStyle = '#ffd60a';
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.2;
+            ctx.fillRect(-4, -4, 8, 8);
+            ctx.strokeRect(-4, -4, 8, 8);
 
-                // 通信アンテナ
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(0, -4); ctx.lineTo(0, -8);
-                ctx.arc(0, -8, 1.5, 0, Math.PI * 2);
-                ctx.stroke();
+            // 通信アンテナ
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, -4); ctx.lineTo(0, -8);
+            ctx.arc(0, -8, 1.5, 0, Math.PI * 2);
+            ctx.stroke();
 
-                ctx.restore();
-            }
+            ctx.restore();
+        }
 
         // ==========================================
         // 5. 星座データ & 星座エディタ永続化
@@ -5153,7 +5153,22 @@
                         }
                     }
                 });
-
+                // 天頂ドーム内での ISS (国際宇宙ステーション) 描画
+                const issZ = getISSPosition(dDays);
+                if (issZ.alt >= 0) {
+                    const issPt = azToZenithXY(issZ.az, issZ.alt);
+                    if (issPt && issPt.visible) {
+                        drawISSSatelliteIcon(skyCtx, issPt.x, issPt.y, 1.15);
+                        if (showLabels) {
+                            skyCtx.fillStyle = '#7de0ff';
+                            skyCtx.font = 'bold 11px sans-serif';
+                            skyCtx.textAlign = 'center';
+                            skyCtx.textBaseline = 'alphabetic';
+                            const issLabel = currentLang === 'en' ? `ISS (${issZ.alt.toFixed(0)}°)` : `ISS (${issZ.alt.toFixed(0)}°)`;
+                            skyCtx.fillText(issLabel, issPt.x, issPt.y - 15);
+                        }
+                    }
+                }
                 skyCtx.restore();
                 return;
             }
@@ -5656,8 +5671,8 @@
         bindEdgeButton(btnSkyEdgeRight, 'right');
 
         let zenithDragMode = null; // 'rotate'（左ドラッグ）または 'pan'（右ドラッグ）
-            let zenithDragOriginAz = 0;
-            let isSkyPanDragging = false;
+        let zenithDragOriginAz = 0;
+        let isSkyPanDragging = false;
         let skyPanDragStartX = 0;
         let skyPanDragStartY = 0;
 
@@ -5683,22 +5698,22 @@
         }
 
         skyCanvas.addEventListener('pointerdown', (e) => {
-                if (!isSkyMode || (viewMode !== 'zenith' && !ADJACENT_SKY[viewMode])) return;
-                // 左クリック(0)または右クリック(2)のみ受け付ける
-                if (e.button !== 0 && e.button !== 2) return;
-                if (viewMode === 'zenith' && isHitZenithButton(e.clientX, e.clientY)) return;
+            if (!isSkyMode || (viewMode !== 'zenith' && !ADJACENT_SKY[viewMode])) return;
+            // 左クリック(0)または右クリック(2)のみ受け付ける
+            if (e.button !== 0 && e.button !== 2) return;
+            if (viewMode === 'zenith' && isHitZenithButton(e.clientX, e.clientY)) return;
 
-                if (viewMode === 'zenith') {
-                    zenithDragMoved = false;
-                    zenithDragStartX = e.clientX;
-                    zenithDragStartY = e.clientY;
-                    zenithDragOriginX = zenithPanX;
-                    zenithDragOriginY = zenithPanY;
-                    zenithDragOriginAz = zenithTopAz;
-                    // 右クリックなら移動(pan)、左クリックなら回転(rotate)
-                    zenithDragMode = (e.button === 2) ? 'pan' : 'rotate';
-                } else {
-                    if (e.button !== 0) return;
+            if (viewMode === 'zenith') {
+                zenithDragMoved = false;
+                zenithDragStartX = e.clientX;
+                zenithDragStartY = e.clientY;
+                zenithDragOriginX = zenithPanX;
+                zenithDragOriginY = zenithPanY;
+                zenithDragOriginAz = zenithTopAz;
+                // 右クリックなら移動(pan)、左クリックなら回転(rotate)
+                zenithDragMode = (e.button === 2) ? 'pan' : 'rotate';
+            } else {
+                if (e.button !== 0) return;
                 isSkyPanDragging = true;
                 skyPanDragMoved = false;
                 skyPanDragStartX = e.clientX;
@@ -5766,8 +5781,8 @@
         });
 
         function endZenithDrag(e) {
-                const wasDragging = !!zenithDragMode || isSkyPanDragging;
-                zenithDragMode = null;
+            const wasDragging = !!zenithDragMode || isSkyPanDragging;
+            zenithDragMode = null;
             isSkyPanDragging = false;
             skyCanvas.style.cursor = viewMode === 'zenith' || ADJACENT_SKY[viewMode] ? 'grab' : 'default';
             if (e && e.pointerId !== undefined && skyCanvas.releasePointerCapture) {
@@ -5780,16 +5795,16 @@
         }
         skyCanvas.addEventListener('pointerup', endZenithDrag);
         skyCanvas.addEventListener('pointerup', endZenithDrag);
-            skyCanvas.addEventListener('pointercancel', endZenithDrag);
+        skyCanvas.addEventListener('pointercancel', endZenithDrag);
 
-            // 天頂モードでの右ドラッグ時にブラウザの右クリックメニューが出るのを防止
-            skyCanvas.addEventListener('contextmenu', (e) => {
-                if (isSkyMode && viewMode === 'zenith') {
-                    e.preventDefault();
-                }
-            });
+        // 天頂モードでの右ドラッグ時にブラウザの右クリックメニューが出るのを防止
+        skyCanvas.addEventListener('contextmenu', (e) => {
+            if (isSkyMode && viewMode === 'zenith') {
+                e.preventDefault();
+            }
+        });
 
-            skyCanvas.addEventListener('wheel', (e) => {
+        skyCanvas.addEventListener('wheel', (e) => {
             if (!isSkyMode || viewMode !== 'zenith') return;
             e.preventDefault();
             const zoomFactor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
