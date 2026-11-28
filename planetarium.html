@@ -1828,9 +1828,7 @@
                 <button id="btnToggleLabels" type="button"
                     style="background: #182247; border: 1px solid #3c78b8; color: #b8dcff; font-weight: bold;">🏷️ 名称:
                     ON</button>
-                <button id="btnToggleWeather" type="button"
-                    style="background: #182247; border: 1px solid #367d8f; color: #8fe5ff; font-weight: bold;">☁️ 天気:
-                    ON</button>-
+                
                 <button id="btnLanguage" type="button" title="Language">🌐 English</button>
 
             </div>
@@ -1850,9 +1848,6 @@
                 <input id="customRegionLon" type="number" min="-180" max="180" step="0.0001" placeholder="130.9969">
             </label>
             <div class="custom-region-actions">
-                <button id="btnToggleCustomRadar" type="button"
-                    style="background:#13355a; border-color:#3a72b0; color:#8fe5ff;">🌧️
-                    雨雲: ON</button>
                 <button id="btnSaveCustomRegion" type="button">登録</button>
                 <button id="btnCloseCustomRegion" type="button">閉じる</button>
             </div>
@@ -2412,7 +2407,7 @@
         }
 
         // ==========================================
-        // 2.7 Open-Meteo 天気・雲量・降水データ取得
+        // 2.7 Open-Meteo 天気・気温・風向きデータ取得
         // ==========================================
         let showWeather = true;
         const weatherCache = new Map();
@@ -2420,103 +2415,18 @@
         let weatherFetchedAt = 0;
         let weatherAvailable = false;
         const WEATHER_FADE_HOURS = 6;
+        let cameraAzimuth = 180;
+        let cameraAltitude = 0;
+        
         let currentWeather = {
             weatherCode: 0,
             cloudCover: 0,
-            isRaining: false,
-            isSnowing: false,
             icon: '☀️',
             textJa: '快晴',
             textEn: 'Clear',
-            temperature: null,
-            precipitation: 0
+            temperature: null
         };
 
-        function parseWeatherCode(code, cloudCover) {
-            let icon = '☀️', textJa = '快晴', textEn = 'Clear';
-            let isRaining = false, isSnowing = false;
-
-            if ((code >= 71 && code <= 77) || code === 85 || code === 86) {
-                icon = '❄️'; textJa = '雪'; textEn = 'Snow';
-                isSnowing = true;
-            } else if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82) || code >= 95) {
-                icon = '🌧️'; textJa = '雨'; textEn = 'Rain';
-                isRaining = true;
-            } else if (code >= 45 && code <= 48) {
-                icon = '🌫️'; textJa = '霧'; textEn = 'Fog';
-            } else if (code === 3 || cloudCover >= 80) {
-                icon = '☁️'; textJa = '曇り'; textEn = 'Overcast';
-            } else if (code === 2 || cloudCover >= 40) {
-                icon = '⛅'; textJa = '晴れ時々曇り'; textEn = 'Partly Cloudy';
-            } else if (code === 1 || cloudCover >= 15) {
-                icon = '🌤️'; textJa = 'おおむね晴れ'; textEn = 'Mostly Clear';
-            }
-            return { weatherCode: code, cloudCover, isRaining, isSnowing, icon, textJa, textEn, temperature: null };
-        }
-
-        function ensureWeatherData() {
-            const key = `${currentCity.lat.toFixed(2)},${currentCity.lon.toFixed(2)}`;
-            const cached = weatherCache.get(key);
-            if (cached && (Date.now() - cached.fetchedAt < 15 * 60 * 1000)) {
-                currentWeather = cached.data;
-                weatherFetchedAt = cached.fetchedAt;
-                weatherAvailable = true;
-                return;
-            }
-            if (weatherPending) return;
-            weatherPending = true;
-
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentCity.lat.toFixed(4)}&longitude=${currentCity.lon.toFixed(4)}&current=weather_code,cloud_cover,temperature_2m,wind_speed_10m,wind_direction_10m,precipitation&timezone=auto`;
-            fetch(url)
-                .then(r => r.ok ? r.json() : null)
-                .then(data => {
-                    if (data && data.current && data.current.weather_code !== undefined) {
-                        const code = Number(data.current.weather_code) || 0;
-                        const cover = Number(data.current.cloud_cover) || 0;
-                        const parsed = parseWeatherCode(code, cover);
-                        parsed.temperature = Number.isFinite(Number(data.current.temperature_2m))
-                            ? Number(data.current.temperature_2m) : null;
-                        parsed.windSpeed = Number.isFinite(Number(data.current.wind_speed_10m))
-                            ? Number(data.current.wind_speed_10m) : null; // km/h
-                        parsed.windDir = Number.isFinite(Number(data.current.wind_direction_10m))
-                            ? Number(data.current.wind_direction_10m) : null; // 度数 (0〜360)
-                        parsed.precipitation = Number.isFinite(Number(data.current.precipitation))
-                            ? Math.max(0, Number(data.current.precipitation)) : 0; // mm/h 相当
-                        currentWeather = parsed;
-                        weatherAvailable = true;
-                        weatherFetchedAt = Date.now();
-                        weatherCache.set(key, { data: parsed, fetchedAt: weatherFetchedAt });
-                        if (isSkyMode) renderTokyoSky(simDate);
-                    } else {
-                        weatherAvailable = false;
-                        if (isSkyMode) renderTokyoSky(simDate);
-                    }
-                })
-                .catch(() => { weatherAvailable = false; if (isSkyMode) renderTokyoSky(simDate); })
-                .finally(() => { weatherPending = false; });
-        }
-
-        function getWeatherOpacity(date) {
-            if (!showWeather || !weatherAvailable || !weatherFetchedAt) return 0;
-            const futureHours = Math.max(0, (date.getTime() - weatherFetchedAt) / 3600000);
-            return Math.max(0, Math.min(1, 1 - futureHours / WEATHER_FADE_HOURS));
-        }
-
-        const MAX_RAIN_PARTICLES = 420;
-        const rainParticles = Array.from({ length: MAX_RAIN_PARTICLES }, () => ({
-            x: Math.random(),
-            y: Math.random(),
-            len: 20 + Math.random() * 30,
-            speed: 0.02 + Math.random() * 0.01
-        }));
-        const snowParticles = Array.from({ length: 100 }, () => ({
-            x: Math.random(),
-            y: Math.random(),
-            r: 3 + Math.random() * 2.0,
-            speedY: 0.0018 + Math.random() * 0.003,
-            swing: Math.random() * Math.PI * 2,
-            swingSpeed: 0.02 + Math.random() * 0.03
-        }));
 
         // ==========================================
         // 3. 都市データ & 状態管理
@@ -3151,6 +3061,9 @@
         let zenithZoom = 1.0;
         let zenithPanX = 0;
         let zenithPanY = 0;
+        // 通常の星空表示用：ドラッグで連続的に変化する中心方位角（度）
+        let skyPanAzimuth = 0;
+        let skyPanVertical = 0;
         let isSkyMode = false;
         let showConstellations = true;
         let showLabels = true;
@@ -3165,7 +3078,7 @@
         const btnConstEditor = document.getElementById('btnConstEditor');
         const btnToggleConst = document.getElementById('btnToggleConst');
         const btnToggleLabels = document.getElementById('btnToggleLabels');
-        const btnToggleWeather = document.getElementById('btnToggleWeather');
+
         const dateInput = document.getElementById('dateInput');
         const homeTimeZoneSelect = document.getElementById('homeTimeZone');
         const homeNameInput = document.getElementById('homeName');
@@ -3268,7 +3181,7 @@
             btnSaveCustomRegion.disabled = false;
             updateLanguageUI();
             updateObserverMarker();
-            ensureWeatherData();
+
             updateSimulation(simDate);
             setCustomRegionOpen(false);
             alert(`${tr('customRegionAdded')}: ${names.nameJa} / ${names.nameEn}`);
@@ -3320,7 +3233,7 @@
 
             syncCustomRegionMapMarker(rLat, rLon, panMap);
             updateObserverMarker();
-            ensureWeatherData();
+
             updateSimulation(simDate);
         }
 
@@ -3382,7 +3295,7 @@
                 if (!mapEl || typeof L === 'undefined') return;
 
                 if (!customRegionMap) {
-                    // 雨雲レーダーと同じ標準Webメルカトル投影で初期化
+                    // 標準Webメルカトル投影で初期化
                     customRegionMap = L.map(mapEl, {
                         worldCopyJump: true,
                         minZoom: 1,
@@ -3409,19 +3322,16 @@
                     });
                 }
 
-                // 開いたときのサイズ再計算と雨雲の同期
+                // 開いたときに地図サイズと観測地点マーカーを同期
                 setTimeout(() => {
-                if (!customRegionMap) return;
-                customRegionMap.invalidateSize();
-                const lat = Number(customRegionLatInput.value);
-                const lon = Number(customRegionLonInput.value);
-                if (customRegionLatInput.value.trim() !== '' && customRegionLonInput.value.trim() !== '') {
-                    syncCustomRegionMapMarker(lat, lon, false);
-                }
-                if (showCustomRadar && typeof loadCustomMapRainRadar === 'function') {
-                    loadCustomMapRainRadar(customRegionMap);
-                }
-            }, 80);
+                    if (!customRegionMap) return;
+                    customRegionMap.invalidateSize();
+                    const lat = Number(customRegionLatInput.value);
+                    const lon = Number(customRegionLonInput.value);
+                    if (customRegionLatInput.value.trim() !== '' && customRegionLonInput.value.trim() !== '') {
+                        syncCustomRegionMapMarker(lat, lon, false);
+                    }
+                }, 80);
             }
 
         customRegionLatInput.addEventListener('input', () => {
@@ -3437,6 +3347,28 @@
         function getCurrentCityDisplayName() {
             if (currentCityKey === 'home') return homeSettings ? homeSettings.name : tr('notSet');
             return currentLang === 'en' ? (CITY_NAMES_EN[currentCityKey] || currentCity.name) : currentCity.name;
+        }
+
+        const SKY_CARDINALS = [
+            { key: 'north', az: 0 }, { key: 'east', az: 90 },
+            { key: 'south', az: 180 }, { key: 'west', az: 270 }
+        ];
+        const normalizeAzimuth = (az) => ((az % 360) + 360) % 360;
+        function getSkyCenterAzimuth() {
+            const base = ({ north: 0, east: 90, south: 180, west: 270 })[viewMode];
+            return normalizeAzimuth((base === undefined ? 180 : base) + skyPanAzimuth);
+        }
+        function nearestSkyCardinal(az) {
+            return SKY_CARDINALS.reduce((best, item) => {
+                const delta = Math.abs((((az - item.az) + 540) % 360) - 180);
+                return !best || delta < best.delta ? { key: item.key, az: item.az, delta } : best;
+            }, null);
+        }
+        function cardinalStepFromCurrent(side) {
+            const current = nearestSkyCardinal(getSkyCenterAzimuth());
+            const index = SKY_CARDINALS.findIndex(item => item.key === current.key);
+            // 左は方位角-90度、右は+90度。常に東西南北の正確な方位へスナップ。
+            return SKY_CARDINALS[(index + (side === 'left' ? 3 : 1)) % 4];
         }
 
         function updateViewButtonsUI() {
@@ -3455,11 +3387,12 @@
                 spaceBtn.style.borderColor = isSpaceActive ? '#00ffff' : '#334e80';
             }
             if (isSkyMode && ADJACENT_SKY[viewMode]) {
-                const adj = ADJACENT_SKY[viewMode];
+                const leftDir = cardinalStepFromCurrent('left').key;
+                const rightDir = cardinalStepFromCurrent('right').key;
                 btnSkyEdgeLeft.style.display = 'block';
                 btnSkyEdgeRight.style.display = 'block';
-                btnSkyEdgeLeft.textContent = `◀ ${tr(adj.left)}`;
-                btnSkyEdgeRight.textContent = `${tr(adj.right)} ▶`;
+                btnSkyEdgeLeft.textContent = `◀ ${tr(leftDir)}`;
+                btnSkyEdgeRight.textContent = `${tr(rightDir)} ▶`;
             } else if (isSkyMode && viewMode === 'zenith') {
                 btnSkyEdgeLeft.style.display = 'block';
                 btnSkyEdgeRight.style.display = 'block';
@@ -3496,6 +3429,7 @@
                 }
                 lastSkyDirection = mode;
                 viewMode = mode;
+                skyPanAzimuth = 0;
                 isSkyMode = true;
                 skyCanvas.style.display = 'block';
                 updateSpaceLabelsVisibility();
@@ -3555,11 +3489,7 @@
                 btnToggleLabels.style.background = showLabels ? '#1e4678' : '#182247';
                 btnToggleLabels.style.color = showLabels ? '#ffffff' : '#9ec4e8';
             }
-            if (btnToggleWeather) {
-                btnToggleWeather.textContent = showWeather ? tr('weatherOn') : tr('weatherOff');
-                btnToggleWeather.style.background = showWeather ? '#164a5c' : '#182247';
-                btnToggleWeather.style.color = showWeather ? '#a8f0ff' : '#689bb5';
-            }
+            
             updateSpaceLabelsVisibility();
             document.getElementById('speedVal').textContent = `${stepHours.toFixed(0)} ${tr('speedUnit')}`;
             dateInput.title = currentLang === 'ja' ? 'クリックして日時を直接変更' : 'Click to change date and time';
@@ -3689,7 +3619,7 @@
             localStorage.setItem('selectedSolarCity', 'home');
             updateLanguageUI();
             updateObserverMarker();
-            ensureWeatherData();
+
             updateSimulation(simDate);
             setHomeSettingsOpen(false);
             alert(tr('saved'));
@@ -3727,47 +3657,19 @@
             if (!mapEl || typeof L === 'undefined') return;
 
             if (!homeRegionMap) {
-                homeRegionMap = L.map(mapEl, { worldCopyJump: true, minZoom: 1, maxZoom: 8 }).setView([20, 0], 1);
-                const GridLayer = L.GridLayer.extend({
-                    createTile: function () {
-                        const tile = document.createElement('canvas');
-                        const size = this.getTileSize();
-                        tile.width = size.x;
-                        tile.height = size.y;
-                        const ctx = tile.getContext('2d');
-                        ctx.fillStyle = '#09182e';
-                        ctx.fillRect(0, 0, size.x, size.y);
-                        ctx.strokeStyle = 'rgba(95, 165, 240, 0.22)';
-                        ctx.lineWidth = 1;
-                        ctx.strokeRect(0.5, 0.5, size.x - 1, size.y - 1);
-                        return tile;
-                    }
-                });
-                new GridLayer().addTo(homeRegionMap);
+                // カスタム地域マップと同じEsriダーク世界地図タイルを使用
+                homeRegionMap = L.map(mapEl, {
+                    worldCopyJump: true,
+                    minZoom: 1,
+                    maxZoom: 16
+                }).setView([35.68, 139.76], 4);
 
-                fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
-                    .then(r => r.ok ? r.json() : null)
-                    .then(topo => {
-                        if (!topo || !topo.objects || !topo.objects.countries || !homeRegionMap) return;
-                        const arcs = topo.arcs || [];
-                        const tf = topo.transform || { scale: [1, 1], translate: [0, 0] };
-                        const decodeArc = (idx) => {
-                            const rev = idx < 0;
-                            const arc = arcs[rev ? ~idx : idx];
-                            let x = 0, y = 0;
-                            const pts = arc.map(([dx, dy]) => {
-                                x += dx; y += dy;
-                                return [x * tf.scale[0] + tf.translate[0], y * tf.scale[1] + tf.translate[1]];
-                            });
-                            return rev ? pts.reverse() : pts;
-                        };
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+                    maxZoom: 16
+                }).addTo(homeRegionMap);
 
-                        const polys = decodeTopoToUnwrappedPolys(topo, decodeArc);
-                        L.polygon(polys, { color: '#5ca8e6', weight: 0.8, fillColor: '#1d4675', fillOpacity: 0.5, interactive: false }).addTo(homeRegionMap);
-                        if (homeRegionMarker && typeof homeRegionMarker.bringToFront === 'function') homeRegionMarker.bringToFront();
-                    })
-                    .catch(() => { });
-
+                // 地図クリックでホーム位置と時間帯を更新
                 homeRegionMap.on('click', (e) => {
                     const lat = Number(e.latlng.lat.toFixed(4));
                     let lon = Number(e.latlng.lng.toFixed(4));
@@ -3786,7 +3688,16 @@
                 });
             }
 
-
+            // パネル表示時に地図サイズと保存済みホーム位置を同期
+            setTimeout(() => {
+                if (!homeRegionMap) return;
+                homeRegionMap.invalidateSize();
+                const lat = Number(homeLatInput.value);
+                const lon = Number(homeLonInput.value);
+                if (homeLatInput.value.trim() !== '' && homeLonInput.value.trim() !== '') {
+                    syncHomeRegionMapMarker(lat, lon, false);
+                }
+            }, 80);
         }
 
         homeLatInput.addEventListener('input', () => {
@@ -3975,127 +3886,6 @@
             ctx.shadowColor = '#ffffcc';
             ctx.shadowBlur = 8;
             ctx.fill();
-            ctx.restore();
-        }
-
-        // ==========================================
-        // 4.5 背景薄雲・雨・雪の描画処理
-        // ==========================================
-        let cloudAnimTime = 0;
-        function drawBackgroundClouds(ctx, w, horizonY, zenithY, sunAlt, weatherOpacity) {
-            if (!showWeather || weatherOpacity <= 0 || currentWeather.cloudCover <= 3) return;
-
-            const cloudBrightness = sunAlt > 0 ? 1.0 : (sunAlt > -6 ? 0.65 : 0.10);
-            const nightFactor = sunAlt <= -6 ? 0.2 : 1.0;
-            const maxAlpha = Math.min(0.28, (currentWeather.cloudCover / 100) * 0.32)
-                * weatherOpacity * cloudBrightness;
-            const skyH = Math.max(100, horizonY - zenithY);
-            const t = cloudAnimTime * 0.00008;
-
-            ctx.save();
-            ctx.beginPath();
-            ctx.rect(0, zenithY, w, horizonY - zenithY);
-            ctx.clip();
-
-            if (currentWeather.isRaining) {
-                const cloudGrad = ctx.createLinearGradient(0, zenithY, 0, horizonY);
-
-                cloudGrad.addColorStop(0, `rgba(105, 115, 130, ${0.78 * nightFactor})`);
-                cloudGrad.addColorStop(0.5, `rgba(125, 135, 150, ${0.68 * nightFactor})`);
-                cloudGrad.addColorStop(1, `rgba(150, 155, 165, ${0.55 * nightFactor})`);
-
-                ctx.globalAlpha = weatherOpacity;
-                ctx.fillStyle = cloudGrad;
-                ctx.fillRect(0, zenithY, w, horizonY - zenithY);
-                ctx.globalAlpha = 1;
-            }
-
-            const cloudColor = sunAlt > 0
-                ? 'rgba(255, 255, 255,'
-                : (sunAlt > -6 ? 'rgba(220, 190, 210,' : 'rgba(160, 185, 225,');
-
-            const cloudBlobs = [
-                { fx: 0.18, fy: 0.35, rx: w * 0.42, ry: skyH * 0.28, speed: 1.0 },
-                { fx: 0.55, fy: 0.45, rx: w * 0.48, ry: skyH * 0.32, speed: 0.75 },
-                { fx: 0.88, fy: 0.30, rx: w * 0.38, ry: skyH * 0.26, speed: 1.2 },
-                { fx: 0.32, fy: 0.65, rx: w * 0.52, ry: skyH * 0.35, speed: 0.6 },
-                { fx: 0.76, fy: 0.70, rx: w * 0.45, ry: skyH * 0.30, speed: 0.9 }
-            ];
-
-            cloudBlobs.forEach((b) => {
-                const shiftX = ((b.fx + t * b.speed) % 1.4) - 0.2;
-                const cx = shiftX * w;
-                const cy = zenithY + b.fy * skyH;
-
-                const grad = ctx.createRadialGradient(cx, cy, 10, cx, cy, Math.max(b.rx, b.ry));
-                grad.addColorStop(0, `${cloudColor} ${maxAlpha.toFixed(3)})`);
-                grad.addColorStop(0.5, `${cloudColor} ${(maxAlpha * 0.5).toFixed(3)})`);
-                grad.addColorStop(1, `${cloudColor} 0)`);
-
-                ctx.fillStyle = grad;
-                ctx.beginPath();
-                ctx.ellipse(cx, cy, b.rx, b.ry, 0, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            ctx.restore();
-        }
-
-        function drawPrecipitation(ctx, w, horizonY, zenithY, weatherOpacity) {
-            if (!showWeather || weatherOpacity <= 0) return;
-            const isRaining = currentWeather.isRaining;
-            const isSnowing = currentWeather.isSnowing;
-            if (!isRaining && !isSnowing) return;
-
-            const skyH = Math.max(100, horizonY - zenithY);
-
-            ctx.save();
-            ctx.beginPath();
-            ctx.rect(0, zenithY, w, horizonY - zenithY);
-            ctx.clip();
-
-            ctx.globalAlpha = weatherOpacity;
-            if (isRaining) {
-                // 降水量(mm)に応じて雨粒の本数を増減。弱い雨でも視認できる最低本数を確保。
-                const rainMm = Math.max(0, Number(currentWeather.precipitation) || 0);
-                const rainRatio = Math.min(1, rainMm / 5);
-                const activeRainCount = Math.min(
-                    MAX_RAIN_PARTICLES,
-                    Math.round(5 + Math.pow(rainRatio, 0.80) * (MAX_RAIN_PARTICLES - 5))
-                );
-                ctx.strokeStyle = 'rgba(50, 50, 255, 0.8)';
-                ctx.lineWidth = 2.0;
-                for (let i = 0; i < activeRainCount; i++) {
-                    const p = rainParticles[i];
-                    p.y += p.speed;
-                    p.x += p.speed * 0.12;
-                    if (p.y > 1) { p.y = 0; p.x = Math.random(); }
-
-                    const px = p.x * w;
-                    const py = zenithY + p.y * skyH;
-                    ctx.beginPath();
-                    ctx.moveTo(px, py);
-                    ctx.lineTo(px + p.len * 0.22, py + p.len);
-                    ctx.stroke();
-                }
-            } else if (isSnowing) {
-                snowParticles.forEach(p => {
-                    p.y += p.speedY;
-                    p.swing += p.swingSpeed;
-                    if (p.y > 1) { p.y = 0; p.x = Math.random(); }
-
-                    const px = (p.x + Math.sin(p.swing) * 0.02) * w;
-                    const py = zenithY + p.y * skyH;
-                    ctx.beginPath();
-                    ctx.arc(px, py, p.r, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(240, 250, 255, 0.65)';
-                    ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
-                    ctx.shadowBlur = 3;
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                });
-            }
-
             ctx.restore();
         }
 
@@ -4913,12 +4703,14 @@
             const horizonY = h * 0.835;
             const zenithY = Math.max(h * 0.07, panelBottom + 24);
             const skyHeight = Math.max(100, horizonY - zenithY);
-            const weatherOpacity = getWeatherOpacity(date);
+
             const centerX = w / 2;
             const halfWidth = Math.max(1, w / 2 - 12);
 
             const azimuthMap = { north: 0, east: 90, south: 180, west: 270 };
-            const centerAz = Object.prototype.hasOwnProperty.call(azimuthMap, viewMode) ? azimuthMap[viewMode] : 180;
+            const centerAz = viewMode === 'zenith'
+                ? 180
+                : getSkyCenterAzimuth();
             const rad = Math.PI / 180;
 
             const azimuthHalfRange = 135;
@@ -4936,7 +4728,9 @@
                 const convergence = zenithConvergence + (1 - zenithConvergence) * (1 - Math.pow(a, 1.30));
                 const x = centerX + u * halfWidth * convergence;
                 const vertical = a + edgeLift * u * u * a * (1 - a);
-                const y = horizonY - skyHeight * (safeAlt < 0 ? safeAlt / 90 : vertical);
+                const y = horizonY - skyHeight * (safeAlt < 0 ? safeAlt / 90 : vertical)
+                    + skyPanVertical;
+
                 return { x, y, visible, relAz };
             }
 
@@ -4953,7 +4747,7 @@
             const moonHoriz = toHorizontal(Math.cos(moonRad), Math.sin(moonRad), 0, dDays);
 
             ensureActualTideData(date);
-            ensureWeatherData();
+
 
             const actualTideM = getActualTideAt(date);
             const actualAnnualRange = getActualAnnualTideRange(date);
@@ -4979,10 +4773,6 @@
             }
             skyCtx.fillStyle = skyGrad;
             skyCtx.fillRect(0, 0, w, h);
-
-            if (viewMode !== 'zenith') {
-                drawBackgroundClouds(skyCtx, w, horizonY, zenithY, sunHoriz.alt, weatherOpacity);
-            }
 
             // 海面と潮位メーター
             if (viewMode !== 'zenith') {
@@ -5098,66 +4888,7 @@
             }
             skyCanvas._zenithBtnRect = zenithBtnRect;
 
-            // 天気・気温表示（真上ボタンの右側）
-            if (showWeather) {
-                const weatherKnown = weatherAvailable && weatherOpacity > 0 && weatherFetchedAt > 0;
-                const weatherLabel = weatherKnown
-                    ? `${currentWeather.icon} ${currentLang === 'en' ? currentWeather.textEn : currentWeather.textJa}`
-                    : '☁️ --';
-                const tempLabel = weatherKnown && currentWeather.temperature !== null
-                    ? ` ${currentWeather.temperature.toFixed(1)}°C`
-                    : '';
-                let windLabel = '';
-                if (weatherKnown && currentWeather.windSpeed !== null) {
-                    const mps = (currentWeather.windSpeed * 0.27778).toFixed(1);
-                    const compass = degToCompass(currentWeather.windDir);
-
-                    // 風が「吹いてくる方向（風向）」を、風が「進む方向（矢印の向き）」に補正 (+180度)
-                    // ※ Open-Meteoの風向は「北から吹いてくる(0°=北風)」ため、矢印を下(南)に向かわせるために+180します
-                    const deg = currentWeather.windDir !== null ? (currentWeather.windDir + 180) % 360 : 0;
-
-                    // キャンバス（2D context）で描画しているため、テキストの中に記号「⬆」と角度を入れる
-                    // ※もしHTML要素として表示する場合はCSSクラスが使えますが、キャンバス描画なので文字としてスッキリ見せます
-                    const windTextEn = `Wind: ${mps} m/s ${compass} (${currentWeather.windDir ?? 0}°)`;
-                    const windTextJa = `風速: ${mps}m/s ${compass} (${currentWeather.windDir ?? 0}°)`;
-
-                    // 方角に合わせた矢印アイコン (N=北から吹く場合、矢印は南へ向かうため ↓ 系になります)
-                    const arrowIcons = ['⬇', '↙', '⬅', '↖', '⬆', '↗', '➡', '↘'];
-                    const arrowIdx = currentWeather.windDir !== null ? Math.round(((currentWeather.windDir % 360) / 45)) % 8 : 0;
-                    const arrow = arrowIcons[arrowIdx];
-
-                    windLabel = ` 💨 ${arrow} ${currentLang === 'en' ? windTextEn : windTextJa}`;
-                }
-                const weatherText = `${weatherLabel}${tempLabel}${windLabel}`;
-                const weatherBaseFont = parseFloat(getComputedStyle(document.body).fontSize) || 16;
-                const weatherFont = Math.max(15, Math.min(19, weatherBaseFont * 1.12));
-                const weatherX = zenithBtnRect ? zenithBtnRect.x + zenithBtnRect.w + 400 : centerX + 90;
-                const weatherY = Math.max(18, zenithY - 4);
-                const availableW = Math.max(0, w - weatherX - 10);
-
-                if (availableW > 45) {
-                    skyCtx.save();
-                    skyCtx.globalAlpha = weatherKnown ? Math.max(0.45, weatherOpacity) : 0.9;
-                    skyCtx.font = `bold ${weatherFont}px 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`;
-                    skyCtx.textAlign = 'left';
-                    skyCtx.textBaseline = 'middle';
-                    const textW = Math.min(availableW, skyCtx.measureText(weatherText).width + 20);
-                    const boxH = Math.round(weatherFont * 1.85);
-                    const boxY = weatherY - boxH / 2;
-                    skyCtx.fillStyle = 'rgba(8, 18, 38, 0.88)';
-                    skyCtx.strokeStyle = 'rgba(105, 165, 225, 0.82)';
-                    skyCtx.lineWidth = 1.2;
-                    skyCtx.beginPath();
-                    skyCtx.roundRect
-                        ? skyCtx.roundRect(weatherX - 8, boxY, textW, boxH, 8)
-                        : skyCtx.rect(weatherX - 8, boxY, textW, boxH);
-                    skyCtx.fill();
-                    skyCtx.stroke();
-                    skyCtx.fillStyle = '#f0f7ff';
-                    skyCtx.fillText(weatherText, weatherX + 2, weatherY + 0.5, availableW - 14);
-                    skyCtx.restore();
-                }
-            }
+            
 
             // 方角ラベル
             {
@@ -5606,9 +5337,6 @@
                 }
             });
 
-            if (viewMode !== 'zenith') {
-                drawPrecipitation(skyCtx, w, horizonY, zenithY, weatherOpacity);
-            }
         }
 
         // ==========================================
@@ -5803,12 +5531,11 @@
                 return;
             }
 
-            const baseDir = ADJACENT_SKY[viewMode] ? viewMode : (lastSkyDirection || 'south');
-            const adj = ADJACENT_SKY[baseDir];
-            if (!adj || !adj[side]) return;
-            const nextDir = adj[side];
+            const nextCardinal = cardinalStepFromCurrent(side);
+            const nextDir = nextCardinal.key;
             lastSkyDirection = nextDir;
             viewMode = nextDir;
+            skyPanAzimuth = 0;
             isSkyMode = true;
             if (skyCanvas.style.display !== 'block') {
                 skyCanvas.style.display = 'block';
@@ -5838,11 +5565,18 @@
         bindEdgeButton(btnSkyEdgeRight, 'right');
 
         let isZenithDragging = false;
+        let isSkyPanDragging = false;
+        let skyPanDragStartX = 0;
+            let skyPanDragStartY = 0;
+
+            let skyPanDragOriginAzimuth = 0;
+            let skyPanDragOriginVertical = 0;
         let zenithDragStartX = 0;
         let zenithDragStartY = 0;
         let zenithDragOriginX = 0;
         let zenithDragOriginY = 0;
         let zenithDragMoved = false;
+        let skyPanDragMoved = false;
 
         function isHitZenithButton(clientX, clientY) {
             const btnRect = skyCanvas._zenithBtnRect;
@@ -5857,15 +5591,25 @@
         }
 
         skyCanvas.addEventListener('pointerdown', (e) => {
-            if (!isSkyMode || viewMode !== 'zenith') return;
+            if (!isSkyMode || (viewMode !== 'zenith' && !ADJACENT_SKY[viewMode])) return;
             if (e.button !== undefined && e.button !== 0) return;
-            if (isHitZenithButton(e.clientX, e.clientY)) return;
-            isZenithDragging = true;
-            zenithDragMoved = false;
-            zenithDragStartX = e.clientX;
-            zenithDragStartY = e.clientY;
-            zenithDragOriginX = zenithPanX;
-            zenithDragOriginY = zenithPanY;
+            if (viewMode === 'zenith' && isHitZenithButton(e.clientX, e.clientY)) return;
+            if (viewMode === 'zenith') {
+                isZenithDragging = true;
+                zenithDragMoved = false;
+                zenithDragStartX = e.clientX;
+                zenithDragStartY = e.clientY;
+                zenithDragOriginX = zenithPanX;
+                zenithDragOriginY = zenithPanY;
+            } else {
+                isSkyPanDragging = true;
+                skyPanDragMoved = false;
+                skyPanDragStartX = e.clientX;
+                skyPanDragStartY = e.clientY;
+
+                skyPanDragOriginAzimuth = skyPanAzimuth;
+                skyPanDragOriginVertical = skyPanVertical;
+            }
             skyCanvas.style.cursor = 'grabbing';
             if (skyCanvas.setPointerCapture) {
                 try { skyCanvas.setPointerCapture(e.pointerId); } catch (_) { }
@@ -5873,8 +5617,8 @@
         });
 
         skyCanvas.addEventListener('pointermove', (e) => {
-            if (!isSkyMode || viewMode !== 'zenith') {
-                skyCanvas.style.cursor = isHitZenithButton(e.clientX, e.clientY) ? 'pointer' : 'default';
+            if (!isSkyMode) {
+                skyCanvas.style.cursor = 'default';
                 return;
             }
             if (isZenithDragging) {
@@ -5884,17 +5628,43 @@
                 zenithPanX = zenithDragOriginX + dx;
                 zenithPanY = zenithDragOriginY + dy;
                 renderTokyoSky(simDate);
-            } else {
+            } else if (isSkyPanDragging) {
+                const dx = e.clientX - skyPanDragStartX;
+                const dy = e.clientY - skyPanDragStartY;
+
+                if (Math.hypot(dx, dy) > 3) {
+                    skyPanDragMoved = true;
+                }
+
+                const rect = skyCanvas.getBoundingClientRect();
+                const width = Math.max(1, rect.width);
+                const height = Math.max(1, rect.height);
+
+                // 左右：方位を360度連続移動
+                skyPanAzimuth = skyPanDragOriginAzimuth - dx * (270 / width);
+
+
+
+                updateViewButtonsUI();
+                renderTokyoSky(simDate);
+            } else if (viewMode === 'zenith') {
                 skyCanvas.style.cursor = isHitZenithButton(e.clientX, e.clientY) ? 'pointer' : 'grab';
+            } else {
+                skyCanvas.style.cursor = 'grab';
             }
         });
 
         function endZenithDrag(e) {
-            if (!isZenithDragging) return;
+            const wasDragging = isZenithDragging || isSkyPanDragging;
             isZenithDragging = false;
-            skyCanvas.style.cursor = viewMode === 'zenith' ? 'grab' : 'default';
+            isSkyPanDragging = false;
+            skyCanvas.style.cursor = viewMode === 'zenith' || ADJACENT_SKY[viewMode] ? 'grab' : 'default';
             if (e && e.pointerId !== undefined && skyCanvas.releasePointerCapture) {
                 try { skyCanvas.releasePointerCapture(e.pointerId); } catch (_) { }
+            }
+            if (wasDragging && skyPanDragMoved) {
+                // ドラッグ後のクリックイベントを抑止するためフラグを次のclickまで保持
+                skyPanDragMoved = true;
             }
         }
         skyCanvas.addEventListener('pointerup', endZenithDrag);
@@ -5932,6 +5702,10 @@
             if (!isSkyMode) return;
             if (zenithDragMoved) {
                 zenithDragMoved = false;
+                return;
+            }
+            if (skyPanDragMoved) {
+                skyPanDragMoved = false;
                 return;
             }
             if (!isHitZenithButton(e.clientX, e.clientY)) return;
@@ -5978,13 +5752,6 @@
             }
         });
 
-        btnToggleWeather.addEventListener('click', () => {
-            showWeather = !showWeather;
-            if (showWeather) ensureWeatherData();
-            updateLanguageUI();
-            if (isSkyMode) renderTokyoSky(simDate);
-        });
-
         document.getElementById('btnLanguage').addEventListener('click', () => {
             currentLang = currentLang === 'ja' ? 'en' : 'ja';
             localStorage.setItem('solarLanguage', currentLang);
@@ -6003,7 +5770,7 @@
                 localStorage.setItem('selectedSolarCity', currentCityKey);
             }
             updateObserverMarker();
-            ensureWeatherData();
+
             updateSimulation(simDate);
         });
 
@@ -6578,7 +6345,7 @@
                 const theta = -Math.PI / 2 + (hor.az - zenithTopAz) * rad;
                 return { x: cx + dist * Math.cos(theta), y: cy + dist * Math.sin(theta), visible: hor.alt >= -2 && hor.alt <= 90, alt: hor.alt };
             }
-            const centerAz = ({ north: 0, east: 90, south: 180, west: 270 })[viewMode] ?? 180;
+            const centerAz = getSkyCenterAzimuth();
             let rel = ((hor.az - centerAz + 540) % 360) - 180;
             const visible = Math.abs(rel) <= 135;
             const u = Math.max(-1, Math.min(1, rel / 135));
@@ -6587,7 +6354,9 @@
             const convergence = .04 + (1 - .04) * (1 - Math.pow(a, 1.30));
             const x = w / 2 + u * Math.max(1, w / 2 - 12) * convergence;
             const vertical = a + .90 * u * u * a * (1 - a);
-            const y = horizonY - skyHeight * (safeAlt < 0 ? safeAlt / 90 : vertical);
+            const y = horizonY - skyHeight * (safeAlt < 0 ? safeAlt / 90 : vertical)
+                + skyPanVertical;
+
             return { x, y, visible, alt: hor.alt };
         }
         function astroDrawFlare(ctx, x, y, color, r, intensity, spread) { if (intensity <= 0) return; ctx.save(); ctx.globalAlpha = Math.min(.9, intensity); const rr = r * (2.2 + spread * 2.2); const g = ctx.createRadialGradient(x, y, r * .2, x, y, rr); g.addColorStop(0, color + 'aa'); g.addColorStop(.25, color + '55'); g.addColorStop(1, color + '00'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, rr, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = color + '88'; ctx.lineWidth = Math.max(.5, intensity * 1.5); ctx.beginPath(); ctx.arc(x, y, r * (1.2 + spread), 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
@@ -6652,8 +6421,8 @@
                 const th = -Math.PI / 2 + (az - zenithTopAz) * rad;
                 return { x: cx + dist * Math.cos(th), y: cy + dist * Math.sin(th), visible: alt >= -2, alt };
             }
-            const ca = ({ north: 0, east: 90, south: 180, west: 270 })[viewMode] ?? 180;
-            const rel = ((az - ca + 540) % 360) - 180, visible = Math.abs(rel) <= 135, u = Math.max(-1, Math.min(1, rel / 135)), sa = Math.max(-5, Math.min(90, alt)), a = Math.max(0, sa) / 90, conv = .04 + .96 * (1 - Math.pow(a, 1.3)), x = w / 2 + u * Math.max(1, w / 2 - 12) * conv, vertical = a + .90 * u * u * a * (1 - a), y = hz - sh * (sa < 0 ? sa / 90 : vertical);
+            const ca = getSkyCenterAzimuth();
+            const rel = ((az - ca + 540) % 360) - 180, visible = Math.abs(rel) <= 135, u = Math.max(-1, Math.min(1, rel / 135)), sa = Math.max(-5, Math.min(90, alt)), a = Math.max(0, sa) / 90, conv = .04 + .96 * (1 - Math.pow(a, 1.3)), x = w / 2 + u * Math.max(1, w / 2 - 12) * conv, vertical = a + .90 * u * u * a * (1 - a), y = hz - sh * (sa < 0 ? sa / 90 : vertical) + skyPanVertical;
             return { x, y, visible, alt };
         }
         const ASTRO_LINEWORK = {
@@ -6735,95 +6504,6 @@
         renderTokyoSky = function (date) { astroBaseRenderTokyoSky(date); astroRenderOverlay(date); };
         astroInitWorkbench();
 
-        // ==========================================
-        // カスタム地域マップ専用 リアルタイム雨雲レーダー
-        // ==========================================
-        let customRadarLayer = null;
-
-        async function loadCustomMapRainRadar(mapInstance) {
-            if (!mapInstance || !showCustomRadar) return; // OFFなら読み込まない
-            try {
-                const resp = await fetch('https://api.rainviewer.com/public/weather-maps.json');
-                if (!resp.ok) return;
-                const data = await resp.json();
-                const radar = data?.radar;
-                const latest = radar?.nowcast?.[0] || radar?.past?.[radar.past.length - 1];
-                if (latest && latest.path) {
-                    const url = `https://tilecache.rainviewer.com${latest.path}/256/{z}/{x}/{y}/2/1_1.png`;
-                    if (customRadarLayer && mapInstance.hasLayer(customRadarLayer)) {
-                        mapInstance.removeLayer(customRadarLayer);
-                    }
-                    customRadarLayer = L.tileLayer(url, {
-                        opacity: 0.75,
-                        zIndex: 9999,
-                        tileSize: 256,
-                        maxNativeZoom: 7,
-                        maxZoom: 16
-                    });
-                    customRadarLayer.addTo(mapInstance);
-                    customRadarLayer.bringToFront();
-                }
-            } catch (_) { }
-        }
-
-        // カスタム地域マップが開かれたときに雨雲をロードするフック
-        const origEnsureCustomRegionMap = window.ensureCustomRegionMap;
-        if (typeof origEnsureCustomRegionMap === 'function') {
-            window.ensureCustomRegionMap = function () {
-                origEnsureCustomRegionMap();
-                if (typeof customRegionMap !== 'undefined' && customRegionMap) {
-                    setTimeout(() => {
-                        loadCustomMapRainRadar(customRegionMap);
-                    }, 300);
-                }
-            };
-        }
-
-        // もしすでにカスタムマップが開かれて初期化されている場合の対策
-        document.addEventListener('click', (e) => {
-            if (e.target && (e.target.id === 'btnCustomRegion' || e.target.closest('#btnCustomRegion'))) {
-                setTimeout(() => {
-                    if (typeof customRegionMap !== 'undefined' && customRegionMap) {
-                        loadCustomMapRainRadar(customRegionMap);
-                    }
-                }, 400);
-            }
-        });
-
-        // ローカルストレージから雨雲の保存状態を読み込み（初期値: true）
-        let showCustomRadar = localStorage.getItem('solarCustomRadarState') !== 'false';
-
-        const btnToggleCustomRadar = document.getElementById('btnToggleCustomRadar');
-        if (btnToggleCustomRadar) {
-            // 起動時のボタン表示と状態の同期
-            btnToggleCustomRadar.textContent = showCustomRadar
-                ? (currentLang === 'en' ? '🌧️ Radar: ON' : '🌧️ 雨雲: ON')
-                : (currentLang === 'en' ? '🌧️ Radar: OFF' : '🌧️ 雨雲: OFF');
-            btnToggleCustomRadar.style.background = showCustomRadar ? '#13355a' : '#222';
-            btnToggleCustomRadar.style.color = showCustomRadar ? '#8fe5ff' : '#888';
-
-            btnToggleCustomRadar.addEventListener('click', () => {
-                showCustomRadar = !showCustomRadar;
-
-                // 状態をローカルストレージに保存
-                localStorage.setItem('solarCustomRadarState', showCustomRadar);
-
-                btnToggleCustomRadar.textContent = showCustomRadar
-                    ? (currentLang === 'en' ? '🌧️ Radar: ON' : '🌧️ 雨雲: ON')
-                    : (currentLang === 'en' ? '🌧️ Radar: OFF' : '🌧️ 雨雲: OFF');
-                btnToggleCustomRadar.style.background = showCustomRadar ? '#13355a' : '#222';
-                btnToggleCustomRadar.style.color = showCustomRadar ? '#8fe5ff' : '#888';
-
-                if (typeof customRadarLayer !== 'undefined' && customRadarLayer && typeof customRegionMap !== 'undefined' && customRegionMap) {
-                   if (showCustomRadar) {
-                        loadCustomMapRainRadar(customRegionMap);
-                    } else if (customRadarLayer && customRegionMap && customRegionMap.hasLayer(customRadarLayer)) {
-                        customRegionMap.removeLayer(customRadarLayer);
-                    }
-                }
-            });
-        }
-
         function degToCompass(deg) {
             if (deg === null || deg === undefined) return '';
             const val = Math.floor((deg / 22.5) + 0.5);
@@ -6841,7 +6521,6 @@
             requestAnimationFrame(animate);
             const dt = (now - lastTime) / 1000;
             lastTime = now;
-            cloudAnimTime += dt * 1000;
 
             if (isPlaying) {
                 simDate = new Date(simDate.getTime() + stepHours * 3600000 * dt);
@@ -6879,7 +6558,7 @@
         btnToggleConst.style.color = '#fff';
         updateLanguageUI();
         updateSimulation(simDate);
-        ensureWeatherData();
+
         animate(performance.now());
     </script>
 
