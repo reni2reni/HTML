@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>リアル花火シミュレーター（FM音源＆パチパチ音付き）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #020308;
+            overflow: hidden;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            user-select: none;
+        }
+
+        canvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: rgba(255, 255, 255, 0.75);
+            pointer-events: none;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            letter-spacing: 0.1em;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        p {
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        #controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.22);
+        }
+
+        button:active {
+            transform: scale(0.96);
+        }
+
+        button.active {
+            background: rgba(255, 180, 50, 0.35);
+            border-color: rgba(255, 200, 80, 0.7);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="ui">
+        <h1>HANABI SIMULATOR</h1>
+        <p>画面をクリック・タップするとその高さまで花火が打ち上がります。<br>※最初のクリックでリアルな音響（FM低音・パチパチ音）が有効になります。</p>
+    </div>
+
+    <div id="controls">
+        <button id="autoBtn">自動打ち上げ: OFF</button>
+        <button id="muteBtn">音声: ON</button>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+    /**
+     * ==========================================
+     * 1. Web Audio API によるリアル花火サウンドエンジン
+     * ==========================================
+     */
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.masterGain = null;
+                this.noiseBuffer = null;
+                this.isMuted = false;
+            }
+
+            init() {
+                if (this.ctx) {
+                    if (this.ctx.state === 'suspended') {
+                        this.ctx.resume();
+                    }
+                    return;
+                }
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AudioContext();
+
+                // 全体の音量とコンプレッサー（音割れ防止＆重低音の迫力アップ）
+                const compressor = this.ctx.createDynamicsCompressor();
+                compressor.threshold.setValueAtTime(-12, this.ctx.currentTime);
+                compressor.knee.setValueAtTime(20, this.ctx.currentTime);
+                compressor.ratio.setValueAtTime(8, this.ctx.currentTime);
+                compressor.attack.setValueAtTime(0.005, this.ctx.currentTime);
+                compressor.release.setValueAtTime(0.25, this.ctx.currentTime);
+
+                this.masterGain = this.ctx.createGain();
+                this.masterGain.gain.setValueAtTime(0.85, this.ctx.currentTime);
+
+                compressor.connect(this.masterGain);
+                this.masterGain.connect(this.ctx.destination);
+                this.outputNode = compressor;
+
+                // ホワイトノイズバッファの事前生成（2秒分）
+                const bufferSize = this.ctx.sampleRate * 2;
+                this.noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = this.noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+            }
+
+            toggleMute() {
+                this.isMuted = !this.isMuted;
+                if (this.masterGain) {
+                    this.masterGain.gain.setTargetAtTime(this.isMuted ? 0 : 0.85, this.ctx.currentTime, 0.05);
+                }
+                return this.isMuted;
+            }
+
+            // 打ち上げ時の「ヒュ〜〜〜」という笛音＆風切り音
+            playLaunch(duration) {
+                if (!this.ctx || this.isMuted) return;
+                const now = this.ctx.currentTime;
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                const startFreq = 350 + Math.random() * 150;
+                const endFreq = startFreq + 450 + Math.random() * 250;
+
+                osc.frequency.setValueAtTime(startFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(endFreq, now + duration * 0.85);
+
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(0.04, now + duration * 0.2);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + duration * 0.9);
+
+                osc.connect(gain);
+                gain.connect(this.outputNode);
+                osc.start(now);
+                osc.stop(now + duration);
+
+                // 発射時の「ドンッ」という軽い筒音
+                const thumpOsc = this.ctx.createOscillator();
+                const thumpGain = this.ctx.createGain();
+                thumpOsc.type = 'triangle';
+                thumpOsc.frequency.setValueAtTime(110, now);
+                thumpOsc.frequency.exponentialRampToValueAtTime(35, now + 0.15);
+
+                thumpGain.gain.setValueAtTime(0.25, now);
+                thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+                thumpOsc.connect(thumpGain);
+                thumpGain.connect(this.outputNode);
+                thumpOsc.start(now);
+                thumpOsc.stop(now + 0.2);
+            }
+
+            // 開花時のFM音源による重低音「ドォォォン！」＋空気の衝撃波
+            playExplosion(scale = 1.0, hasCrackle = false) {
+                if (!this.ctx || this.isMuted) return;
+                const now = this.ctx.currentTime;
+
+                // --- 1. FM音源による重低音の胴鳴り ---
+                const carrier = this.ctx.createOscillator();
+                const modulator = this.ctx.createOscillator();
+                const modGain = this.ctx.createGain();
+                const mainGain = this.ctx.createGain();
+
+                const baseFreq = Math.max(32, 62 - scale * 18);
+                carrier.type = 'sine';
+                carrier.frequency.setValueAtTime(baseFreq * 1.8, now);
+                carrier.frequency.exponentialRampToValueAtTime(baseFreq * 0.45, now + 0.45 + scale * 0.3);
+
+                modulator.type = 'sine';
+                modulator.frequency.setValueAtTime(baseFreq * 1.414, now);
+                modulator.frequency.exponentialRampToValueAtTime(20, now + 0.3);
+
+                const modDepth = 180 * scale;
+                modGain.gain.setValueAtTime(modDepth, now);
+                modGain.gain.exponentialRampToValueAtTime(1, now + 0.25);
+
+                // 音量エンベロープ（大きい花火ほど重低音の余韻が長く響く）
+                const peakVolume = Math.min(1.0, 0.55 + scale * 0.35);
+                const decayTime = 0.8 + Math.pow(scale, 1.35) * 0.85;
+                mainGain.gain.setValueAtTime(0.001, now);
+                mainGain.gain.linearRampToValueAtTime(peakVolume, now + 0.015);
+                mainGain.gain.exponentialRampToValueAtTime(0.0001, now + decayTime);
+
+                modulator.connect(modGain);
+                modGain.connect(carrier.frequency);
+                carrier.connect(mainGain);
+                mainGain.connect(this.outputNode);
+
+                carrier.start(now);
+                modulator.start(now);
+                carrier.stop(now + decayTime + 0.1);
+                modulator.stop(now + decayTime + 0.1);
+
+                // --- 2. 空気の衝撃波・残響（ローパスノイズ） ---
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = this.noiseBuffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(900 * scale, now);
+                filter.frequency.exponentialRampToValueAtTime(120, now + decayTime * 1.1);
+
+                const noiseGain = this.ctx.createGain();
+                noiseGain.gain.setValueAtTime(0.001, now);
+                noiseGain.gain.linearRampToValueAtTime(0.45 * scale, now + 0.02);
+                noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + decayTime * 1.2);
+
+                noise.connect(filter);
+                filter.connect(noiseGain);
+                noiseGain.connect(this.outputNode);
+
+                noise.start(now);
+                noise.stop(now + decayTime * 1.3);
+
+                // --- 3. パチパチ音 ---
+                if (hasCrackle) {
+                    this.scheduleCrackles(now + 0.4 + scale * 0.25, scale);
+                }
+            }
+
+            // 時間差で無数に弾ける「パチパチパチッ！」という音
+            scheduleCrackles(startTime, scale) {
+                if (!this.ctx || this.isMuted) return;
+                const count = Math.floor(25 + scale * 35);
+
+                for (let i = 0; i < count; i++) {
+                    const delay = Math.pow(Math.random(), 1.3) * 0.95;
+                    const t = startTime + delay;
+
+                    const crackleSrc = this.ctx.createBufferSource();
+                    crackleSrc.buffer = this.noiseBuffer;
+
+                    const filter = this.ctx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.setValueAtTime(1800 + Math.random() * 2800, t);
+                    filter.Q.setValueAtTime(2.5, t);
+
+                    const gain = this.ctx.createGain();
+                    const vol = (0.12 + Math.random() * 0.22) * Math.min(1.2, scale);
+                    gain.gain.setValueAtTime(0.001, t);
+                    gain.gain.linearRampToValueAtTime(vol, t + 0.003);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.025 + Math.random() * 0.02);
+
+                    crackleSrc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.outputNode);
+
+                    const offset = Math.random() * 1.5;
+                    crackleSrc.start(t, offset, 0.06);
+                }
+            }
+        }
+    /**
+     * ==========================================
+     * 2. 物理演算＆打ち上げ花火（Rocket）クラス
+     * ==========================================
+     */
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const sound = new SoundEngine();
+
+        let width, height;
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // 花火のカラーパレット（実際の炎色反応に近い色合い）
+        const PALETTES = [
+            ['#ff3b30', '#ff9500', '#ffcc00'], // 紅・橙・金（定番の菊）
+            ['#00e5ff', '#2979ff', '#e0f7fa'], // 蒼・水色・白
+            ['#ff2a85', '#d500f9', '#ff80ab'], // 牡丹・紫・桃
+            ['#00e676', '#aeea00', '#ffff8d'], // 翠・黄緑・レモン
+            ['#ffd54f', '#ffb300', '#fff8e1'], // 錦冠（ゴールド）
+            ['#ff5252', '#40c4ff', '#69f0ae', '#ffd740'] // 五色（カラフル）
+        ];
+
+        // 打ち上げ中の火の玉クラス
+        class Rocket {
+                constructor(targetX, targetY, isGiant = false) {
+                    this.startX = targetX + (Math.random() - 0.5) * 80;
+                    this.startY = height;
+                    this.x = this.startX;
+                    this.y = this.startY;
+                    this.targetX = targetX;
+                    this.targetY = targetY;
+                    this.isGiant = isGiant;
+
+                    // 特大の場合はスケール2.4（画面いっぱい）、通常は0.65〜1.5
+                    this.scale = isGiant ? 2.4 : (0.65 + Math.random() * 0.85);
+
+                    const types = ['chrysanthemum', 'peony', 'kamuro', 'doubleRing', 'crossette', 'willow'];
+                    this.type = types[Math.floor(Math.random() * types.length)];
+
+                    // 特大尺玉は必ずパチパチ音が入る豪華仕様
+                    this.hasCrackle = isGiant ? true : (this.type === 'kamuro' || this.type === 'willow' || this.type === 'crossette' || Math.random() < 0.35);
+
+                    this.palette = PALETTES[Math.floor(Math.random() * PALETTES.length)];
+                    if (this.type === 'kamuro' || this.type === 'willow') {
+                        this.palette = ['#ffd54f', '#ffb300', '#ffe082'];
+                    }
+
+                    const gravity = 0.14;
+                    const dy = this.startY - this.targetY;
+                    const dx = this.targetX - this.startX;
+                    const flightFrames = Math.sqrt((2 * dy) / gravity);
+
+                    this.vx = dx / flightFrames;
+                    this.vy = -gravity * flightFrames;
+                    this.gravity = gravity;
+                    this.trail = [];
+                    this.exploded = false;
+
+                    sound.playLaunch(flightFrames / 60);
+                }
+
+            update() {
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > 8) this.trail.shift();
+
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += this.gravity;
+
+                if (this.vy >= -0.8 || this.y <= this.targetY) {
+                    this.explode();
+                    this.exploded = true;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                for (let i = 0; i < this.trail.length; i++) {
+                    const point = this.trail[i];
+                    const alpha = (i / this.trail.length) * 0.7;
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, 1.8 * this.scale, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 220, 150, ${alpha})`;
+                    ctx.fill();
+                }
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2.5 * this.scale, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+                ctx.restore();
+            }
+
+            explode() {
+                sound.playExplosion(this.scale, this.hasCrackle);
+
+                flashes.push({
+                    x: this.x,
+                    y: this.y,
+                    radius: 140 * this.scale,
+                    alpha: 0.45
+                });
+
+                const multiplier = this.isGiant ? 10 : 1;
+                const baseCount = Math.floor((90 + Math.random() * 60) * this.scale * multiplier);
+                // 大きい花火ほど明かり（火の粉）が長く残る係数
+                const lifeFactor = Math.pow(this.scale, 0.65);
+
+                if (this.type === 'chrysanthemum') {
+                    // 菊（中心から外周まで層になるよう速度に幅を持たせて穴を防ぐ）
+                    for (let i = 0; i < baseCount; i++) {
+                        const angle = (Math.PI * 2 * i) / baseCount + (Math.random() - 0.5) * 0.08;
+                        // 0.35〜1.0倍の速度分布で中心の空洞を埋める
+                        const speedRatio = 0.35 + Math.pow(Math.random(), 0.7) * 0.65;
+                        const speed = (5.8 * speedRatio) * this.scale;
+                        const color = this.palette[i % this.palette.length];
+                        particles.push(new Particle(this.x, this.y, angle, speed, color, {
+                            drag: 0.96,
+                            gravity: 0.055,
+                            decay: (0.011 + Math.random() * 0.005) / lifeFactor,
+                            trailLength: Math.floor(10 * lifeFactor),
+                            crackle: this.hasCrackle && Math.random() < 0.25
+                        }));
+                    }
+                } else if (this.type === 'peony') {
+                    // 牡丹（球体状にぎっしり詰まるよう低速〜高速まで均一に分布）
+                    for (let i = 0; i < baseCount * 1.2; i++) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const speed = (0.4 + Math.sqrt(Math.random()) * 5.6) * this.scale;
+                        const color = this.palette[Math.floor(Math.random() * this.palette.length)];
+                        particles.push(new Particle(this.x, this.y, angle, speed, color, {
+                            drag: 0.94,
+                            gravity: 0.06,
+                            decay: (0.015 + Math.random() * 0.008) / lifeFactor,
+                            trailLength: Math.floor(4 * lifeFactor),
+                            size: 2.6,
+                            crackle: this.hasCrackle && Math.random() < 0.2
+                        }));
+                    }
+                } else if (this.type === 'kamuro') {
+                    // 錦冠（中心付近から垂れ下がる火の粉も混ぜて空洞を防止）
+                    for (let i = 0; i < baseCount * 1.4; i++) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const speed = (0.3 + Math.sqrt(Math.random()) * 5.9) * this.scale;
+                        const color = this.palette[Math.floor(Math.random() * this.palette.length)];
+                        particles.push(new Particle(this.x, this.y, angle, speed, color, {
+                            drag: 0.955,
+                            gravity: 0.075,
+                            decay: (0.007 + Math.random() * 0.004) / lifeFactor,
+                            trailLength: Math.floor(14 * lifeFactor),
+                            flicker: true,
+                            crackle: true
+                        }));
+                    }
+                } else if (this.type === 'doubleRing') {
+                    // 二重芯（ご指定通り、輪の構造を保つためそのまま）
+                    const outerColor = this.palette[0];
+                    const innerColor = this.palette[1] || '#ffffff';
+                    const outerCount = Math.floor(baseCount * 0.8);
+                    const innerCount = Math.floor(baseCount * 0.5);
+
+                    for (let i = 0; i < outerCount; i++) {
+                        const angle = (Math.PI * 2 * i) / outerCount;
+                        const speed = 5.2 * this.scale;
+                        particles.push(new Particle(this.x, this.y, angle, speed, outerColor, {
+                            drag: 0.96,
+                            gravity: 0.05,
+                            decay: 0.012 / lifeFactor,
+                            trailLength: Math.floor(8 * lifeFactor),
+                            crackle: this.hasCrackle && Math.random() < 0.2
+                        }));
+                    }
+                    for (let i = 0; i < innerCount; i++) {
+                        const angle = (Math.PI * 2 * i) / innerCount;
+                        const speed = 2.7 * this.scale;
+                        particles.push(new Particle(this.x, this.y, angle, speed, innerColor, {
+                            drag: 0.96,
+                            gravity: 0.05,
+                            decay: 0.014 / lifeFactor,
+                            trailLength: Math.floor(6 * lifeFactor)
+                        }));
+                    }
+                } else if (this.type === 'crossette') {
+                    // 小割・蜂（内外の2層で小爆発させて中央のスカスカ感を解消）
+                    const count = Math.floor((18 + 12 * this.scale) * (this.isGiant ? 2.5 : 1));
+                    for (let i = 0; i < count; i++) {
+                        const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.1;
+                        const speed = (1.8 + Math.random() * 3.8) * this.scale;
+                        const color = this.palette[i % this.palette.length];
+                        particles.push(new Particle(this.x, this.y, angle, speed, color, {
+                            drag: 0.96,
+                            gravity: 0.05,
+                            decay: 0.028 / lifeFactor,
+                            trailLength: Math.floor(7 * lifeFactor),
+                            split: true
+                        }));
+                    }
+                } else if (this.type === 'willow') {
+                    // 柳（中心付近から外側まで均一に広がり、長く垂れ下がる）
+                    for (let i = 0; i < baseCount; i++) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const speed = (0.4 + Math.sqrt(Math.random()) * 5.4) * this.scale;
+                        const color = '#ffe082';
+                        particles.push(new Particle(this.x, this.y, angle, speed, color, {
+                            drag: 0.93,
+                            gravity: 0.045,
+                            decay: (0.0065 + Math.random() * 0.003) / lifeFactor,
+                            trailLength: Math.floor(16 * lifeFactor),
+                            flicker: true,
+                            crackle: this.hasCrackle && Math.random() < 0.3
+                        }));
+                    }
+                }
+            }
+}
+    /**
+     * ==========================================
+     * 3. 火の粉パーティクル＆メイン描画ループ
+     * ==========================================
+     */
+        class Particle {
+            constructor(x, y, angle, speed, color, opts = {}) {
+                this.x = x;
+                this.y = y;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.color = color;
+
+                this.drag = opts.drag || 0.95;
+                this.gravity = opts.gravity || 0.055;
+                this.alpha = 1.0;
+                this.decay = opts.decay || 0.012;
+                this.size = opts.size || 2.0;
+                this.trailLength = opts.trailLength || 8;
+                this.flicker = opts.flicker || false;
+                this.crackle = opts.crackle || false;
+                this.split = opts.split || false;
+
+                this.history = [];
+                this.age = 0;
+            }
+
+            update() {
+                this.history.push({ x: this.x, y: this.y });
+                if (this.history.length > this.trailLength) {
+                    this.history.shift();
+                }
+
+                this.vx *= this.drag;
+                this.vy *= this.drag;
+                this.vy += this.gravity;
+                this.vx += (Math.random() - 0.5) * 0.04;
+
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= this.decay;
+                this.age++;
+
+                // 小割花火の2段階爆発
+                if (this.split && this.alpha <= 0.45) {
+                    this.split = false;
+                    this.alpha = 0;
+                    for (let i = 0; i < 4; i++) {
+                        const subAngle = (Math.PI / 2) * i + Math.PI / 4;
+                        particles.push(new Particle(this.x, this.y, subAngle, 2.2, this.color, {
+                            drag: 0.93,
+                            gravity: 0.06,
+                            decay: 0.025,
+                            trailLength: 5,
+                            crackle: true
+                        }));
+                    }
+                }
+
+                // 消える直前にパチッと弾ける火花
+                if (this.crackle && this.alpha < 0.28 && this.alpha > 0.15 && Math.random() < 0.22) {
+                    this.crackle = false;
+                    sparks.push({
+                        x: this.x,
+                        y: this.y,
+                        life: 6
+                    });
+                }
+            }
+
+            draw() {
+                if (this.alpha <= 0) return;
+
+                let currentAlpha = this.alpha;
+                if (this.flicker && this.age > 20) {
+                    currentAlpha *= 0.4 + Math.random() * 0.8;
+                }
+
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+
+                if (this.history.length > 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(this.history[0].x, this.history[0].y);
+                    for (let i = 1; i < this.history.length; i++) {
+                        ctx.lineTo(this.history[i].x, this.history[i].y);
+                    }
+                    ctx.lineTo(this.x, this.y);
+                    ctx.strokeStyle = this.color;
+                    ctx.lineWidth = this.size * 0.85;
+                    ctx.globalAlpha = Math.max(0, currentAlpha * 0.65);
+                    ctx.stroke();
+                }
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.alpha > 0.6 ? '#ffffff' : this.color;
+                ctx.globalAlpha = Math.max(0, currentAlpha);
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        let rockets = [];
+        let particles = [];
+        let flashes = [];
+        let sparks = [];
+
+        const stars = Array.from({ length: 120 }, () => ({
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight * 0.85,
+            r: Math.random() * 1.2 + 0.3,
+            alpha: Math.random() * 0.6 + 0.1
+        }));
+
+        function drawBackground() {
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = 'rgba(3, 5, 14, 0.22)';
+            ctx.fillRect(0, 0, width, height);
+
+            for (const s of stars) {
+                ctx.beginPath();
+                ctx.arc(s.x % width, s.y % height, s.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(220, 235, 255, ${s.alpha * 0.15})`;
+                ctx.fill();
+            }
+
+            const horizonY = height - 28;
+            ctx.fillStyle = '#010205';
+            ctx.fillRect(0, horizonY, width, 28);
+        }
+
+        function loop() {
+            requestAnimationFrame(loop);
+            drawBackground();
+
+            for (let i = flashes.length - 1; i >= 0; i--) {
+                const f = flashes[i];
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                const grad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.radius);
+                grad.addColorStop(0, `rgba(255, 240, 210, ${f.alpha})`);
+                grad.addColorStop(1, 'rgba(255, 200, 150, 0)');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                f.alpha *= 0.82;
+                if (f.alpha < 0.01) flashes.splice(i, 1);
+            }
+
+            for (let i = rockets.length - 1; i >= 0; i--) {
+                rockets[i].update();
+                rockets[i].draw();
+                if (rockets[i].exploded) {
+                    rockets.splice(i, 1);
+                }
+            }
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            for (let i = sparks.length - 1; i >= 0; i--) {
+                const sp = sparks[i];
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.beginPath();
+                ctx.arc(sp.x, sp.y, 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 240, ${sp.life / 6})`;
+                ctx.fill();
+                ctx.restore();
+
+                sp.life--;
+                if (sp.life <= 0) sparks.splice(i, 1);
+            }
+        }
+
+        // ==========================================
+            // 4. ユーザー操作＆自動打ち上げ制御
+            // ==========================================
+            function launchAt(x, y, isGiant = false) {
+                sound.init();
+                const targetY = Math.min(y, height * 0.75);
+                rockets.push(new Rocket(x, targetY, isGiant));
+            }
+
+            let pressTimer = null;
+            let pressPos = { x: 0, y: 0 };
+            let isLongPress = false;
+
+            canvas.addEventListener('pointerdown', (e) => {
+                sound.init();
+                pressPos = { x: e.clientX, y: e.clientY };
+                isLongPress = false;
+
+                // 画面の上部（上から40%以内）を押した時だけ長押し判定を開始
+                if (e.clientY < height * 0.4) {
+                    pressTimer = setTimeout(() => {
+                        isLongPress = true;
+                        launchAt(pressPos.x, pressPos.y, true); // 特大尺玉を発射！
+                    }, 500); // 0.5秒長押しで発動
+                }
+            });
+
+            const cancelPress = () => {
+                if (pressTimer) {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                    // 長押し完了前に指を離した場合は通常の花火を打ち上げる
+                    if (!isLongPress) {
+                        launchAt(pressPos.x, pressPos.y, false);
+                    }
+                } else if (pressPos.y >= height * 0.4 && !isLongPress) {
+                    // 画面下部をクリックした場合は即座に通常花火
+                    launchAt(pressPos.x, pressPos.y, false);
+                }
+                isLongPress = true; // 二重発射防止
+            };
+
+            canvas.addEventListener('pointerup', cancelPress);
+            canvas.addEventListener('pointerleave', cancelPress);
+
+        const autoBtn = document.getElementById('autoBtn');
+            const muteBtn = document.getElementById('muteBtn');
+            let autoTimer = null;
+            let autoCount = 0; // 自動打ち上げ回数カウンター
+
+            autoBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sound.init();
+                if (autoTimer) {
+                    clearInterval(autoTimer);
+                    autoTimer = null;
+                    autoBtn.textContent = '自動打ち上げ: OFF';
+                    autoBtn.classList.remove('active');
+                } else {
+                    autoBtn.textContent = '自動打ち上げ: ON';
+                    autoBtn.classList.add('active');
+                    autoCount = 0;
+                    const scheduleNext = () => {
+                        if (!autoTimer) return;
+                        autoCount++;
+                        // 10回に1回は特大尺玉を発射
+                        const isGiant = (autoCount % 10 === 0);
+                        const rx = width * (0.2 + Math.random() * 0.6);
+                        // 特大のときは画面上部（高さ15〜30%付近）に打ち上げる
+                        const ry = isGiant
+                            ? height * (0.15 + Math.random() * 0.15)
+                            : height * (0.18 + Math.random() * 0.4);
+                        launchAt(rx, ry, isGiant);
+                    };
+                    scheduleNext();
+                    autoTimer = setInterval(scheduleNext, 1100);
+                }
+            });
+
+        muteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sound.init();
+            const muted = sound.toggleMute();
+            muteBtn.textContent = muted ? '音声: OFF' : '音声: ON';
+        });
+
+        // スタート
+        loop();
+    </script>
+</body>
+
+</html>
