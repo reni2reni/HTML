@@ -129,6 +129,14 @@
             line-height: 1.6;
             display: none;
         }
+
+        .error-box code {
+            background: #0f172a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #38bdf8;
+            font-family: monospace;
+        }
     </style>
 </head>
 
@@ -154,39 +162,39 @@
         const repoInfoEl = document.getElementById('repoInfo');
         const errorBox = document.getElementById('errorBox');
 
-        // URL（〇〇.github.io/リポジトリ名/サブフォルダ/）からユーザー名・リポジトリ名・階層を自動判別
+        // URLからユーザー名・リポジトリ名・サブパスを正確に判別
         function detectGitHubInfo() {
             const host = location.hostname; // 例: username.github.io
             const pathParts = location.pathname.split('/').filter(p => p.length > 0);
 
-            // 末尾が .html で終わっている場合はファイル名を除外
+            // 末尾が .html / .htm の場合はファイル名を除外
             if (pathParts.length > 0 && /\.html?$/i.test(pathParts[pathParts.length - 1])) {
                 pathParts.pop();
             }
 
-            const user = host.replace('.github.io', '');
-            // ユーザーページ(username.github.io直下)かプロジェクトページ(username.github.io/repo)かを判定
-            const repo = pathParts.length > 0 ? pathParts : `${user}.github.io`;
-            const subPath = pathParts.length > 1 ? pathParts.slice(1).join('/') : '';
+            const user = host.replace(/\.github\.io$/i, '');
+            const isUserSite = (pathParts.length === 0);
+            // 修正: pathParts[0] で正しくリポジトリ名を取得
+            const repo = isUserSite ? `${user}.github.io` : pathParts[0];
+            const subPath = isUserSite ? '' : pathParts.slice(1).join('/');
 
             return { user, repo, subPath };
         }
 
-        // 各HTMLファイルの中身から <title> タグを読み取る
         async function fetchPageTitle(url, fallbackName) {
             try {
                 const res = await fetch(url);
                 if (!res.ok) return fallbackName;
                 const text = await res.text();
                 const match = text.match(/<title[^>]*>([^<]+)<\/title>/i);
-                return match ? match.trim() : fallbackName;
+                return match ? match[1].trim() : fallbackName;
             } catch {
                 return fallbackName;
             }
         }
 
         function escapeHtml(str) {
-            return str.replace(/[&<>"']/g, m => ({
+            return String(str).replace(/[&<>"']/g, m => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
             })[m]);
         }
@@ -197,58 +205,89 @@
             statusEl.textContent = 'GitHubリポジトリ内のHTMLファイルを検索中...';
 
             const { user, repo, subPath } = detectGitHubInfo();
-            repoInfoEl.textContent = `${user} / ${repo}${subPath ? ' / ' + subPath : ''}`;
+            const displayPath = `${user}/${repo}${subPath ? '/' + subPath : ''}`;
+            repoInfoEl.textContent = `Target: ${displayPath}`;
 
-            try {
-                // GitHub Contents API を叩いてファイル一覧を取得（認証不要・パブリックリポジトリ対応）
-                const apiUrl = `https://github.com{user}/${repo}/contents/${subPath}`;
-                const res = await fetch(apiUrl);
+            // 通常のパスと、GitHub Pagesでよくある docs/ フォルダ内の両方を候補にする
+            const candidatePaths = [subPath];
+            if (!subPath.startsWith('docs')) {
+                candidatePaths.push(subPath ? `docs/${subPath}` : 'docs');
+            }
 
-                if (!res.ok) {
-                    throw new Error(`GitHub API エラー (HTTP ${res.status}): プライベートリポジトリの場合は一覧取得が制限されます。`);
+            let items = null;
+            let lastStatus = '';
+            let lastApiUrl = '';
+
+            for (const path of candidatePaths) {
+                const apiUrl = `https://github.com{user}/${repo}/contents/${path}`;
+                lastApiUrl = apiUrl;
+                try {
+                    const res = await fetch(apiUrl);
+                    lastStatus = res.status;
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (Array.isArray(data)) {
+                            // そのフォルダ内に index.html または他のHTMLがあるか確認
+                            const hasHtml = data.some(f => f.type === 'file' && /\.html?$/i.test(f.name));
+                            if (hasHtml) {
+                                items = data;
+                                break;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    lastStatus = e.message;
                 }
+            }
 
-                const items = await res.json();
-                const currentFile = decodeURIComponent(location.pathname.split('/').pop()) || 'index.html';
-
-                // 同じフォルダ内の .html / .htm ファイルのみ抽出（自分自身とindex.htmlは除外）
-                const htmlFiles = items.filter(item =>
-                    item.type === 'file' &&
-                    /\.(html|htm)$/i.test(item.name) &&
-                    item.name !== currentFile &&
-                    item.name.toLowerCase() !== 'index.html'
-                );
-
-                if (htmlFiles.length === 0) {
-                    statusEl.textContent = 'このフォルダ内に他のHTMLファイルが見つかりませんでした。';
-                    return;
-                }
-
-                statusEl.textContent = `${htmlFiles.length} 件のHTMLアプリが見つかりました`;
-
-                for (const file of htmlFiles) {
-                    const title = await fetchPageTitle(file.name, file.name);
-
-                    const card = document.createElement('a');
-                    card.className = 'card';
-                    card.href = encodeURI(file.name);
-                    card.target = '_blank';
-                    card.innerHTML = `
-        <div>
-          <div class="card-title">${escapeHtml(title)}</div>
-          <div class="card-file">${escapeHtml(file.name)}</div>
-        </div>
-        <div class="badge">クリックして起動 →</div>
-      `;
-                    grid.appendChild(card);
-                }
-            } catch (err) {
+            if (!items) {
                 statusEl.textContent = '一覧の取得に失敗しました。';
                 errorBox.style.display = 'block';
                 errorBox.innerHTML = `
-      <strong>取得エラー:</strong> ${escapeHtml(err.message)}<br>
-      ※ GitHub Pagesに反映されるまで数分かかる場合があります。また、リポジトリが「Public（公開）」になっているか確認してください。
+      <strong>詳細診断（HTTPステータス: ${escapeHtml(lastStatus)}）</strong><br>
+      問い合わせ先URL: <code>${escapeHtml(lastApiUrl)}</code><br><br>
+      <strong>考えられる原因：</strong><br>
+      1. <strong>リポジトリが「Private（非公開）」になっている</strong><br>
+      → GitHubのリポジトリ設定（Settings &gt; Danger Zone）で「Public（公開）」にする必要があります。<br>
+      2. <strong>GitHubのAPI回数制限（1時間に60回まで）に達した</strong><br>
+      → 短時間に何度も再読み込みすると一時制限がかかります（ステータス403）。<br>
+      3. <strong>HTMLファイルをアップロードした直後</strong><br>
+      → GitHubへの反映まで数十秒かかることがあります。
     `;
+                return;
+            }
+
+            const currentFile = decodeURIComponent(location.pathname.split('/').pop()) || 'index.html';
+
+            const htmlFiles = items.filter(item =>
+                item.type === 'file' &&
+                /\.(html|htm)$/i.test(item.name) &&
+                item.name !== currentFile &&
+                item.name.toLowerCase() !== 'index.html'
+            );
+
+            if (htmlFiles.length === 0) {
+                statusEl.textContent = 'このフォルダ内に他のHTMLファイルが見つかりませんでした。';
+                return;
+            }
+
+            statusEl.textContent = `${htmlFiles.length} 件のHTMLアプリが見つかりました`;
+
+            for (const file of htmlFiles) {
+                const title = await fetchPageTitle(file.name, file.name);
+
+                const card = document.createElement('a');
+                card.className = 'card';
+                card.href = encodeURI(file.name);
+                card.target = '_blank';
+                card.innerHTML = `
+      <div>
+        <div class="card-title">${escapeHtml(title)}</div>
+        <div class="card-file">${escapeHtml(file.name)}</div>
+      </div>
+      <div class="badge">クリックして起動 →</div>
+    `;
+                grid.appendChild(card);
             }
         }
 
