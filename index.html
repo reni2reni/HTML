@@ -29,7 +29,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 24px;
             padding-bottom: 16px;
             border-bottom: 1px solid #334155;
             flex-wrap: wrap;
@@ -43,9 +43,11 @@
             color: #38bdf8;
         }
 
-        .controls {
-            display: flex;
-            gap: 10px;
+        .repo-info {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-top: 4px;
+            font-family: monospace;
         }
 
         button {
@@ -72,7 +74,7 @@
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 16px;
         }
 
@@ -87,7 +89,6 @@
             flex-direction: column;
             justify-content: space-between;
             transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-            position: relative;
         }
 
         .card:hover {
@@ -118,26 +119,15 @@
             font-weight: 500;
         }
 
-        .fallback-box {
+        .error-box {
             background: #1e293b;
-            border: 1px dashed #64748b;
+            border: 1px solid #f43f5e;
             border-radius: 12px;
-            padding: 24px;
-            margin-top: 20px;
-            display: none;
-        }
-
-        .fallback-box h2 {
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-            color: #fbbf24;
-        }
-
-        .fallback-box p {
+            padding: 20px;
+            color: #fecdd3;
             font-size: 0.9rem;
-            color: #cbd5e1;
             line-height: 1.6;
-            margin-bottom: 14px;
+            display: none;
         }
     </style>
 </head>
@@ -146,125 +136,54 @@
 
     <div class="container">
         <header>
-            <h1>HTML APP LAUNCHER</h1>
-            <div class="controls">
-                <button id="reloadBtn">再読み込み</button>
-                <button id="folderBtn">フォルダを選択して一覧化</button>
+            <div>
+                <h1>HTML APP LAUNCHER</h1>
+                <div class="repo-info" id="repoInfo"></div>
             </div>
+            <button id="reloadBtn">再読み込み</button>
         </header>
 
-        <div id="status">サーバー内のHTMLファイルを検索中...</div>
+        <div id="status">GitHubリポジトリ内のHTMLファイルを検索中...</div>
         <div id="grid" class="grid"></div>
-
-        <!-- サーバーのディレクトリ一覧が無効な場合の案内 -->
-        <div id="fallbackBox" class="fallback-box">
-            <h2>自動取得が制限されています</h2>
-            <p>
-                お使いのサーバー設定（Directory Listing無効）またはローカルファイル直接開き（file://）のため、フォルダ内の自動スキャンがブロックされました。<br>
-                上の<strong>「フォルダを選択して一覧化」</strong>ボタンを押してこのフォルダを選ぶと、中のHTMLファイルをすべて自動リスト化できます。
-            </p>
-        </div>
+        <div id="errorBox" class="error-box"></div>
     </div>
-
-    <input type="file" id="dirInput" webkitdirectory directory multiple style="display:none;">
 
     <script>
         const grid = document.getElementById('grid');
         const statusEl = document.getElementById('status');
-        const fallbackBox = document.getElementById('fallbackBox');
-        const dirInput = document.getElementById('dirInput');
+        const repoInfoEl = document.getElementById('repoInfo');
+        const errorBox = document.getElementById('errorBox');
 
-        // 自分自身のファイル名を取得（リストから除外するため）
-        const currentFile = decodeURIComponent(location.pathname.split('/').pop()) || 'index.html';
+        // URL（〇〇.github.io/リポジトリ名/サブフォルダ/）からユーザー名・リポジトリ名・階層を自動判別
+        function detectGitHubInfo() {
+            const host = location.hostname; // 例: username.github.io
+            const pathParts = location.pathname.split('/').filter(p => p.length > 0);
 
-        // 各HTMLファイルの中身から <title> タグを読み取る関数
+            // 末尾が .html で終わっている場合はファイル名を除外
+            if (pathParts.length > 0 && /\.html?$/i.test(pathParts[pathParts.length - 1])) {
+                pathParts.pop();
+            }
+
+            const user = host.replace('.github.io', '');
+            // ユーザーページ(username.github.io直下)かプロジェクトページ(username.github.io/repo)かを判定
+            const repo = pathParts.length > 0 ? pathParts : `${user}.github.io`;
+            const subPath = pathParts.length > 1 ? pathParts.slice(1).join('/') : '';
+
+            return { user, repo, subPath };
+        }
+
+        // 各HTMLファイルの中身から <title> タグを読み取る
         async function fetchPageTitle(url, fallbackName) {
             try {
                 const res = await fetch(url);
                 if (!res.ok) return fallbackName;
                 const text = await res.text();
                 const match = text.match(/<title[^>]*>([^<]+)<\/title>/i);
-                return match ? match[1].trim() : fallbackName;
+                return match ? match.trim() : fallbackName;
             } catch {
                 return fallbackName;
             }
         }
-
-        // カードを生成して画面に追加
-        async function renderCards(fileList) {
-            grid.innerHTML = '';
-            fallbackBox.style.display = 'none';
-
-            // 自分自身を除外して .html / .htm のみ抽出
-            const targets = fileList.filter(name => {
-                const cleanName = decodeURIComponent(name.split('/').pop());
-                return /\.(html|htm)$/i.test(cleanName) && cleanName !== currentFile && cleanName !== 'index.html';
-            });
-
-            if (targets.length === 0) {
-                statusEl.textContent = '表示できるHTMLファイルが見つかりませんでした。';
-                return;
-            }
-
-            statusEl.textContent = `${targets.length} 件のHTMLアプリが見つかりました`;
-
-            for (const href of targets) {
-                const fileName = decodeURIComponent(href.split('/').pop());
-                const title = await fetchPageTitle(href, fileName);
-
-                const card = document.createElement('a');
-                card.className = 'card';
-                card.href = href;
-                card.target = '_blank'; // 新しいタブで開く（同じタブで開く場合はこの行を削除）
-                card.innerHTML = `
-      <div>
-        <div class="card-title">${escapeHtml(title)}</div>
-        <div class="card-file">${escapeHtml(fileName)}</div>
-      </div>
-      <div class="badge">クリックして起動 →</div>
-    `;
-                grid.appendChild(card);
-            }
-        }
-
-        // サーバーのディレクトリインデックス（./）を取得してHTMLを自動抽出
-        async function scanServerDirectory() {
-            statusEl.textContent = 'サーバー内のHTMLファイルを検索中...';
-            try {
-                // サーバーのディレクトリ一覧を取得（index.html自身が返る場合は404的なダミーや親パスではなくディレクトリインデックスを期待）
-                const res = await fetch('./?t=' + Date.now());
-                const html = await res.text();
-
-                // 自分自身のランチャーHTMLが返ってきた場合（サーバーがindex.htmlを自動配信している場合）
-                if (html.includes('HTML APP LAUNCHER')) {
-                    throw new Error('Directory listing is disabled because index.html is served.');
-                }
-
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const links = Array.from(doc.querySelectorAll('a'))
-                    .map(a => a.getAttribute('href'))
-                    .filter(href => href && !href.startsWith('?') && !href.startsWith('/') && !href.startsWith('http'));
-
-                const uniqueFiles = [...new Set(links)];
-                await renderCards(uniqueFiles);
-            } catch (err) {
-                statusEl.textContent = '自動スキャンできませんでした。';
-                fallbackBox.style.display = 'block';
-            }
-        }
-
-        // フォルダ選択ダイアログからの手動スキャン（ローカル環境やListing無効サーバー用）
-        dirInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files)
-                // 直下のファイルのみ対象にする
-                .filter(f => f.webkitRelativePath.split('/').length === 2)
-                .map(f => f.name);
-            renderCards(files);
-        });
-
-        document.getElementById('folderBtn').addEventListener('click', () => dirInput.click());
-        document.getElementById('reloadBtn').addEventListener('click', scanServerDirectory);
 
         function escapeHtml(str) {
             return str.replace(/[&<>"']/g, m => ({
@@ -272,8 +191,69 @@
             })[m]);
         }
 
-        // 起動時にスキャン実行
-        scanServerDirectory();
+        async function loadGitHubFiles() {
+            grid.innerHTML = '';
+            errorBox.style.display = 'none';
+            statusEl.textContent = 'GitHubリポジトリ内のHTMLファイルを検索中...';
+
+            const { user, repo, subPath } = detectGitHubInfo();
+            repoInfoEl.textContent = `${user} / ${repo}${subPath ? ' / ' + subPath : ''}`;
+
+            try {
+                // GitHub Contents API を叩いてファイル一覧を取得（認証不要・パブリックリポジトリ対応）
+                const apiUrl = `https://github.com{user}/${repo}/contents/${subPath}`;
+                const res = await fetch(apiUrl);
+
+                if (!res.ok) {
+                    throw new Error(`GitHub API エラー (HTTP ${res.status}): プライベートリポジトリの場合は一覧取得が制限されます。`);
+                }
+
+                const items = await res.json();
+                const currentFile = decodeURIComponent(location.pathname.split('/').pop()) || 'index.html';
+
+                // 同じフォルダ内の .html / .htm ファイルのみ抽出（自分自身とindex.htmlは除外）
+                const htmlFiles = items.filter(item =>
+                    item.type === 'file' &&
+                    /\.(html|htm)$/i.test(item.name) &&
+                    item.name !== currentFile &&
+                    item.name.toLowerCase() !== 'index.html'
+                );
+
+                if (htmlFiles.length === 0) {
+                    statusEl.textContent = 'このフォルダ内に他のHTMLファイルが見つかりませんでした。';
+                    return;
+                }
+
+                statusEl.textContent = `${htmlFiles.length} 件のHTMLアプリが見つかりました`;
+
+                for (const file of htmlFiles) {
+                    const title = await fetchPageTitle(file.name, file.name);
+
+                    const card = document.createElement('a');
+                    card.className = 'card';
+                    card.href = encodeURI(file.name);
+                    card.target = '_blank';
+                    card.innerHTML = `
+        <div>
+          <div class="card-title">${escapeHtml(title)}</div>
+          <div class="card-file">${escapeHtml(file.name)}</div>
+        </div>
+        <div class="badge">クリックして起動 →</div>
+      `;
+                    grid.appendChild(card);
+                }
+            } catch (err) {
+                statusEl.textContent = '一覧の取得に失敗しました。';
+                errorBox.style.display = 'block';
+                errorBox.innerHTML = `
+      <strong>取得エラー:</strong> ${escapeHtml(err.message)}<br>
+      ※ GitHub Pagesに反映されるまで数分かかる場合があります。また、リポジトリが「Public（公開）」になっているか確認してください。
+    `;
+            }
+        }
+
+        document.getElementById('reloadBtn').addEventListener('click', loadGitHubFiles);
+        loadGitHubFiles();
     </script>
 </body>
 
